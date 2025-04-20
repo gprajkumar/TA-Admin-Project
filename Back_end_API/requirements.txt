@@ -1,0 +1,19 @@
+Django>=5.2
+djangorestframework  # For APIs
+djangorestframework-simplejwt  # JWT authentication
+django-cors-headers  # Enable CORS for frontend communication
+gunicorn  # Production WSGI server
+whitenoise  # Serves static files
+django-environ  # Manage environment variables
+
+# Database
+psycopg2-binary  # PostgreSQL adapter (if using PostgreSQL)
+
+# Data Analysis
+pandas  # Data manipulation and analysis
+numpy  # Numerical computing
+matplotlib  # Data visualization (charts/graphs)
+seaborn  # Advanced visualization (heatmaps, correlation plots)
+plotly  # Interactive charts (useful for dashboards)
+dash  # Build interactive web-based dashboards with Plotly
+django-plotly-dash  # Integrates Dash with Django
