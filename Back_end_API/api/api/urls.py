@@ -16,9 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
+from django.contrib import admin
 urlpatterns = [
+
     path('admin/', admin.site.urls),
     path('ta_admin/', include('ta_team.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
+
+
+admin.site.site_header = "Talent Acquistion Admin"
+admin.site.site_title = "TA Admin Portal"
+admin.site.index_title = "Welcome to TA Management Portal"
