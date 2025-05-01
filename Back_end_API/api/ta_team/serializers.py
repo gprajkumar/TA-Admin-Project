@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import Account
+from .models.models import *
+from .models.requirement import *
 
-class AccountSerializer(serializers.ModelSerializer):
+class RequirementsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Account
+        model = Requirements
         fields = '__all__'

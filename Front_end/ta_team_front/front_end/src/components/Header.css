@@ -1,0 +1,25 @@
+.custom-navbar {
+  display: flex;
+  justify-content: flex-end; /* Move navbar content to the right */
+  align-items: center; /* vertically center */
+  background-color: #52ffa8;
+  color: rgb(0, 0, 0);
+  }
+  
+  .custom-navbar .navbar-brand
+  {
+    font-weight: bold;
+    font-size: larger;
+  }
+  .custom-navbar .navbar-nav .nav-link {
+    color: rgb(0, 0, 0);
+  }
+  
+  .custom-navbar .navbar-nav .nav-link:hover {
+    color: #ffffff; /* Hover color */
+  }
+  
+  .custom-navbar .navbar-nav .nav-link.active {
+    color: blue; /* Active link stays blue after clicking */
+  }
+  

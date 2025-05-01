@@ -1,9 +1,12 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from rest_framework import generics
-from .models import Account
-from .serializers import AccountSerializer
+from rest_framework import status
+from .models.models import *
+from .models.requirement import *
+from .serializers import RequirementsSerializer
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.response import Response
 # Create your views here.
-class AccountView(generics.ListCreateAPIView):
-    queryset = Account.objects.all()
-    serializer_class = AccountSerializer
+
+class RequirementsViewSet(ModelViewSet):
+   queryset = Requirements.objects.all()
+   serializer_class = RequirementsSerializer

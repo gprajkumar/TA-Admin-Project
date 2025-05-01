@@ -1,5 +1,5 @@
 from django.contrib import admin
-from . import models
+from .models import models
 # Register your models here.
 class TAAdmin(admin.AdminSite):
     site_header = "Talent Acquistion Admin"
