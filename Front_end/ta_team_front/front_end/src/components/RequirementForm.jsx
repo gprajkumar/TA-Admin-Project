@@ -1,158 +1,180 @@
-// src/components/RequirementForm.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './RequirementForm.css'; // External CSS
 
 const RequirementForm = () => {
-  // State for form fields
-  const [jobTitle, setJobTitle] = useState('');
-  const [jobCode, setJobCode] = useState('');
-  const [client, setClient] = useState('');
-  const [jobStatus, setJobStatus] = useState('');
-  const [assignedRecruiter, setAssignedRecruiter] = useState('');
-  const [offerDate, setOfferDate] = useState('');
-  const [clients, setClients] = useState([]);
-  const [jobStatuses, setJobStatuses] = useState([]);
-  const [recruiters, setRecruiters] = useState([]);
+  const [formData, setFormData] = useState({
+    job_title: '',
+    job_code: '',
+    client: '',
+    end_client: '',
+    account: '',
+    job_status: '',
+    assigned_recruiter: '',
+    assigned_sourcer: '',
+    offer_date: '',
+    filled_by_recruiter: '',
+    filled_by_sourcer: '',
+    accountManager: '',
+    hiringManager: '',
+    filled_source: '',
+    notes: ''
+  });
 
-  // Fetch clients, job statuses, and recruiters for dropdowns
+  const [dropdownData, setDropdownData] = useState({
+    clients: [],
+    endClients: [],
+    accounts: [],
+    jobStatuses: [],
+    recruiters: [],
+    sourcers: [],
+    accountManagers: [],
+    hiringManagers: [],
+    sources: []
+  });
+
   useEffect(() => {
-    // Fetch clients
-    axios.get('http://127.0.0.1:8000/api/clients/')
-      .then(response => {
-        setClients(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching clients:', error);
-      });
+    const fetchData = async () => {
+      try {
+        const [
+          clientsRes,
+          endClientsRes,
+          accountsRes,
+          jobStatusesRes,
+          recruitersRes,
+          sourcersRes,
+          accountManagersRes,
+          hiringManagersRes,
+          sourcesRes
+        ] = await Promise.all([
+          axios.get('http://127.0.0.1:8000/ta_team/clients'),
+          axios.get('http://127.0.0.1:8000/ta_team/endclients'),
+          axios.get('http://127.0.0.1:8000/ta_team/accounts'),
+          axios.get('http://127.0.0.1:8000/ta_team/jobstatuses'),
+          axios.get('http://127.0.0.1:8000/ta_team/recruiters'),
+          axios.get('http://127.0.0.1:8000/ta_team/sourcers'),
+          axios.get('http://127.0.0.1:8000/ta_team/accountmanagers'),
+          axios.get('http://127.0.0.1:8000/ta_team/hiringmanagers'),
+          axios.get('http://127.0.0.1:8000/ta_team/sources'),
+          axios.get('http://127.0.0.1:8000/ta_team/roletypes')
+        ]);
 
-    // Fetch job statuses
-    axios.get('http://127.0.0.1:8000/api/job_statuses/')
-      .then(response => {
-        setJobStatuses(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching job statuses:', error);
-      });
+        setDropdownData({
+          clients: normalizeData(clientsRes.data, "client_id", "client_name"),
+          endClients: normalizeData(endClientsRes.data, "end_client_id", "end_client_name"),
+          accounts: normalizeData(accountsRes.data, "account_id", "account_name"),
+          jobStatuses: normalizeData(jobStatusesRes.data, "job_status_id", "job_status"),
+          recruiters: normalizeData(recruitersRes.data, "recruiter_id", "recruiter_name"),
+          sourcers: normalizeData(sourcersRes.data, "sourcer_id", "sourcer_name"),
+          accountManagers: normalizeData(accountManagersRes.data, "account_manager_id", "account_manager"),
+          hiringManagers: normalizeData(hiringManagersRes.data, "hiring_manager_id", "hiring_manager"),
+          sources: normalizeData(sourcesRes.data, "source_id", "source"),
+          roletypes: normalizeData(sourcesRes.data, "role_type_id", "role_type")
+        });
+      } catch (err) {
+        console.error('Error fetching dropdown data:', err);
+      }
+    };
 
-    // Fetch recruiters
-    axios.get('http://127.0.0.1:8000/api/recruiters/')
-      .then(response => {
-        setRecruiters(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching recruiters:', error);
-      });
+    fetchData();
   }, []);
 
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Post data to Django API
-    axios.post('http://127.0.0.1:8000/ta_admin/requirements', {
-      job_title: jobTitle,
-      job_code: jobCode,
-      client: client,
-      job_status: jobStatus,
-      assigned_recruiter: assignedRecruiter,
-      offer_date: offerDate,
-    })
-    .then(response => {
-      console.log('Requirement created successfully:', response.data);
-      alert('Requirement created successfully!');
-    })
-    .catch(error => {
-      console.error('There was an error creating the requirement!', error);
-    });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  return (
-    <div>
-      <h1>Create a New Requirement</h1>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Job Title:
-          <input 
-            type="text" 
-            value={jobTitle} 
-            onChange={(e) => setJobTitle(e.target.value)} 
-          />
-        </label>
-        <br />
-        <label>
-          Job Code:
-          <input 
-            type="text" 
-            value={jobCode} 
-            onChange={(e) => setJobCode(e.target.value)} 
-          />
-        </label>
-        <br />
-        
-        {/* Dropdown for Clients */}
-        <label>
-          Client:
-          <select 
-            value={client} 
-            onChange={(e) => setClient(e.target.value)} 
-          >
-            <option value="">Select a Client</option>
-            {clients.map(client => (
-              <option key={client.id} value={client.id}>
-                {client.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <br />
+  const normalizeData = (data, idKey, nameKey) =>
+    data.map(item => ({ id: item[idKey], name: item[nameKey] }));
 
-        {/* Dropdown for Job Status */}
-        <label>
-          Job Status:
-          <select 
-            value={jobStatus} 
-            onChange={(e) => setJobStatus(e.target.value)} 
-          >
-            <option value="">Select a Job Status</option>
-            {jobStatuses.map(status => (
-              <option key={status.id} value={status.id}>
-                {status.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <br />
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('http://127.0.0.1:8000/ta_team/requirements', formData);
+      alert('Requirement submitted successfully');
+    } catch (err) {
+      console.error('Error submitting requirement:', err);
+      alert('Submission failed');
+    }
+  };
 
-        {/* Dropdown for Assigned Recruiter */}
-        <label>
-          Assigned Recruiter:
-          <select 
-            value={assignedRecruiter} 
-            onChange={(e) => setAssignedRecruiter(e.target.value)} 
-          >
-            <option value="">Select a Recruiter</option>
-            {recruiters.map(recruiter => (
-              <option key={recruiter.id} value={recruiter.id}>
-                {recruiter.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <br />
-
-        <label>
-          Offer Date:
-          <input 
-            type="date" 
-            value={offerDate} 
-            onChange={(e) => setOfferDate(e.target.value)} 
-          />
-        </label>
-        <br />
-        
-        <button type="submit">Create Requirement</button>
-      </form>
+  const renderSelect = (name, label, options) => (
+    <div className="form-group mb-3">
+      <label>{label}:</label>
+      <select name={name} value={formData[name]} onChange={handleChange} className="form-control">
+        <option value="">Select {label}</option>
+        {(Array.isArray(options) ? options : []).map(opt => (
+          <option key={opt.id} value={opt.id}>{opt.name}</option>
+        ))}
+      </select>
     </div>
+  );
+
+  return (
+    <form onSubmit={handleSubmit} className="requirement-form container">
+      <h2 className="mb-4">Create Requirement</h2>
+      <div className="row">
+        {/* Left Column */}
+        <div className="col-md-6">
+          <div className="form-group mb-3">
+            <label>Job Title:</label>
+            <input
+              name="job_title"
+              type="text"
+              value={formData.job_title}
+              onChange={handleChange}
+              className="form-control"
+            />
+          </div>
+
+          <div className="form-group mb-3">
+            <label>Job Code:</label>
+            <input
+              name="job_code"
+              type="text"
+              value={formData.job_code}
+              onChange={handleChange}
+              className="form-control"
+            />
+          </div>
+
+          {renderSelect('client', 'Client', dropdownData.clients)}
+          {renderSelect('end_client', 'End Client', dropdownData.endClients)}
+          {renderSelect('account', 'Account', dropdownData.accounts)}
+          {renderSelect('job_status', 'Job Status', dropdownData.jobStatuses)}
+          {renderSelect('offer_date', 'Offer Date', [])}
+          {renderSelect('role_types', 'Role Type', dropdownData.roletypes)}
+        </div>
+
+        {/* Right Column */}
+        <div className="col-md-6">
+          {renderSelect('assigned_recruiter', 'Assigned Recruiter', dropdownData.recruiters)}
+          {renderSelect('assigned_sourcer', 'Assigned Sourcer', dropdownData.sourcers)}
+          {renderSelect('filled_by_recruiter', 'Filled by Recruiter', dropdownData.recruiters)}
+          {renderSelect('filled_by_sourcer', 'Filled by Sourcer', dropdownData.sourcers)}
+          {renderSelect('accountManager', 'Account Manager', dropdownData.accountManagers)}
+          {renderSelect('hiringManager', 'Hiring Manager', dropdownData.hiringManagers)}
+          {renderSelect('filled_source', 'Filled Source', dropdownData.sources)}
+
+          <div className="form-group mb-3">
+            <label>Notes:</label>
+            <textarea
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              className="form-control"
+              rows="3"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="text-center">
+      <button type="submit" className="submit-button">Submit Requirement</button>
+      </div>
+    </form>
   );
 };
 

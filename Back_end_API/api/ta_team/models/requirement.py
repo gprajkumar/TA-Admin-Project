@@ -21,13 +21,14 @@ class Requirements(models.Model):
     
     # Foreign keys with unique related names for filled_by
     filled_by_recruiter = models.ForeignKey(
-        Recruiter, on_delete=models.CASCADE, related_name='filled_recruiter'
+        Recruiter, on_delete=models.CASCADE, related_name='filled_recruiter',blank=True,null=True
     )
     filled_by_sourcer = models.ForeignKey(
-        Sourcer, on_delete=models.CASCADE, related_name='filled_sourcer'
+        Sourcer, on_delete=models.CASCADE, related_name='filled_sourcer',blank=True,null=True
     )
-    
-    filled_source = models.ForeignKey(Source, on_delete=models.CASCADE)
+    accountManager = models.ForeignKey(AccountManager,on_delete=models.CASCADE)
+    hiringManager = models.ForeignKey(HiringManager,on_delete=models.CASCADE)
+    filled_source = models.ForeignKey(Source, on_delete=models.CASCADE,blank=True,null=True)
     notes = models.CharField(max_length=2000)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(blank=True, null=True)

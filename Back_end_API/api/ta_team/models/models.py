@@ -14,6 +14,19 @@ class AccountManager(models.Model):
     def __str__(self):
         return self.account_manager
     
+class HiringManager(models.Model):
+    hiring_manager_id = models.AutoField(primary_key=True)
+    hiring_manager = models.CharField(max_length=100,verbose_name="Hiring Manager")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateField(blank=True, null=True)
+    hiring_manager_status = models.BooleanField(default=True, verbose_name="Active")
+    class Meta:
+        verbose_name = "Hiring Manager"            # Singular name in Admin
+        verbose_name_plural = "Hiring Managers" 
+
+    def __str__(self):
+        return self.hiring_manager
+    
 class AccountHead(models.Model):
     account_head_id = models.AutoField(primary_key=True)
     account_head = models.CharField(max_length=100,verbose_name="Account Head")
@@ -50,7 +63,9 @@ class Account(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(blank=True, null=True)
     account_status = models.BooleanField(default=True, verbose_name="Active")
-
+    class Meta:
+        verbose_name = "Account Name"            # Singular name in Admin
+        verbose_name_plural = "Account Names" 
     def __str__(self):
         return self.account_name
 
