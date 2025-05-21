@@ -8,7 +8,7 @@ function Header() {
       <Navbar className="custom-navbar"  sticky='top'>
         <Container>
           <Navbar.Brand href="#home">TA Team</Navbar.Brand>
-          <Nav >
+          <Nav>
             <Nav.Link href="#home">Home</Nav.Link>
             <Nav.Link href="#features">Requirement</Nav.Link>
             <Nav.Link href="#pricing">Submissions</Nav.Link>

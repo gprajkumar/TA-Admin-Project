@@ -27,11 +27,12 @@ class Requirements(models.Model):
         Sourcer, on_delete=models.CASCADE, related_name='filled_sourcer',blank=True,null=True
     )
     accountManager = models.ForeignKey(AccountManager,on_delete=models.CASCADE)
-    hiringManager = models.ForeignKey(HiringManager,on_delete=models.CASCADE)
+    hiringManager = models.ForeignKey(HiringManager,on_delete=models.CASCADE,blank=True,null=True)
     filled_source = models.ForeignKey(Source, on_delete=models.CASCADE,blank=True,null=True)
-    notes = models.CharField(max_length=2000)
+    notes = models.CharField(max_length=2000,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(blank=True, null=True)
+    role_type = models.ForeignKey(Role_Type,on_delete=models.CASCADE,default=1)
     
     def __str__(self):
         return self.job_title

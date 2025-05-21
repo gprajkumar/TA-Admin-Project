@@ -6,11 +6,12 @@ from .models.models import (
     Recruiter, Role_Type, Sourcer, Source, Tech_Screener, Screening_Status
 )
 from .models.requirement import Requirements
+from .models.submission import Submissions
 from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientSerializer, AccountSerializer,
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
     AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,
     RecruiterSerializer, RoleTypeSerializer, SourcerSerializer,
-    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer)
+    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer)
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 # Create your views here.
@@ -78,3 +79,7 @@ class TechScreenerViewSet(ModelViewSet):
 class ScreeningStatusViewSet(ModelViewSet):
     queryset = Screening_Status.objects.all()
     serializer_class = ScreeningStatusSerializer
+
+class SubmisionViewSet(ModelViewSet):
+    queryset = Submissions.objects.all()
+    serializer_class = SubmissionSerializer

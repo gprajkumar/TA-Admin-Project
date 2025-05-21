@@ -3,13 +3,14 @@
   justify-content: flex-end; /* Move navbar content to the right */
   align-items: center; /* vertically center */
   background-color: #52ffa8;
+  font-size: large;
   color: rgb(0, 0, 0);
   }
   
   .custom-navbar .navbar-brand
   {
     font-weight: bold;
-    font-size: larger;
+    font-size: x-large;
   }
   .custom-navbar .navbar-nav .nav-link {
     color: rgb(0, 0, 0);
@@ -22,4 +23,7 @@
   .custom-navbar .navbar-nav .nav-link.active {
     color: blue; /* Active link stays blue after clicking */
   }
-  
+ .custom-navbar .navbar-nav
+  {
+    font-size: x-large;
+  }

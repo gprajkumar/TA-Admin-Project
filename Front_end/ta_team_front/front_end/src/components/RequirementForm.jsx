@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RequirementForm.css'; // External CSS
 
+
 const RequirementForm = () => {
+  const baseurl = import.meta.env.VITE_API_BASE_URL
   const [formData, setFormData] = useState({
     job_title: '',
     job_code: '',
@@ -34,6 +36,7 @@ const RequirementForm = () => {
   });
 
   useEffect(() => {
+ 
     const fetchData = async () => {
       try {
         const [
@@ -45,18 +48,19 @@ const RequirementForm = () => {
           sourcersRes,
           accountManagersRes,
           hiringManagersRes,
-          sourcesRes
+          sourcesRes,
+          roletypeRes
         ] = await Promise.all([
-          axios.get('http://127.0.0.1:8000/ta_team/clients'),
-          axios.get('http://127.0.0.1:8000/ta_team/endclients'),
-          axios.get('http://127.0.0.1:8000/ta_team/accounts'),
-          axios.get('http://127.0.0.1:8000/ta_team/jobstatuses'),
-          axios.get('http://127.0.0.1:8000/ta_team/recruiters'),
-          axios.get('http://127.0.0.1:8000/ta_team/sourcers'),
-          axios.get('http://127.0.0.1:8000/ta_team/accountmanagers'),
-          axios.get('http://127.0.0.1:8000/ta_team/hiringmanagers'),
-          axios.get('http://127.0.0.1:8000/ta_team/sources'),
-          axios.get('http://127.0.0.1:8000/ta_team/roletypes')
+          axios.get(`${baseurl}/ta_team/clients`),
+          axios.get(`${baseurl}/ta_team/endclients`),
+          axios.get(`${baseurl}/ta_team/accounts`),
+          axios.get(`${baseurl}/ta_team/jobstatuses`),
+          axios.get(`${baseurl}/ta_team/recruiters`),
+          axios.get(`${baseurl}/ta_team/sourcers`),
+          axios.get(`${baseurl}/ta_team/accountmanagers`),
+          axios.get(`${baseurl}/ta_team/hiringmanagers`),
+          axios.get(`${baseurl}/ta_team/sources`),
+          axios.get(`${baseurl}/ta_team/roletypes`)
         ]);
 
         setDropdownData({
@@ -69,7 +73,7 @@ const RequirementForm = () => {
           accountManagers: normalizeData(accountManagersRes.data, "account_manager_id", "account_manager"),
           hiringManagers: normalizeData(hiringManagersRes.data, "hiring_manager_id", "hiring_manager"),
           sources: normalizeData(sourcesRes.data, "source_id", "source"),
-          roletypes: normalizeData(sourcesRes.data, "role_type_id", "role_type")
+          roletypes: normalizeData(roletypeRes.data, "role_type_id", "role_type")
         });
       } catch (err) {
         console.error('Error fetching dropdown data:', err);
@@ -93,7 +97,7 @@ const RequirementForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://127.0.0.1:8000/ta_team/requirements', formData);
+      await axios.post(`${baseurl}/ta_team/requirements/`, formData);
       alert('Requirement submitted successfully');
     } catch (err) {
       console.error('Error submitting requirement:', err);
@@ -119,16 +123,7 @@ const RequirementForm = () => {
       <div className="row">
         {/* Left Column */}
         <div className="col-md-6">
-          <div className="form-group mb-3">
-            <label>Job Title:</label>
-            <input
-              name="job_title"
-              type="text"
-              value={formData.job_title}
-              onChange={handleChange}
-              className="form-control"
-            />
-          </div>
+         
 
           <div className="form-group mb-3">
             <label>Job Code:</label>
@@ -140,7 +135,16 @@ const RequirementForm = () => {
               className="form-control"
             />
           </div>
-
+          <div className="form-group mb-3">
+            <label>Job Title:</label>
+            <input
+              name="job_title"
+              type="text"
+              value={formData.job_title}
+              onChange={handleChange}
+              className="form-control"
+            />
+          </div>
           {renderSelect('client', 'Client', dropdownData.clients)}
           {renderSelect('end_client', 'End Client', dropdownData.endClients)}
           {renderSelect('account', 'Account', dropdownData.accounts)}
