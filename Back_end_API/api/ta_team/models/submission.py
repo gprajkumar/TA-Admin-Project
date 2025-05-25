@@ -21,6 +21,7 @@ class Submissions(models.Model):
     offer_date = models.DateField(auto_now=False, auto_now_add=False,blank = True,null=True)
     start_date = models.DateField(auto_now=False, auto_now_add=False,blank = True,null=True)
     current_status = models.CharField(blank=True, max_length=50)
+   
     def __str__(self):
        return self.candidate_name
     

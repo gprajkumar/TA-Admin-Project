@@ -1,17 +1,19 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import Header from './components/header'
+import Header from './components/Header'
 import './index.css'
 import RequirementForm from './components/RequirementForm'
-
-
+import {Routes,Route} from 'react-router-dom'
+import Submission from './components/Submissions'
 function App() {
 
   return (
     <>
  <Header/>
- <RequirementForm/>
+<Routes>
+  <Route path='/' element={<RequirementForm/>}/>
+  <Route path='/submissions' element={<Submission/>}/>
+</Routes>
+
  </>
   )
 }

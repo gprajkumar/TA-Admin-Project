@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models.models import Account, AccountManager, AccountHead, AccountCoordinator, EndClient, Client, JobStatus, Screening_Status, Feedback, Holiday, Recruiter, Source, Role_Type, Sourcer, Tech_Screener, HiringManager # This imports everything from models.py and requirement.py
+from .models.models import Account, AccountManager, AccountHead, AccountCoordinator, EndClient, Client, JobStatus, Screening_Status, Feedback, Holiday, Recruiter, Source, Role_Type, Sourcer, Tech_Screener, HiringManager, Designation, Department, Employee # This imports everything from models.py and requirement.py
 
 # Register your models here.
 class TAAdmin(admin.AdminSite):
@@ -24,3 +24,6 @@ admin.site.register(Role_Type)
 admin.site.register(Sourcer)
 admin.site.register(Tech_Screener)
 admin.site.register(HiringManager)
+admin.site.register(Employee)
+admin.site.register(Designation)
+admin.site.register(Department)

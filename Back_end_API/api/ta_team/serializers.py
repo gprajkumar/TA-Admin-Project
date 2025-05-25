@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models.models import Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Recruiter, Role_Type, Sourcer, Source, Tech_Screener, Screening_Status
+from .models.models import Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Recruiter, Role_Type, Sourcer, Source, Tech_Screener, Screening_Status, Employee
 from .models.requirement import Requirements
 from .models.submission import Submissions
 
@@ -87,3 +87,8 @@ class SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submissions
         fields = '__all__'
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Employee
+        fields='__all__'

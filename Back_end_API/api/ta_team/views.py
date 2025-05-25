@@ -3,15 +3,16 @@ from rest_framework import status
 from .models.models import (
     Client, EndClient, Account, AccountManager, HiringManager,
     AccountHead, AccountCoordinator, Feedback, JobStatus,
-    Recruiter, Role_Type, Sourcer, Source, Tech_Screener, Screening_Status
+    Recruiter, Role_Type, Sourcer, Source, Tech_Screener, Screening_Status, Employee
 )
+from django_filters.rest_framework import DjangoFilterBackend
 from .models.requirement import Requirements
 from .models.submission import Submissions
 from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientSerializer, AccountSerializer,
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
     AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,
     RecruiterSerializer, RoleTypeSerializer, SourcerSerializer,
-    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer)
+    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer)
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 # Create your views here.
@@ -83,3 +84,9 @@ class ScreeningStatusViewSet(ModelViewSet):
 class SubmisionViewSet(ModelViewSet):
     queryset = Submissions.objects.all()
     serializer_class = SubmissionSerializer
+
+class EmployeeViewSet(ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['can_recruit','department','is_active','can_source']

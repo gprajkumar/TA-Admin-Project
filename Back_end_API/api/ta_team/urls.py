@@ -20,6 +20,7 @@ router.register(r'sources', SourceViewSet)
 router.register(r'techscreeners', TechScreenerViewSet)
 router.register(r'screeningstatuses', ScreeningStatusViewSet)
 router.register(r'submissions', SubmisionViewSet)
+router.register(r'employees',EmployeeViewSet)
 urlpatterns = [
     path('', include(router.urls))
   

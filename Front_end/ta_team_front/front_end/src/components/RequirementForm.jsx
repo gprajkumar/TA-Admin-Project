@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RequirementForm.css'; // External CSS
-
+import {getAccountManagers,getAccounts,getClients,getEndClients,getHiringManagers,getRecruiters,getSourcers,getSources,getRoleTypes,getJobStatuses} from '../services/drop_downService'
+import { Form, Row, Col, Button } from 'react-bootstrap';
 
 const RequirementForm = () => {
   const baseurl = import.meta.env.VITE_API_BASE_URL
   const [formData, setFormData] = useState({
-    job_title: '',
-    job_code: '',
-    client: '',
-    end_client: '',
-    account: '',
-    job_status: '',
-    assigned_recruiter: '',
-    assigned_sourcer: '',
-    offer_date: '',
-    filled_by_recruiter: '',
-    filled_by_sourcer: '',
-    accountManager: '',
-    hiringManager: '',
-    filled_source: '',
-    notes: ''
+  job_title: '',
+  job_code: '',
+  client: '',
+  end_client: '',
+  account: '',
+  job_status: '',
+  assigned_recruiter: '',
+  assigned_sourcer: '',
+  accountManager: '',
+  hiring_manager: '',
+  role_type: '',  
+  notes: ''
   });
 
   const [dropdownData, setDropdownData] = useState({
@@ -32,7 +30,7 @@ const RequirementForm = () => {
     sourcers: [],
     accountManagers: [],
     hiringManagers: [],
-    sources: []
+    roletypes: []
   });
 
   useEffect(() => {
@@ -48,32 +46,30 @@ const RequirementForm = () => {
           sourcersRes,
           accountManagersRes,
           hiringManagersRes,
-          sourcesRes,
           roletypeRes
-        ] = await Promise.all([
-          axios.get(`${baseurl}/ta_team/clients`),
-          axios.get(`${baseurl}/ta_team/endclients`),
-          axios.get(`${baseurl}/ta_team/accounts`),
-          axios.get(`${baseurl}/ta_team/jobstatuses`),
-          axios.get(`${baseurl}/ta_team/recruiters`),
-          axios.get(`${baseurl}/ta_team/sourcers`),
-          axios.get(`${baseurl}/ta_team/accountmanagers`),
-          axios.get(`${baseurl}/ta_team/hiringmanagers`),
-          axios.get(`${baseurl}/ta_team/sources`),
-          axios.get(`${baseurl}/ta_team/roletypes`)
+        ] = await Promise.all(
+          [ getClients(),
+  getEndClients(),
+  getAccounts(),
+  getJobStatuses(),
+  getRecruiters(),
+  getSourcers(),
+  getAccountManagers(),
+  getHiringManagers(),
+  getRoleTypes()
+          
         ]);
 
         setDropdownData({
-          clients: normalizeData(clientsRes.data, "client_id", "client_name"),
-          endClients: normalizeData(endClientsRes.data, "end_client_id", "end_client_name"),
-          accounts: normalizeData(accountsRes.data, "account_id", "account_name"),
-          jobStatuses: normalizeData(jobStatusesRes.data, "job_status_id", "job_status"),
-          recruiters: normalizeData(recruitersRes.data, "recruiter_id", "recruiter_name"),
-          sourcers: normalizeData(sourcersRes.data, "sourcer_id", "sourcer_name"),
-          accountManagers: normalizeData(accountManagersRes.data, "account_manager_id", "account_manager"),
-          hiringManagers: normalizeData(hiringManagersRes.data, "hiring_manager_id", "hiring_manager"),
-          sources: normalizeData(sourcesRes.data, "source_id", "source"),
-          roletypes: normalizeData(roletypeRes.data, "role_type_id", "role_type")
+          clients: normalizeData(clientsRes, "client_id", "client_name"),
+          endClients: normalizeData(endClientsRes, "end_client_id", "end_client_name"),
+          accounts: normalizeData(accountsRes, "account_id", "account_name"),
+          jobStatuses: normalizeData(jobStatusesRes, "job_status_id", "job_status"),
+          recruiters: normalizeData(recruitersRes, "recruiter_id", "recruiter_name"),
+          sourcers: normalizeData(sourcersRes, "sourcer_id", "sourcer_name"),
+          accountManagers: normalizeData(accountManagersRes, "account_manager_id", "account_manager"),
+          hiringManagers: normalizeData(hiringManagersRes, "hiring_manager_id", "hiring_manager"),
+          roletypes: normalizeData(roletypeRes, "role_type_id", "role_type")
         });
       } catch (err) {
         console.error('Error fetching dropdown data:', err);
@@ -91,23 +87,30 @@ const RequirementForm = () => {
     }));
   };
 
+ 
   const normalizeData = (data, idKey, nameKey) =>
     data.map(item => ({ id: item[idKey], name: item[nameKey] }));
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    console.log(formData)
     try {
       await axios.post(`${baseurl}/ta_team/requirements/`, formData);
       alert('Requirement submitted successfully');
     } catch (err) {
-      console.error('Error submitting requirement:', err);
-      alert('Submission failed');
+  console.error('Error submitting requirement:', err);
+  if (err.response) {
+    console.error('Response data:', err.response.data);
+  }
+  alert('Submission failed');
     }
   };
 
   const renderSelect = (name, label, options) => (
     <div className="form-group mb-3">
-      <label>{label}:</label>
+
       <select name={name} value={formData[name]} onChange={handleChange} className="form-control">
         <option value="">Select {label}</option>
         {(Array.isArray(options) ? options : []).map(opt => (
@@ -118,67 +121,97 @@ const RequirementForm = () => {
   );
 
   return (
-    <form onSubmit={handleSubmit} className="requirement-form container">
+    <Form onSubmit={handleSubmit} className="requirement-form container">
       <h2 className="mb-4">Create Requirement</h2>
-      <div className="row">
-        {/* Left Column */}
-        <div className="col-md-6">
-         
-
-          <div className="form-group mb-3">
-            <label>Job Code:</label>
-            <input
-              name="job_code"
-              type="text"
-              value={formData.job_code}
-              onChange={handleChange}
-              className="form-control"
-            />
-          </div>
-          <div className="form-group mb-3">
-            <label>Job Title:</label>
-            <input
-              name="job_title"
-              type="text"
-              value={formData.job_title}
-              onChange={handleChange}
-              className="form-control"
-            />
-          </div>
-          {renderSelect('client', 'Client', dropdownData.clients)}
-          {renderSelect('end_client', 'End Client', dropdownData.endClients)}
-          {renderSelect('account', 'Account', dropdownData.accounts)}
-          {renderSelect('job_status', 'Job Status', dropdownData.jobStatuses)}
-          {renderSelect('offer_date', 'Offer Date', [])}
-          {renderSelect('role_types', 'Role Type', dropdownData.roletypes)}
-        </div>
-
-        {/* Right Column */}
-        <div className="col-md-6">
-          {renderSelect('assigned_recruiter', 'Assigned Recruiter', dropdownData.recruiters)}
-          {renderSelect('assigned_sourcer', 'Assigned Sourcer', dropdownData.sourcers)}
-          {renderSelect('filled_by_recruiter', 'Filled by Recruiter', dropdownData.recruiters)}
-          {renderSelect('filled_by_sourcer', 'Filled by Sourcer', dropdownData.sourcers)}
-          {renderSelect('accountManager', 'Account Manager', dropdownData.accountManagers)}
-          {renderSelect('hiringManager', 'Hiring Manager', dropdownData.hiringManagers)}
-          {renderSelect('filled_source', 'Filled Source', dropdownData.sources)}
-
-          <div className="form-group mb-3">
-            <label>Notes:</label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              className="form-control"
-              rows="3"
-            />
-          </div>
-        </div>
-      </div>
-      <div className="text-center">
-      <button type="submit" className="submit-button">Submit Requirement</button>
-      </div>
-    </form>
+      <Row>
+        <Col md={6}>
+      <Form.Group className="mb-3 " controlId="job_code">
+        <Form.Label className='fs-5' >Job Code:</Form.Label>
+        <Form.Control type="input" placeholder="Enter Job Code" name="job_code" value={formData.job_code} onChange={handleChange} />
+      </Form.Group>
+      </Col>
+      <Col md={6}>
+      <Form.Group className="mb-3" controlId="job_title">
+         <Form.Label className='fs-5' >Job Title:</Form.Label>
+      <Form.Control type='input' placeholder='Enter Job Title' name='job_title' value={formData.job_title} onChange={handleChange}/>
+      </Form.Group>
+      </Col>
+      </Row>
+    <Row>
+      <Col md={6}>
+      <Form.Group className="mb-3 " controlId="account">
+         <Form.Label className='fs-5' >Account:</Form.Label>
+       {renderSelect("account","Account",dropdownData.accounts)}
+      </Form.Group>
+      </Col>
+      <Col md={6}>
+      <Form.Group className="mb-3" controlId="EndClient">
+   <Form.Label className='fs-5' >End Client:</Form.Label>
+       {renderSelect("end_client","End Client",dropdownData.endClients)}
+      </Form.Group>
+      </Col>
+      </Row>
+      <Row>
+      <Col md={6}>
+      <Form.Group className="mb-3 " controlId="Client">
+         <Form.Label className='fs-5' >Client:</Form.Label>
+       {renderSelect("client","Client",dropdownData.clients)}
+      </Form.Group>
+      </Col>
+      <Col md={6}>
+      <Form.Group className="mb-3" controlId="HiringManager">
+   <Form.Label className='fs-5' >Hiring Manager:</Form.Label>
+       {renderSelect("hiring_manager","Hiring Manager",dropdownData.hiringManagers)}
+      </Form.Group>
+      </Col>
+      </Row>
+          <Row>
+      <Col md={6}>
+      <Form.Group className="mb-3 " controlId="recruiter">
+         <Form.Label className='fs-5' >Assigned Recruiter:</Form.Label>
+       {renderSelect("assigned_recruiter","Recruiter",dropdownData.recruiters)}
+      </Form.Group>
+      </Col>
+      <Col md={6}>
+      <Form.Group className="mb-3" controlId="sourcer">
+   <Form.Label className='fs-5' >Assigned Sourcer:</Form.Label>
+       {renderSelect("assigned_sourcer","Sourcer",dropdownData.sourcers)}
+      </Form.Group>
+      </Col>
+      </Row>
+             <Row>
+      <Col md={6}>
+      <Form.Group className="mb-3 " controlId="Jobtype">
+         <Form.Label className='fs-5' >Job Type:</Form.Label>
+       {renderSelect("role_type","Job Type",dropdownData.roletypes)}
+      </Form.Group>
+      </Col>
+      <Col md={6}>
+      <Form.Group className="mb-3" controlId="jobstatus">
+   <Form.Label className='fs-5' >Job Status:</Form.Label>
+       {renderSelect("job_status","Current Status",dropdownData.jobStatuses)}
+      </Form.Group>
+      </Col>
+      </Row>
+               <Row>
+      <Col md={6}>
+      <Form.Group className="mb-3 " controlId="accountmanager">
+         <Form.Label className='fs-5' >Account Manager:</Form.Label>
+       {renderSelect("accountManager","Account Manager",dropdownData.accountManagers)}
+      </Form.Group>
+      </Col>
+      <Col md={6}>
+      <Form.Group className="mb-3" controlId="jobnote">
+   <Form.Label className='fs-5' >Note:</Form.Label>
+      <Form.Control as="textarea" rows={2}  placeholder="Enter Note" name="notes" value={formData.notes} onChange={handleChange} />
+      </Form.Group>
+      </Col>
+      </Row>
+       <Button  className='submit-button' type='submit'>
+        Submit Requirement
+      </Button>
+    </Form>
+    
   );
 };
 

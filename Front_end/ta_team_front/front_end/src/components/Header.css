@@ -1,29 +1,94 @@
 .custom-navbar {
   display: flex;
-  justify-content: flex-end; /* Move navbar content to the right */
+  min-height: 70px;
+  margin: 0 auto;
+  justify-content: flex-end;/* Move navbar content to the right */
   align-items: center; /* vertically center */
-  background-color: #52ffa8;
-  font-size: large;
-  color: rgb(0, 0, 0);
-  }
-  
-  .custom-navbar .navbar-brand
-  {
-    font-weight: bold;
-    font-size: x-large;
-  }
-  .custom-navbar .navbar-nav .nav-link {
-    color: rgb(0, 0, 0);
-  }
-  
-  .custom-navbar .navbar-nav .nav-link:hover {
-    color: #ffffff; /* Hover color */
-  }
-  
-  .custom-navbar .navbar-nav .nav-link.active {
-    color: blue; /* Active link stays blue after clicking */
-  }
- .custom-navbar .navbar-nav
-  {
-    font-size: x-large;
-  }
+  background-color: #000000 !important;
+  color: rgb(0, 235, 125);
+
+}
+.custom-navbar > .container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+}
+.custom-navbar .navbar-toggler-icon {
+  filter: invert(1); /* This inverts the color to white */
+}
+.custom-navbar .navbar-brand {
+  font-weight: bold;
+  font-size: x-large;
+  color: white;
+  align-items: center;
+}
+.custom-navbar .dropdown-toggle.active {
+  color: #ffffff; /* Active color */
+  font-weight: 800;
+}
+
+.custom-navbar .navbar-nav .nav-link {
+  color: rgb(0, 255, 0);
+  font-size: 1.4rem;
+  padding: 20px;
+  font-weight: 500;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Hover state for links */
+.custom-navbar .navbar-nav .nav-link:hover {
+  color: #ffffff; /* Hover color */
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* Active link styling */
+.custom-navbar .navbar-nav .nav-link.active {
+  color: #ffffff; /* Active link color */
+  font-weight: 800;
+ 
+}
+
+.custom-navbar .dropdown-item {
+  color: #333;
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.custom-navbar .dropdown-item:hover {
+  background-color: #9608e9;
+  color: white;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.custom-navbar .dropdown-menu {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  display: block;
+  pointer-events: none;
+}
+
+.custom-navbar .dropdown-menu.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+
+.custom-navbar .dropdown-toggle.active {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  background-color: #222; /* Optional: highlight background */
+}
+.custom-navbar .dropdown-toggle:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.custom-navbar .dropdown-item.active {
+  background-color: #9608e9 !important; /* Or your desired highlight color */
+  color: white !important;
+  outline: none; /* Remove default outline */
+  box-shadow: none; /* Remove focus shadow if any */
+}
