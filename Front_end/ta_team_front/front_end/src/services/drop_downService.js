@@ -1,11 +1,10 @@
 import axios from "axios";
- const baseurl = import.meta.env.VITE_API_BASE_URL
+const baseurl = import.meta.env.VITE_API_BASE_URL;
 
-const fetchDropdownData = async (endpoint) =>
-    {
-        const response = await axios.get(`${baseurl}/ta_team/${endpoint}`);
-        return response.data;
-    } 
+const fetchDropdownData = async (endpoint) => {
+  const response = await axios.get(`${baseurl}/ta_team/${endpoint}`);
+  return response.data.results;
+};
 
 export const getClients = () => fetchDropdownData("clients");
 export const getEndClients = () => fetchDropdownData("endclients");
@@ -17,3 +16,16 @@ export const getAccountManagers = () => fetchDropdownData("accountmanagers");
 export const getHiringManagers = () => fetchDropdownData("hiringmanagers");
 export const getSources = () => fetchDropdownData("sources");
 export const getRoleTypes = () => fetchDropdownData("roletypes");
+export const getJobreqs = () => fetchDropdownData("requirements")
+
+const FilteredfetchDropdownData = async (endpoint, filter) => {
+  const query = Object.keys(filter)
+    .map((key) => `${key}=${encodeURIComponent(filter[key])}`)
+    .join("&");
+  const response = await axios.get(`${baseurl}/ta_team/${endpoint}/?${query}`);
+  console.log(response.data);
+  return response.data.results;
+};
+
+export const getfilteredEmployees = (filter) =>
+  FilteredfetchDropdownData("employees", filter);

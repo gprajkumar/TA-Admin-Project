@@ -10,8 +10,8 @@ class Submissions(models.Model):
     candidate_name = models.CharField(max_length=100)
     payrate = models.IntegerField(null=True,blank=True)
     w2_C2C = models.CharField(null=True,blank=True)
-    recruiter = models.ForeignKey(Recruiter, on_delete=models.CASCADE)
-    sourcer = models.ForeignKey(Sourcer, on_delete=models.CASCADE)
+    recruiter = models.ForeignKey(Employee, on_delete=models.CASCADE,related_name="submission_recruiter")
+    sourcer = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="submission_sourcer")
     source = models.ForeignKey(Source, on_delete=models.CASCADE)
     am_sub_date = models.DateField(auto_now=False, auto_now_add=False)
     am_screen_date = models.DateField(auto_now=False, auto_now_add=False,blank = True,null=True)
@@ -27,7 +27,7 @@ class Submissions(models.Model):
     
     def save(self,*args, **kwargs):
         self.update_status()
-        super.save(*args, **kwargs)
+        super().save(*args, **kwargs)
         
     def update_status(self):
         if self.start_date:

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RequirementForm.css'; // External CSS
-import {getAccountManagers,getAccounts,getClients,getEndClients,getHiringManagers,getRecruiters,getSourcers,getSources,getRoleTypes,getJobStatuses} from '../services/drop_downService'
+import {getAccountManagers,getAccounts,getClients,getEndClients,getHiringManagers,getRecruiters,getSourcers,getSources,getRoleTypes,getJobStatuses, getfilteredEmployees} from '../services/drop_downService'
 import { Form, Row, Col, Button } from 'react-bootstrap';
+import Select from "react-select";
+import Alert from 'react-bootstrap/Alert';
 
 const RequirementForm = () => {
   const baseurl = import.meta.env.VITE_API_BASE_URL
@@ -20,7 +22,7 @@ const RequirementForm = () => {
   role_type: '',  
   notes: ''
   });
-
+ const [show, setShow] = useState(false);
   const [dropdownData, setDropdownData] = useState({
     clients: [],
     endClients: [],
@@ -52,8 +54,8 @@ const RequirementForm = () => {
   getEndClients(),
   getAccounts(),
   getJobStatuses(),
-  getRecruiters(),
-  getSourcers(),
+  getfilteredEmployees({ can_recruit: true, department: 2 }),
+ getfilteredEmployees({ can_source: true, department: 1 }),
   getAccountManagers(),
   getHiringManagers(),
   getRoleTypes()
@@ -65,8 +67,8 @@ const RequirementForm = () => {
           endClients: normalizeData(endClientsRes, "end_client_id", "end_client_name"),
           accounts: normalizeData(accountsRes, "account_id", "account_name"),
           jobStatuses: normalizeData(jobStatusesRes, "job_status_id", "job_status"),
-          recruiters: normalizeData(recruitersRes, "recruiter_id", "recruiter_name"),
-          sourcers: normalizeData(sourcersRes, "sourcer_id", "sourcer_name"),
+          recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
+          sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
           accountManagers: normalizeData(accountManagersRes, "account_manager_id", "account_manager"),
           hiringManagers: normalizeData(hiringManagersRes, "hiring_manager_id", "hiring_manager"),
           roletypes: normalizeData(roletypeRes, "role_type_id", "role_type")
@@ -87,6 +89,20 @@ const RequirementForm = () => {
     }));
   };
 
+  const resetform =() => {
+    setFormData({job_title: '',
+  job_code: '',
+  client: '',
+  end_client: '',
+  account: '',
+  job_status: '',
+  assigned_recruiter: '',
+  assigned_sourcer: '',
+  accountManager: '',
+  hiring_manager: '',
+  role_type: '',  
+  notes: ''});
+  }
  
   const normalizeData = (data, idKey, nameKey) =>
     data.map(item => ({ id: item[idKey], name: item[nameKey] }));
@@ -98,7 +114,8 @@ const RequirementForm = () => {
     console.log(formData)
     try {
       await axios.post(`${baseurl}/ta_team/requirements/`, formData);
-      alert('Requirement submitted successfully');
+     setShow(true);
+      resetform();
     } catch (err) {
   console.error('Error submitting requirement:', err);
   if (err.response) {
@@ -108,21 +125,38 @@ const RequirementForm = () => {
     }
   };
 
-  const renderSelect = (name, label, options) => (
-    <div className="form-group mb-3">
+  const renderSelect = (name, label, options) => {
+    const selectOptions = (options || []).map((opt) => ({
+      value: opt.id,
+      label: opt.name,
+    }));
 
-      <select name={name} value={formData[name]} onChange={handleChange} className="form-control">
-        <option value="">Select {label}</option>
-        {(Array.isArray(options) ? options : []).map(opt => (
-          <option key={opt.id} value={opt.id}>{opt.name}</option>
-        ))}
-      </select>
-    </div>
-  );
+    // Find the selected option in react-select's format
+    const selectedOption = selectOptions.find(
+      (opt) => opt.value === formData[name]
+    );
+
+    return (
+      <div className="mb-3">
+        <Select classNamePrefix="my-select"
+          options={selectOptions}
+          value={selectedOption || null}
+          onChange={(selected) => {
+            handleChange({
+              target: { name, value: selected ? selected.value : "" },
+            });
+          }}
+          placeholder={`Select ${label}`}
+          isClearable
+        />
+      </div>
+    );
+  };
 
   return (
     <Form onSubmit={handleSubmit} className="requirement-form container">
       <h2 className="mb-4">Create Requirement</h2>
+          
       <Row>
         <Col md={6}>
       <Form.Group className="mb-3 " controlId="job_code">
@@ -207,9 +241,25 @@ const RequirementForm = () => {
       </Form.Group>
       </Col>
       </Row>
+      <Alert show={show} variant="success">
+        <Alert.Heading>Hurray!</Alert.Heading>
+        <p>
+         Requirement Added Successfully
+        </p>
+        <hr />
+        <div className="d-flex justify-content-end">
+          <Button onClick={() => setShow(false)} variant="outline-success">
+            Ok
+          </Button>
+        </div>
+      </Alert>
+
        <Button  className='submit-button' type='submit'>
         Submit Requirement
       </Button>
+      <Button  className='submit-button' type="button" onClick={resetform}>
+  Reset
+</Button>
     </Form>
     
   );

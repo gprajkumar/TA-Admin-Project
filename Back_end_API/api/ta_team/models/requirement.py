@@ -12,19 +12,19 @@ class Requirements(models.Model):
     
     # Foreign keys with unique related names
     assigned_recruiter = models.ForeignKey(
-        Recruiter, on_delete=models.CASCADE, related_name='assigned_recruiter'
+        Employee, on_delete=models.CASCADE, related_name='assigned_recruiter'
     )
     assigned_sourcer = models.ForeignKey(
-        Sourcer, on_delete=models.CASCADE, related_name='assigned_sourcer'
+        Employee, on_delete=models.CASCADE, related_name='assigned_sourcer'
     )
     offer_date = models.DateField(blank=True, null=True)
     
     # Foreign keys with unique related names for filled_by
     filled_by_recruiter = models.ForeignKey(
-        Recruiter, on_delete=models.CASCADE, related_name='filled_recruiter',blank=True,null=True
+        Employee, on_delete=models.CASCADE, related_name='filled_recruiter',blank=True,null=True
     )
     filled_by_sourcer = models.ForeignKey(
-        Sourcer, on_delete=models.CASCADE, related_name='filled_sourcer',blank=True,null=True
+        Employee, on_delete=models.CASCADE, related_name='filled_sourcer',blank=True,null=True
     )
     accountManager = models.ForeignKey(AccountManager,on_delete=models.CASCADE)
     hiringManager = models.ForeignKey(HiringManager,on_delete=models.CASCADE,blank=True,null=True)
@@ -35,4 +35,4 @@ class Requirements(models.Model):
     role_type = models.ForeignKey(Role_Type,on_delete=models.CASCADE,default=1)
     
     def __str__(self):
-        return self.job_title
+        return self.job_code+" "+self.job_title

@@ -20,7 +20,6 @@
 }
 
 
-
 .form-control {
   width: 100%;
   padding: 10px 14px;
@@ -72,3 +71,41 @@ textarea.form-control {
 }
 
 
+/* searchable dropdown CSS */
+.my-select__control {
+  border: 1.8px solid #ccc;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  min-height: 38px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.my-select__control--is-focused {
+  border-color: #4f46e5;
+  box-shadow: 0 0 8px rgba(79, 70, 229, 0.3);
+}
+
+.my-select__placeholder,
+.my-select__single-value {
+  font-size: 1.2rem;
+}
+
+.my-select__menu {
+  font-size: 1.2rem; /* or 1.5rem if you prefer */
+}
+
+/* Style each option (dropdown item) */
+.my-select__option {
+  font-size: 1.2rem; /* larger font */
+  padding: 10px 14px; /* more padding for better spacing */
+}
+
+/* Optional: highlight hovered/selected option */
+.my-select__option--is-focused {
+  background-color: #000000; /* change to your preference */
+}
+
+.my-select__option--is-selected {
+  background-color: #9608e9 !important;
+  color: white;
+}
