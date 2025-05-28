@@ -61,7 +61,7 @@ const Header = () => {
                 Add Requirement
               </NavDropdown.Item>
               <NavDropdown.Item
-                href="#all-requirements"
+                as={NavLink} to="/allreqs"
                 onClick={() => handleDropdownItemClick("requirement-all")}
                 active={activeSection === "requirement-all"}
               >

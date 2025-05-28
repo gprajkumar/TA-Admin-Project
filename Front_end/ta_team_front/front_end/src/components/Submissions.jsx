@@ -129,7 +129,7 @@ const resetform = () =>
       <Row>
         <Col md={12}>
           <Form.Group className="mb-3 " controlId="job">
-            <Form.Label className="fs-5">Job:</Form.Label>
+            <Form.Label className="fs-6">Job:</Form.Label>
             {renderSelect("Job", "Job", dropdownData.jobs)}
           </Form.Group>
         </Col>
@@ -137,7 +137,7 @@ const resetform = () =>
       <Row>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="submission_date">
-            <Form.Label className="fs-5">Submission Date:</Form.Label>
+            <Form.Label className="fs-6">Submission Date:</Form.Label>
             <Form.Control
               type="Date"
               name="submission_date"
@@ -148,7 +148,7 @@ const resetform = () =>
         </Col>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="candidate_name">
-            <Form.Label className="fs-5">Candidate Name:</Form.Label>
+            <Form.Label className="fs-6">Candidate Name:</Form.Label>
             <Form.Control
               type="input"
               name="candidate_name"
@@ -161,7 +161,7 @@ const resetform = () =>
       <Row>
         <Col md={3}>
           <Form.Group className="mb-3 " controlId="payrate">
-            <Form.Label className="fs-5">Payrate in $:</Form.Label>
+            <Form.Label className="fs-6">Payrate in $:</Form.Label>
             <Form.Control
               type="input"
               name="payrate"
@@ -172,7 +172,7 @@ const resetform = () =>
         </Col>
         <Col md={3}>
           <Form.Group className="mb-3 " controlId="c2c_w2">
-            <Form.Label className="fs-5">Tax Terms:</Form.Label>
+            <Form.Label className="fs-6">Tax Terms:</Form.Label>
             <select
               id="myDropdown"
               name="w2_C2C"
@@ -186,7 +186,7 @@ const resetform = () =>
         </Col>
          <Col md={6}>
           <Form.Group className="mb-3" controlId="source">
-            <Form.Label className="fs-5">Source:</Form.Label>
+            <Form.Label className="fs-6">Source:</Form.Label>
           {renderSelect("source","Source",dropdownData.sources)}
           </Form.Group>
         </Col>
@@ -194,13 +194,13 @@ const resetform = () =>
     <Row>
       <Col md={6}>
       <Form.Group className="mb-3 " controlId="recruiter">
-         <Form.Label className='fs-5' >Assigned Recruiter:</Form.Label>
+         <Form.Label className='fs-6' >Assigned Recruiter:</Form.Label>
        {renderSelect("recruiter","Recruiter",dropdownData.recruiters)}
       </Form.Group>
       </Col>
       <Col md={6}>
       <Form.Group className="mb-3" controlId="sourcer">
-   <Form.Label className='fs-5' >Assigned Sourcer:</Form.Label>
+   <Form.Label className='fs-6' >Assigned Sourcer:</Form.Label>
        {renderSelect("sourcer","Sourcer",dropdownData.sourcers)}
       </Form.Group>
       </Col>

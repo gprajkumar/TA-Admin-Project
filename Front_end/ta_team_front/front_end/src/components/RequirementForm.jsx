@@ -160,13 +160,13 @@ const RequirementForm = () => {
       <Row>
         <Col md={6}>
       <Form.Group className="mb-3 " controlId="job_code">
-        <Form.Label className='fs-5' >Job Code:</Form.Label>
+        <Form.Label className='fs-6' >Job Code:</Form.Label>
         <Form.Control type="input" placeholder="Enter Job Code" name="job_code" value={formData.job_code} onChange={handleChange} />
       </Form.Group>
       </Col>
       <Col md={6}>
       <Form.Group className="mb-3" controlId="job_title">
-         <Form.Label className='fs-5' >Job Title:</Form.Label>
+         <Form.Label className='fs-6' >Job Title:</Form.Label>
       <Form.Control type='input' placeholder='Enter Job Title' name='job_title' value={formData.job_title} onChange={handleChange}/>
       </Form.Group>
       </Col>
@@ -174,13 +174,13 @@ const RequirementForm = () => {
     <Row>
       <Col md={6}>
       <Form.Group className="mb-3 " controlId="account">
-         <Form.Label className='fs-5' >Account:</Form.Label>
+         <Form.Label className='fs-6' >Account:</Form.Label>
        {renderSelect("account","Account",dropdownData.accounts)}
       </Form.Group>
       </Col>
       <Col md={6}>
       <Form.Group className="mb-3" controlId="EndClient">
-   <Form.Label className='fs-5' >End Client:</Form.Label>
+   <Form.Label className='fs-6' >End Client:</Form.Label>
        {renderSelect("end_client","End Client",dropdownData.endClients)}
       </Form.Group>
       </Col>
@@ -188,13 +188,13 @@ const RequirementForm = () => {
       <Row>
       <Col md={6}>
       <Form.Group className="mb-3 " controlId="Client">
-         <Form.Label className='fs-5' >Client:</Form.Label>
+         <Form.Label className='fs-6' >Client:</Form.Label>
        {renderSelect("client","Client",dropdownData.clients)}
       </Form.Group>
       </Col>
       <Col md={6}>
       <Form.Group className="mb-3" controlId="HiringManager">
-   <Form.Label className='fs-5' >Hiring Manager:</Form.Label>
+   <Form.Label className='fs-6' >Hiring Manager:</Form.Label>
        {renderSelect("hiring_manager","Hiring Manager",dropdownData.hiringManagers)}
       </Form.Group>
       </Col>
@@ -202,13 +202,13 @@ const RequirementForm = () => {
           <Row>
       <Col md={6}>
       <Form.Group className="mb-3 " controlId="recruiter">
-         <Form.Label className='fs-5' >Assigned Recruiter:</Form.Label>
+         <Form.Label className='fs-6' >Assigned Recruiter:</Form.Label>
        {renderSelect("assigned_recruiter","Recruiter",dropdownData.recruiters)}
       </Form.Group>
       </Col>
       <Col md={6}>
       <Form.Group className="mb-3" controlId="sourcer">
-   <Form.Label className='fs-5' >Assigned Sourcer:</Form.Label>
+   <Form.Label className='fs-6' >Assigned Sourcer:</Form.Label>
        {renderSelect("assigned_sourcer","Sourcer",dropdownData.sourcers)}
       </Form.Group>
       </Col>
@@ -216,13 +216,13 @@ const RequirementForm = () => {
              <Row>
       <Col md={6}>
       <Form.Group className="mb-3 " controlId="Jobtype">
-         <Form.Label className='fs-5' >Job Type:</Form.Label>
+         <Form.Label className='fs-6' >Job Type:</Form.Label>
        {renderSelect("role_type","Job Type",dropdownData.roletypes)}
       </Form.Group>
       </Col>
       <Col md={6}>
       <Form.Group className="mb-3" controlId="jobstatus">
-   <Form.Label className='fs-5' >Job Status:</Form.Label>
+   <Form.Label className='fs-6' >Job Status:</Form.Label>
        {renderSelect("job_status","Current Status",dropdownData.jobStatuses)}
       </Form.Group>
       </Col>
@@ -230,13 +230,13 @@ const RequirementForm = () => {
                <Row>
       <Col md={6}>
       <Form.Group className="mb-3 " controlId="accountmanager">
-         <Form.Label className='fs-5' >Account Manager:</Form.Label>
+         <Form.Label className='fs-6' >Account Manager:</Form.Label>
        {renderSelect("accountManager","Account Manager",dropdownData.accountManagers)}
       </Form.Group>
       </Col>
       <Col md={6}>
       <Form.Group className="mb-3" controlId="jobnote">
-   <Form.Label className='fs-5' >Note:</Form.Label>
+   <Form.Label className='fs-6' >Note:</Form.Label>
       <Form.Control as="textarea" rows={2}  placeholder="Enter Note" name="notes" value={formData.notes} onChange={handleChange} />
       </Form.Group>
       </Col>

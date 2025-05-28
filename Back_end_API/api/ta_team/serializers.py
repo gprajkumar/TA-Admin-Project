@@ -4,10 +4,49 @@ from .models.requirement import Requirements
 from .models.submission import Submissions
 
 class RequirementsSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source='client.client_name', read_only=True)
+    end_client_name = serializers.CharField(source='end_client.end_client_name', read_only=True)
+    account_name = serializers.CharField(source='account.account_name', read_only=True)
+    job_status_name = serializers.CharField(source='job_status.job_status', read_only=True)
+    account_manager_name = serializers.CharField(source='accountManager.account_manager', read_only=True)
+    hiring_manager_name = serializers.CharField(source='hiringManager.hiring_manager', read_only=True)
+    role_type_name = serializers.CharField(source='role_type.role_type', read_only=True)
+    filled_source_name = serializers.CharField(source='filled_source.source', read_only=True)
+
+    assigned_recruiter_name = serializers.SerializerMethodField()
+    assigned_sourcer_name = serializers.SerializerMethodField()
+    filled_by_recruiter_name = serializers.SerializerMethodField()
+    filled_by_sourcer_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Requirements
-        fields = '__all__'
-        
+        fields = [
+            'requirement_id', 'job_code', 'job_title',
+            'client', 'client_name', 'end_client', 'end_client_name',
+            'account', 'account_name', 'job_status', 'job_status_name',
+            'assigned_recruiter', 'assigned_recruiter_name',
+            'assigned_sourcer', 'assigned_sourcer_name',
+            'filled_by_recruiter', 'filled_by_recruiter_name',
+            'filled_by_sourcer', 'filled_by_sourcer_name',
+            'accountManager', 'account_manager_name',
+            'hiringManager', 'hiring_manager_name',
+            'filled_source', 'filled_source_name',
+            'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name'
+        ]
+
+    def get_assigned_recruiter_name(self, obj):
+        return obj.assigned_recruiter.emp_fName if obj.assigned_recruiter else None
+
+    def get_assigned_sourcer_name(self, obj):
+        return obj.assigned_sourcer.emp_fName if obj.assigned_sourcer else None
+
+    def get_filled_by_recruiter_name(self, obj):
+        return obj.filled_by_recruiter.emp_fName if obj.filled_by_recruiter else None
+
+    def get_filled_by_sourcer_name(self, obj):
+        return obj.filled_by_sourcer.emp_fName if obj.filled_by_sourcer else None
+
+
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client

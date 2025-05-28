@@ -23,7 +23,7 @@
 .form-control {
   width: 100%;
   padding: 10px 14px;
-  font-size: 1.2rem;
+  font-size: 1rem;
   border: 1.8px solid #ccc;
   border-radius: 8px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -46,13 +46,13 @@ textarea.form-control {
   color:  rgb(0, 235, 125);;
 
   font-weight: 500;
-  font-size: 1.5rem;
- min-width: 50%;
+  font-size: 1.2rem;
+ min-width: 30%;
   border: none;
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.25s ease;
- padding: 10px;
+ padding: 5px;
   display: block;          
   margin: 20px auto;  
 }
@@ -75,7 +75,7 @@ textarea.form-control {
 .my-select__control {
   border: 1.8px solid #ccc;
   border-radius: 8px;
-  font-size: 1.5rem;
+  font-size: 1 rem;
   min-height: 38px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -87,16 +87,16 @@ textarea.form-control {
 
 .my-select__placeholder,
 .my-select__single-value {
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 .my-select__menu {
-  font-size: 1.2rem; /* or 1.5rem if you prefer */
+  font-size: 1rem; /* or 1.5rem if you prefer */
 }
 
 /* Style each option (dropdown item) */
 .my-select__option {
-  font-size: 1.2rem; /* larger font */
+  font-size: 1em; /* larger font */
   padding: 10px 14px; /* more padding for better spacing */
 }
 
