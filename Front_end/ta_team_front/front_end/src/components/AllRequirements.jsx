@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import axios from "axios";
+import { FaEye, FaEdit, FaTrash,FaSearch } from "react-icons/fa";
+import Modal from 'react-bootstrap/Modal';
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
+import RequirementForm from './RequirementForm'
+import ViewForm from "./ViewForm";
 import {
   getClients,
   getEndClients,
@@ -9,12 +13,14 @@ import {
   getJobStatuses,
   getfilteredEmployees,
   getJobreqs,
+  getFilteredJobs,
 } from "../services/drop_downService";
-import { Form, Row, Col, Button, Container } from "react-bootstrap";
+import { Form, Row, Col, Button, Container, FormControl } from "react-bootstrap";
 import Select from "react-select";
 import Alert from "react-bootstrap/Alert";
 
 const AllRequirements = () => {
+  const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
     role_type: "",
@@ -23,9 +29,45 @@ const AllRequirements = () => {
     client: "",
     assigned_recruiter: "",
     assigned_sourcer: "",
+    from_date:"",
+    to_date:"",
   });
   const [allRequirements, setAllRequirements] = useState([]);
+  const [show, setShow] = useState(false);  
+  const [dateFilter, setdateFilter] = useState({
+    from_date:'',
+    to_date:'',
+  });
+const[currentReqid, setcurrentReqid] =useState('');
+const[viewtype, setviewtype] =useState(false);
+  const handleClose = () => {setShow(false)};
+ // const handleShow = () => {setShow(true);}
+ const handleView = (reqId,sendata) => {
+setcurrentReqid(reqId);
+setpassData(sendata);
+setShow(true)
+setviewtype(true)
+ }
+const handleEdit = (reqId) => {
+setcurrentReqid(reqId);
+setShow(true)
+setviewtype(false)
+fetchReqs(); 
+ }
+ const handleDelete = async (reqId) => {
+  if (window.confirm("Are you sure you want to delete this requirement?")) {
+    try {
+    
+       const response = await axios.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
+  console.log('Deleted successfully', response.data);
+      fetchReqs(); 
+    } catch (error) {
+      console.error("Failed to delete requirement:", error);
+    }
+  }
+};
   const [filteredReqs, setfilteredReqs] = useState([]);
+  const [passData,setpassData] =  useState({});
   const [filterdropdowndata, setfilterdropdowndata] = useState({
     jobs: [],
     recruiters: [],
@@ -42,8 +84,9 @@ const AllRequirements = () => {
   useEffect(() => {
     let filtered = allRequirements;
 
-    if (selectedvalue.job) {
-      filtered = filtered.filter((item) => item.Job == selectedvalue.job);
+    if (selectedvalue.Job) {
+      
+      filtered = filtered.filter((item) => item.requirement_id == selectedvalue.Job);
     }
     if (selectedvalue.role_type) {
       filtered = filtered.filter(
@@ -52,7 +95,7 @@ const AllRequirements = () => {
     }
     if (selectedvalue.job_status) {
       filtered = filtered.filter(
-        (item) => item.role_type == selectedvalue.job_status
+        (item) => item.job_status == selectedvalue.job_status
       );
     }
     if (selectedvalue.end_client) {
@@ -73,6 +116,7 @@ const AllRequirements = () => {
         (item) => item.assigned_sourcer == selectedvalue.assigned_sourcer
       );
     }
+    
     setfilteredReqs(filtered);
   }, [selectedvalue, allRequirements]);
 
@@ -82,7 +126,20 @@ const AllRequirements = () => {
       ...prev,
       [name]: value,
     }));
+  
   };
+  const handleSearch = async () => {
+  try {
+    const filteredData = await getFilteredJobs(
+      selectedvalue.from_date,
+      selectedvalue.to_date
+    );
+    setAllRequirements(filteredData); // optional
+    setfilteredReqs(filteredData);
+  } catch (error) {
+    console.error("Error fetching filtered jobs:", error);
+  }
+};
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -164,13 +221,14 @@ const AllRequirements = () => {
   const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
   const fetchReqs = async () => {
-    const data = await getJobreqs();
+    const data = await getJobreqs(selectedvalue.from_date,selectedvalue.to_date);
     console.log(data);
     setAllRequirements(data);
     setfilteredReqs(data);
   };
   return (
     <div className="data-container">
+ 
       <Row>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="job">
@@ -237,11 +295,55 @@ const AllRequirements = () => {
           </Form.Group>
         </Col>
       </Row>
+   <Row className="align-items-end mb-3">
+  <Col md={2}>
+    <Form.Group controlId="from_date">
+      <Form.Label className="fs-6">From:</Form.Label>
+      <Form.Control
+        type="date"
+        className="date-filter-input"
+        name="from_date"
+        value={selectedvalue.from_date}
+        onChange={handleChange}
+      />
+    </Form.Group>
+  </Col>
 
+  <Col md={2}>
+    <Form.Group controlId="to_date">
+      <Form.Label className="fs-6">To:</Form.Label>
+      <Form.Control
+        type="date"
+        className="date-filter-input"
+        name="to_date"
+        value={selectedvalue.to_date}
+        onChange={handleChange}
+      />
+    </Form.Group>
+  </Col>
+
+  <Col md={2} className="d-flex align-items-center">
+    <button
+      className="search-button"
+      aria-label="Search"
+      title="Search"
+      onClick={handleSearch}
+    >
+      <FaSearch />
+    </button>
+  </Col>
+
+  <Col md={3} className="d-flex align-items-center">
+    <div className="jobs-found">
+      <span className="jobs-found-label">Jobs Found:</span>
+      <span className="jobs-found-count ms-2">{filteredReqs.length}</span>
+    </div>
+  </Col>
+</Row>
       {/* Header row with class 'header-row' */}
       <Row className="header-row">
         <Col className="col-job">Job</Col>
-        <Col className="col-end-client">End Client</Col>
+        <Col className="col-end-client">Job Opened Date</Col>
         <Col className="col-client">Client</Col>
         <Col className="col-recruiter">Recruiter</Col>
         <Col className="col-sourcer">Sourcer</Col>
@@ -252,7 +354,7 @@ const AllRequirements = () => {
       {filteredReqs.map((req) => (
         <Row key={req.requirement_id} className="data-row">
           <Col className="col-job">{`${req.job_code}- ${req.job_title}`}</Col>
-          <Col className="col-end-client">{req.end_client_name}</Col>
+          <Col className="col-end-client">{new Date(req.req_opened_date).toLocaleDateString("en-US")}</Col>
           <Col className="col-client">{req.client_name}</Col>
           <Col className="col-recruiter">{req.assigned_recruiter_name}</Col>
           <Col className="col-sourcer">{req.assigned_sourcer_name}</Col>
@@ -262,28 +364,44 @@ const AllRequirements = () => {
             <button
               aria-label="View"
               title="View"
-              onClick={() => handleView(req.id)}
+              onClick={() => handleView(req.requirement_id,req)}
             >
               <FaEye />
             </button>
             <button
               aria-label="Edit"
               title="Edit"
-              onClick={() => handleEdit(req.id)}
+              onClick={() => handleEdit(req.requirement_id)}
             >
               <FaEdit />
             </button>
             <button
               aria-label="Delete"
               title="Delete"
-              onClick={() => handleDelete(req.id)}
+              onClick={() => handleDelete(req.requirement_id)}
             >
               <FaTrash />
             </button>
           </Col>
         </Row>
       ))}
+      <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
+        <Modal.Header closeButton>
+         
+        </Modal.Header>
+        <Modal.Body style={{ width: '100% !important' }}>
+          { viewtype ? <ViewForm data={passData}/>:
+          <RequirementForm reqid={currentReqid} viewtype={viewtype}/>}
+        
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
+    
   );
 };
 

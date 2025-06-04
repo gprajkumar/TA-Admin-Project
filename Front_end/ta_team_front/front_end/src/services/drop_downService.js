@@ -16,8 +16,17 @@ export const getAccountManagers = () => fetchDropdownData("accountmanagers");
 export const getHiringManagers = () => fetchDropdownData("hiringmanagers");
 export const getSources = () => fetchDropdownData("sources");
 export const getRoleTypes = () => fetchDropdownData("roletypes");
-export const getJobreqs = () => fetchDropdownData("requirements")
+export const getJobreqs = () => fetchDropdownData("requirements");
+export const getFilteredJobs = (from_date, to_date) => fetchFilteredJobs(from_date, to_date);
 
+  const fetchFilteredJobs = async(fromDate,toDate) =>
+  {
+    const response = await axios.get(`${baseurl}/ta_team/requirements/`, {
+    params: { from_date: fromDate, to_date: toDate }
+  });
+    console.log(response.data);
+  return response.data.results;
+  }
 const FilteredfetchDropdownData = async (endpoint, filter) => {
   const query = Object.keys(filter)
     .map((key) => `${key}=${encodeURIComponent(filter[key])}`)

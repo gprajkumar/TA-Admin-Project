@@ -1,0 +1,54 @@
+/* ViewForm.css */
+
+.view-form-container {
+  max-width: 700px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #f9faff;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.view-row {
+  display: flex;  /* Make sure flex to align items */
+  margin-bottom: 15px;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.view-row:last-child {
+  border-bottom: none;
+}
+
+.view-row > .col-md-3 {
+  /* Add a bit of spacing and typography */
+  font-size: 16px;
+  padding: 5px 10px;
+  text-align: left;  /* <-- Change all to left aligned */
+}
+
+.view-row > .col-md-3:nth-child(odd) {
+  font-weight: 600;
+  color: #444;
+  user-select: none;
+}
+
+.view-row > .col-md-3:nth-child(even) {
+  color: #007bff; /* Bootstrap primary blue */
+  font-weight: 500;
+  /* text-align left already set above */
+}
+
+@media (max-width: 576px) {
+  .view-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .view-row > .col-md-3 {
+    text-align: left !important;
+    padding: 5px 0;
+  }
+}

@@ -15,6 +15,7 @@ from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientS
     SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer)
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from .filters.requirement_filter import RequirementFilter
 # Create your views here.
 
 class RequirementsViewSet(ModelViewSet):
@@ -24,6 +25,8 @@ class RequirementsViewSet(ModelViewSet):
         'accountManager', 'hiringManager', 
         'filled_source', 'role_type').all()
    serializer_class = RequirementsSerializer
+   filter_backends = [DjangoFilterBackend]
+   filterset_class = RequirementFilter
    
 class ClientViewSet(ModelViewSet):
     queryset = Client.objects.all()

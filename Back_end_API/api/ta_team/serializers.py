@@ -21,7 +21,7 @@ class RequirementsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Requirements
         fields = [
-            'requirement_id', 'job_code', 'job_title',
+            'requirement_id', 'job_code', 'job_title', 'req_opened_date',
             'client', 'client_name', 'end_client', 'end_client_name',
             'account', 'account_name', 'job_status', 'job_status_name',
             'assigned_recruiter', 'assigned_recruiter_name',
@@ -31,7 +31,7 @@ class RequirementsSerializer(serializers.ModelSerializer):
             'accountManager', 'account_manager_name',
             'hiringManager', 'hiring_manager_name',
             'filled_source', 'filled_source_name',
-            'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name'
+            'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name','no_of_positions','no_of_positions_filled','offer_date'
         ]
 
     def get_assigned_recruiter_name(self, obj):

@@ -3,8 +3,9 @@ from .models import *
 
 class Requirements(models.Model):
     requirement_id = models.AutoField(primary_key=True)
-    job_code = models.CharField(max_length=20)
+    job_code = models.CharField(max_length=20,unique=True)
     job_title = models.CharField(max_length=200)
+    req_opened_date = models.DateField()
     client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name="Client Name")
     end_client = models.ForeignKey(EndClient, on_delete=models.CASCADE)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
@@ -33,6 +34,8 @@ class Requirements(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(blank=True, null=True)
     role_type = models.ForeignKey(Role_Type,on_delete=models.CASCADE,default=1)
+    no_of_positions= models.IntegerField(default=1)
+    no_of_positions_filled = models.IntegerField(blank=True,null=True)
     
     def __str__(self):
         return self.job_code+" "+self.job_title
