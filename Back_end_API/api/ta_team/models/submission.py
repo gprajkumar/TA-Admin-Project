@@ -45,3 +45,11 @@ class Submissions(models.Model):
         else:
             self.current_status = "Submitted to AM"
     
+class Placement(models.Model):
+    placment_id = models.AutoField(primary_key=True)
+    Job = models.ForeignKey(Requirements,on_delete=models.CASCADE)
+    submission = models.ForeignKey(Submissions,on_delete=models.CASCADE)
+    reason = models.ForeignKey(ReasonForLeaving,on_delete=models.CASCADE,blank=True,null=True)
+    
+    def __str__(self):
+        return self.submission

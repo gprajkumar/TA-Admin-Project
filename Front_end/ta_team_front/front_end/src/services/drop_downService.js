@@ -17,8 +17,26 @@ export const getHiringManagers = () => fetchDropdownData("hiringmanagers");
 export const getSources = () => fetchDropdownData("sources");
 export const getRoleTypes = () => fetchDropdownData("roletypes");
 export const getJobreqs = () => fetchDropdownData("requirements");
+export const getSubmissions = () => fetchDropdownData("submissions");
 export const getFilteredJobs = (from_date, to_date) => fetchFilteredJobs(from_date, to_date);
+export const getFilteredSubmissions = (filterParams) => fetchFilteredSubmissions(filterParams);
+export const getSubmissionsbyReqid =(reqid) => fetcchSubmissionsbyReq(reqid);
+export const getCurrentCandidateStatus = () => fetchDropdownasArray("candidate_status")
+const fetchDropdownasArray = async (endpoint) => {
+  const response = await axios.get(`${baseurl}/ta_team/${endpoint}`);
+  const data = response.data;
 
+  // Return `data.results` if paginated, otherwise return `data` directly
+  return Array.isArray(data) ? data : data.results || [];
+};
+const fetcchSubmissionsbyReq = async (reqid) =>
+  {
+    const response = await axios.get(`${baseurl}/ta_team/submissions/`, {
+    params: { Job: reqid}
+  });
+    console.log(response.data);
+  return response.data.results;
+  }
   const fetchFilteredJobs = async(fromDate,toDate) =>
   {
     const response = await axios.get(`${baseurl}/ta_team/requirements/`, {
@@ -38,3 +56,10 @@ const FilteredfetchDropdownData = async (endpoint, filter) => {
 
 export const getfilteredEmployees = (filter) =>
   FilteredfetchDropdownData("employees", filter);
+
+  const fetchFilteredSubmissions = async(filterParams) =>
+  {
+    const response = await axios.get(`${baseurl}/ta_team/submissions/`, {
+    params: { filterParams}
+  });
+}

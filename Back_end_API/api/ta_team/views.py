@@ -7,15 +7,15 @@ from .models.models import (
 )
 from django_filters.rest_framework import DjangoFilterBackend
 from .models.requirement import Requirements
-from .models.submission import Submissions
+from .models.submission import Placement,Submissions
 from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientSerializer, AccountSerializer,
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
     AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,
     RecruiterSerializer, RoleTypeSerializer, SourcerSerializer,
-    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer)
-from rest_framework.viewsets import ModelViewSet
+    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer)
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
-from .filters.requirement_filter import RequirementFilter
+from .filters.requirement_filter import RequirementFilter,SubmissionFilter
 # Create your views here.
 
 class RequirementsViewSet(ModelViewSet):
@@ -89,11 +89,24 @@ class ScreeningStatusViewSet(ModelViewSet):
     serializer_class = ScreeningStatusSerializer
 
 class SubmisionViewSet(ModelViewSet):
-    queryset = Submissions.objects.all()
+    queryset = Submissions.objects.all().select_related('Job', 'recruiter', 'sourcer', 'source')
     serializer_class = SubmissionSerializer
+    filter_backends =[DjangoFilterBackend]
+    filterset_class = SubmissionFilter
+
+class PlacementViewSet(ModelViewSet):
+    queryset = Placement.objects.all()
+    serializer_class = PlacementSerializer
 
 class EmployeeViewSet(ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['can_recruit','department','is_active','can_source']
+    
+
+class UniqueCandidate_Status_ViewSet(ReadOnlyModelViewSet):
+    queryset = Submissions.objects.none() 
+    def list(self, request):
+        unique_status = Submissions.objects.values_list('current_status', flat=True).distinct()
+        return Response(unique_status)

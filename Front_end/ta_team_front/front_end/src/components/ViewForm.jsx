@@ -84,7 +84,7 @@ return (
       </Row>
        <Row className="view-row">
         <Col md={3}>Filled Date:</Col>
-        <Col md={3}>{data.offer_date || "N/A"}</Col>
+        <Col md={3}>{data.filled_date || "N/A"}</Col>
         <Col md={3}>Filled by Recruiter:</Col>
         <Col md={3}>{data.filled_by_recruiter_name || "N/A"}</Col>
       </Row>

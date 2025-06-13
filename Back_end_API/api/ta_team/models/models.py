@@ -191,6 +191,13 @@ class Designation(models.Model):
     def __str__(self):
         return self.designation_name
     
+class ReasonForLeaving(models.Model):
+    reason_id=models.AutoField(primary_key=True)
+    reason_name = models.CharField(max_length = 100)
+    
+    def __str__(self):
+        return self.reason_name
+
 class Employee(models.Model):
     user=models.OneToOneField(User, on_delete=models.CASCADE,blank=True, null=True)
     employee_id = models.AutoField(primary_key=True)
@@ -206,3 +213,4 @@ class Employee(models.Model):
     
     def __str__(self):
         return f"{self.emp_fName} {self.emp_lName}"
+    

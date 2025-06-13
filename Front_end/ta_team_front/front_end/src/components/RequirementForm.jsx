@@ -19,8 +19,9 @@ import Select from "react-select";
 import Alert from "react-bootstrap/Alert";
 import { Await } from "react-router-dom";
 
-const RequirementForm = ({ reqid,viewtype = false}) => {
+const RequirementForm = ({ reqid,viewtype = false,externaldropdowndata}) => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
+  const [loading, setLoading] = useState(reqid ? true : false);
   const [formData, setFormData] = useState({
     job_title: "",
     job_code: "",
@@ -34,7 +35,8 @@ const RequirementForm = ({ reqid,viewtype = false}) => {
     hiringManager: "",
     role_type: "",
     notes: "",
-    req_opened_date:""
+    req_opened_date:"",
+    no_of_positions:""
   });
   const [show, setShow] = useState(false);
   const [dropdownData, setDropdownData] = useState({
@@ -49,9 +51,31 @@ const RequirementForm = ({ reqid,viewtype = false}) => {
     roletypes: [],
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
+ 
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      if (externaldropdowndata) {
+       
+
+        const [accountsRes, accountManagersRes, hiringManagersRes] = await Promise.all([
+          getAccounts(),
+          getAccountManagers(),
+          getHiringManagers(),
+        ]);
+
+        setDropdownData({
+          clients:externaldropdowndata.clients,
+          endClients: externaldropdowndata.endClients,
+          accounts: normalizeData(accountsRes, "account_id", "account_name"),
+          jobStatuses: externaldropdowndata.jobstatuses,
+          recruiters: externaldropdowndata.recruiters,
+          sourcers: externaldropdowndata.sourcers,
+          accountManagers: normalizeData(accountManagersRes, "account_manager_id", "account_manager"),
+          hiringManagers: normalizeData(hiringManagersRes, "hiring_manager_id", "hiring_manager"),
+          roletypes: externaldropdowndata.roletypes,
+        });
+      } else {
         const [
           clientsRes,
           endClientsRes,
@@ -76,46 +100,32 @@ const RequirementForm = ({ reqid,viewtype = false}) => {
 
         setDropdownData({
           clients: normalizeData(clientsRes, "client_id", "client_name"),
-          endClients: normalizeData(
-            endClientsRes,
-            "end_client_id",
-            "end_client_name"
-          ),
+          endClients: normalizeData(endClientsRes, "end_client_id", "end_client_name"),
           accounts: normalizeData(accountsRes, "account_id", "account_name"),
-          jobStatuses: normalizeData(
-            jobStatusesRes,
-            "job_status_id",
-            "job_status"
-          ),
+          jobStatuses: normalizeData(jobStatusesRes, "job_status_id", "job_status"),
           recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
           sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
-          accountManagers: normalizeData(
-            accountManagersRes,
-            "account_manager_id",
-            "account_manager"
-          ),
-          hiringManagers: normalizeData(
-            hiringManagersRes,
-            "hiring_manager_id",
-            "hiring_manager"
-          ),
+          accountManagers: normalizeData(accountManagersRes, "account_manager_id", "account_manager"),
+          hiringManagers: normalizeData(hiringManagersRes, "hiring_manager_id", "hiring_manager"),
           roletypes: normalizeData(roletypeRes, "role_type_id", "role_type"),
         });
-
-        if (reqid) {
-          const res = await axios.get(
-            `${baseurl}/ta_team/requirements/${reqid}/`
-          );
-          console.log(res.data);
-          setFormData(res.data);
-        }
-      } catch (err) {
-        console.error("Error fetching dropdown data:", err);
       }
-    };
 
-    fetchData();
-  }, [reqid]);
+      if (reqid) {
+        const res = await axios.get(`${baseurl}/ta_team/requirements/${reqid}/`);
+        setFormData(res.data);
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("Error fetching dropdown data:", err);
+    }
+  };
+
+  fetchData();
+}, [reqid, externaldropdowndata]);
+
+  
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -200,7 +210,12 @@ const RequirementForm = ({ reqid,viewtype = false}) => {
       </div>
     );
   };
-
+if(loading)
+{
+   return  <div className="text-center">Loading requirement...</div>;
+}
+else
+{
   return (
     <Form onSubmit={handleSubmit} className="requirement-form container">
       <h2 className="mb-4">{viewtype ? '' : (reqid ? 'Edit' : 'Create')} Requirement</h2>
@@ -371,6 +386,7 @@ const RequirementForm = ({ reqid,viewtype = false}) => {
       </Button></>}
     </Form>
   );
+}
 };
 
 export default RequirementForm;

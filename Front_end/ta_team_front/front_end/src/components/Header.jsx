@@ -67,6 +67,13 @@ const Header = () => {
               >
                 All Requirements
               </NavDropdown.Item>
+               <NavDropdown.Item
+                as={NavLink} to="/filledjob"
+                onClick={() => handleDropdownItemClick("requirement-filled")}
+                active={activeSection === "requirement-filled"}
+              >
+                Job Fill
+              </NavDropdown.Item>
             </NavDropdown>
 
             <NavDropdown
@@ -85,11 +92,18 @@ const Header = () => {
                 Add Submission
               </NavDropdown.Item>
               <NavDropdown.Item
-                href="#all-submissions"
+                href="/allsubmissions"
                 onClick={() => handleDropdownItemClick("submission-all")}
                 active={activeSection === "submission-all"}
               >
                 All Submissions
+              </NavDropdown.Item>
+              <NavDropdown.Item
+                href="/submissionsDateEntry"
+                onClick={() => handleDropdownItemClick("submission-dates")}
+                active={activeSection === "submission-dates"}
+              >
+              Submission Date updates
               </NavDropdown.Item>
             </NavDropdown>
 

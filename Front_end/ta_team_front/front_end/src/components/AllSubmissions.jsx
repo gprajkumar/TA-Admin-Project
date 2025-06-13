@@ -9,116 +9,117 @@ import ViewForm from "./ViewForm";
 import {
   getClients,
   getEndClients,
-  getRoleTypes,
-  getJobStatuses,
   getfilteredEmployees,
   getJobreqs,
-  getFilteredJobs,
+  getSources,
+  getCurrentCandidateStatus,
+  getSubmissions
 } from "../services/drop_downService";
 import { Form, Row, Col, Button, Container, FormControl } from "react-bootstrap";
 import Select from "react-select";
 import Alert from "react-bootstrap/Alert";
 
-const AllRequirements = () => {
+const AllSubmissions = () => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
-    role_type: "",
-    job_status: "",
     end_client: "",
     client: "",
-    assigned_recruiter: "",
-    assigned_sourcer: "",
-    from_date:"",
-    to_date:"",
+    recruiter: "",
+     sourcer: "",
+    from_sub_date:"",
+    to_sub_date:"",
+    candidate_name:"",
+    current_status:"",
+    source:""
   });
-  const [allRequirements, setAllRequirements] = useState([]);
+  const [allSubmissions, setAllSubmissions] = useState([]);
   const [show, setShow] = useState(false);  
   const [dateFilter, setdateFilter] = useState({
-    from_date:'',
-    to_date:'',
+    from_sub_date:'',
+    to_sub_date:'',
   });
-const[currentReqid, setcurrentReqid] =useState('');
+const[currentSubid, setcurrentSubid] =useState('');
 const[viewtype, setviewtype] =useState(false);
   const handleClose = () => {setShow(false)};
  // const handleShow = () => {setShow(true);}
- const handleView = (reqId,sendata) => {
-setcurrentReqid(reqId);
+ const handleView = (subId,sendata) => {
+setcurrentReqid(subId);
 setpassData(sendata);
 setShow(true)
 setviewtype(true)
  }
-const handleEdit = (reqId) => {
-setcurrentReqid(reqId);
+const handleEdit = (subId) => {
+setcurrentReqid(subId);
 setShow(true)
 setviewtype(false)
-fetchReqs(); 
+fetchsubs(); 
  }
- const handleDelete = async (reqId) => {
-  if (window.confirm("Are you sure you want to delete this requirement?")) {
+ const handleDelete = async (subId) => {
+  if (window.confirm("Are you sure you want to delete this Candidate?")) {
     try {
     
-       const response = await axios.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
+       const response = await axios.delete(`${baseurl}/ta_team/submissions/${subId}/`);
   console.log('Deleted successfully', response.data);
-      fetchReqs(); 
+      fetchsubs(); 
     } catch (error) {
       console.error("Failed to delete requirement:", error);
     }
   }
 };
-  const [filteredReqs, setfilteredReqs] = useState([]);
+  const [filteredSubs, setfilteredSubs] = useState([]);
   const [passData,setpassData] =  useState({});
   const [filterdropdowndata, setfilterdropdowndata] = useState({
     jobs: [],
     recruiters: [],
     sourcers: [],
-    jobstatuses: [],
+    candidate_current_Status: [],
     clients: [],
-    roletypes: [],
+    sources: [],
     end_clients: [],
   });
   useEffect(() => {
-    fetchReqs();
+    fetchsubs();
   }, []);
 
   useEffect(() => {
-    let filtered = allRequirements;
+    let filtered = allSubmissions;
 
     if (selectedvalue.Job) {
       
-      filtered = filtered.filter((item) => item.requirement_id == selectedvalue.Job);
+      filtered = filtered.filter((item) => item.Job.requirement_id == selectedvalue.Job);
     }
-    if (selectedvalue.role_type) {
+   
+    if (selectedvalue.candidate_name) {
       filtered = filtered.filter(
-        (item) => item.role_type == selectedvalue.role_type
-      );
-    }
-    if (selectedvalue.job_status) {
-      filtered = filtered.filter(
-        (item) => item.job_status == selectedvalue.job_status
+        (item) => item.candidate_name && item.candidate_name.toLowerCase().includes(selectedvalue.candidate_name.toLowerCase())
       );
     }
     if (selectedvalue.end_client) {
       filtered = filtered.filter(
-        (item) => item.end_client == selectedvalue.end_client
+        (item) => item.Job.end_client == selectedvalue.end_client
       );
     }
     if (selectedvalue.client) {
-      filtered = filtered.filter((item) => item.client == selectedvalue.client);
+      filtered = filtered.filter((item) => item.Job.client == selectedvalue.client);
     }
-    if (selectedvalue.assigned_recruiter) {
+    if (selectedvalue.recruiter) {
       filtered = filtered.filter(
-        (item) => item.assigned_recruiter == selectedvalue.assigned_recruiter
+        (item) => item.recruiter == selectedvalue.recruiter
       );
     }
-    if (selectedvalue.assigned_sourcer) {
+    if (selectedvalue.sourcer) {
       filtered = filtered.filter(
-        (item) => item.assigned_sourcer == selectedvalue.assigned_sourcer
+        (item) => item.sourcer == selectedvalue.sourcer
       );
+    }
+    if(selectedvalue.source)
+    {
+      filtered = filtered.filter((item) => item.Job.source == selectedvalue.source)
     }
     
-    setfilteredReqs(filtered);
-  }, [selectedvalue, allRequirements]);
+    setfilteredSubs(filtered);
+  }, [selectedvalue, allSubmissions]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -130,7 +131,7 @@ fetchReqs();
   };
   const handleSearch = async () => {
   try {
-    const filteredData = await getFilteredJobs(
+    const filteredData = await getFilteredSubmissions(
       selectedvalue.from_date,
       selectedvalue.to_date
     );
@@ -148,18 +149,18 @@ fetchReqs();
           jobsRes,
           clientRes,
           endClientsRes,
-          jobStatusesRes,
+          CurrentStatusRes,
           recruitersRes,
           sourcersRes,
-          roletypeRes,
+          sourceRes
         ] = await Promise.all([
           getJobreqs(),
           getClients(),
           getEndClients(),
-          getJobStatuses(),
+          getCurrentCandidateStatus(),
           getfilteredEmployees({ can_recruit: true, department: 2 }),
           getfilteredEmployees({ can_source: true, department: 1 }),
-          getRoleTypes(),
+          getSources(),
         ]);
 
         setfilterdropdowndata({
@@ -173,14 +174,12 @@ fetchReqs();
             "end_client_id",
             "end_client_name"
           ),
-          jobstatuses: normalizeData(
-            jobStatusesRes,
-            "job_status_id",
-            "job_status"
-          ),
+          candidate_current_Status: Array.isArray(CurrentStatusRes)
+  ? CurrentStatusRes.map((status) => ({ id: status, name: status }))
+  : [],
           recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
           sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
-          roletypes: normalizeData(roletypeRes, "role_type_id", "role_type"),
+          sources: normalizeData(sourceRes, "source_id", "source"),
         });
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
@@ -221,11 +220,11 @@ fetchReqs();
 
   const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
-  const fetchReqs = async () => {
-    const data = await getJobreqs(selectedvalue.from_date,selectedvalue.to_date);
+  const fetchsubs = async () => {
+    const data = await getSubmissions(selectedvalue.from_date,selectedvalue.to_date);
     console.log(data);
-    setAllRequirements(data);
-    setfilteredReqs(data);
+    setAllSubmissions(data);
+    setfilteredSubs(data);
   };
   return (
     <div className="data-container">
@@ -238,22 +237,18 @@ fetchReqs();
           </Form.Group>
         </Col>
         <Col md={3}>
-          <Form.Group className="mb-3 " controlId="Jobtype">
-            <Form.Label className="fs-6">Job Type:</Form.Label>
-            {renderSelect(
-              "role_type",
-              "Job Type",
-              filterdropdowndata.roletypes
-            )}
+          <Form.Group className="mb-3 " controlId="candidate_name">
+            <Form.Label className="fs-6">Candidate Name</Form.Label>
+            <Form.Control type="input" onChange={handleChange} value={selectedvalue.candidate_name} name="candidate_name" />
           </Form.Group>
         </Col>
         <Col md={3}>
-          <Form.Group className="mb-3" controlId="jobstatus">
-            <Form.Label className="fs-6">Job Status:</Form.Label>
+          <Form.Group className="mb-3" controlId="current_status">
+            <Form.Label className="fs-6">Candidate Status:</Form.Label>
             {renderSelect(
-              "job_status",
-              "Current Status",
-              filterdropdowndata.jobstatuses
+              "current_status",
+              "Candidate Current Status",
+              filterdropdowndata.candidate_current_Status
             )}
           </Form.Group>
         </Col>
@@ -275,25 +270,35 @@ fetchReqs();
             {renderSelect("client", "Client", filterdropdowndata.clients)}
           </Form.Group>
         </Col>
-        <Col md={3}>
+        <Col md={2}>
           <Form.Group className="mb-3 " controlId="recruiter">
-            <Form.Label className="fs-6">Assigned Recruiter:</Form.Label>
+            <Form.Label className="fs-6">Recruiter:</Form.Label>
             {renderSelect(
-              "assigned_recruiter",
+              "recruiter",
               "Recruiter",
               filterdropdowndata.recruiters
             )}
           </Form.Group>
         </Col>
-        <Col md={3}>
+        <Col md={2}>
           <Form.Group className="mb-3" controlId="sourcer">
-            <Form.Label className="fs-6">Assigned Sourcer:</Form.Label>
+            <Form.Label className="fs-6">Sourcer:</Form.Label>
             {renderSelect(
-              "assigned_sourcer",
+              "sourcer",
               "Sourcer",
               filterdropdowndata.sourcers
             )}
           </Form.Group>
+        </Col>
+        <Col md={2}>
+           <Form.Group className="mb-3" controlId="source">
+            <Form.Label className="fs-6">Source:</Form.Label>
+            {renderSelect(
+              "source",
+              "Source",
+              filterdropdowndata.sources
+            )}
+            </Form.Group>
         </Col>
       </Row>
    <Row className="align-items-end mb-3">
@@ -336,50 +341,50 @@ fetchReqs();
 
   <Col md={3} className="d-flex align-items-center">
     <div className="jobs-found">
-      <span className="jobs-found-label">Jobs Found:</span>
-      <span className="jobs-found-count ms-2">{filteredReqs.length}</span>
+      <span className="jobs-found-label">Candidates Found:</span>
+      <span className="jobs-found-count ms-2">{filteredSubs.length}</span>
     </div>
   </Col>
 </Row>
       {/* Header row with class 'header-row' */}
       <Row className="header-row">
         <Col className="col-job">Job</Col>
-        <Col className="col-end-client">Job Opened Date</Col>
-        <Col className="col-client">Client</Col>
+        <Col className="col-end-client">Submission Date</Col>
+        <Col className="col-client">Candidate Name</Col>
         <Col className="col-recruiter">Recruiter</Col>
         <Col className="col-sourcer">Sourcer</Col>
-        <Col className="col-job-type">Job Type</Col>
-        <Col className="col-job-status">Job Status</Col>
+        <Col className="col-job-type">Source</Col>
+        <Col className="col-job-status">Current Status</Col>
         <Col className="col-action">Action</Col>
       </Row>
-      {filteredReqs.map((req) => (
-        <Row key={req.requirement_id} className="data-row">
-          <Col className="col-job">{`${req.job_code}- ${req.job_title}`}</Col>
-          <Col className="col-end-client">{new Date(req.req_opened_date).toLocaleDateString("en-US")}</Col>
-          <Col className="col-client">{req.client_name}</Col>
-          <Col className="col-recruiter">{req.assigned_recruiter_name}</Col>
-          <Col className="col-sourcer">{req.assigned_sourcer_name}</Col>
-          <Col className="col-job-type">{req.role_type_name}</Col>
-          <Col className="col-job-status">{req.job_status_name}</Col>
+      {filteredSubs.map((sub) => (
+        <Row key={sub.submission_id} className="data-row">
+          <Col className="col-job">{`${sub.Job.job_code}- ${sub.Job.job_title}`}</Col>
+          <Col className="col-end-client">{new Date(sub.submission_date).toLocaleDateString("en-US")}</Col>
+          <Col className="col-client">{sub.candidate_name}</Col>
+          <Col className="col-client">{sub.recruiter_name}</Col>
+          <Col className="col-recruiter">{sub.sourcer_name}</Col>
+          <Col className="col-sourcer">{sub.source_name}</Col>
+          <Col className="col-job-status">{sub.current_status}</Col>
           <Col className="col-action">
             <button
               aria-label="View"
               title="View"
-              onClick={() => handleView(req.requirement_id,req)}
+              onClick={() => handleView(sub.submission_id,sub)}
             >
               <FaEye />
             </button>
             <button
               aria-label="Edit"
               title="Edit"
-              onClick={() => handleEdit(req.requirement_id)}
+              onClick={() => handleEdit(sub.submission_id)}
             >
               <FaEdit />
             </button>
             <button
               aria-label="Delete"
               title="Delete"
-              onClick={() => handleDelete(req.requirement_id)}
+              onClick={() => handleDelete(sub.submission_id)}
             >
               <FaTrash />
             </button>
@@ -391,8 +396,8 @@ fetchReqs();
          
         </Modal.Header>
         <Modal.Body style={{ width: '100% !important' }}>
-          { viewtype ? <ViewForm data={passData}/>:
-          <RequirementForm reqid={currentReqid} viewtype={viewtype} externaldropdowndata={filterdropdowndata}/>}
+          {/* { viewtype ? <ViewForm data={passData}/>:
+          <RequirementForm reqid={currentSubid} viewtype={viewtype} externaldropdowndata={filterdropdowndata}/>} */}
         
         </Modal.Body>
         <Modal.Footer>
@@ -406,4 +411,4 @@ fetchReqs();
   );
 };
 
-export default AllRequirements;
+export default AllSubmissions;

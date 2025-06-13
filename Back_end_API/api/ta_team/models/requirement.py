@@ -18,7 +18,7 @@ class Requirements(models.Model):
     assigned_sourcer = models.ForeignKey(
         Employee, on_delete=models.CASCADE, related_name='assigned_sourcer'
     )
-    offer_date = models.DateField(blank=True, null=True)
+    filled_date = models.DateField(blank=True, null=True)
     
     # Foreign keys with unique related names for filled_by
     filled_by_recruiter = models.ForeignKey(

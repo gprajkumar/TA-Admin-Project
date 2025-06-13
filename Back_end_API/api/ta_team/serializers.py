@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models.models import Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Recruiter, Role_Type, Sourcer, Source, Tech_Screener, Screening_Status, Employee
 from .models.requirement import Requirements
-from .models.submission import Submissions
+from .models.submission import Placement,Submissions
 
 class RequirementsSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source='client.client_name', read_only=True)
@@ -31,7 +31,7 @@ class RequirementsSerializer(serializers.ModelSerializer):
             'accountManager', 'account_manager_name',
             'hiringManager', 'hiring_manager_name',
             'filled_source', 'filled_source_name',
-            'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name','no_of_positions','no_of_positions_filled','offer_date'
+            'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name','no_of_positions','no_of_positions_filled','filled_date'
         ]
 
     def get_assigned_recruiter_name(self, obj):
@@ -123,11 +123,45 @@ class ScreeningStatusSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class SubmissionSerializer(serializers.ModelSerializer):
+    Job = RequirementsSerializer(read_only=True)
+    recruiter_name = serializers.CharField(source="recruiter.emp_fName", read_only=True)
+    sourcer_name = serializers.CharField(source="sourcer.emp_fName", read_only=True)
+    source_name = serializers.CharField(source="source.source", read_only=True)
+
     class Meta:
         model = Submissions
-        fields = '__all__'
+        fields = [
+            'submission_id',
+            'Job',
+            'submission_date',
+            'candidate_name',
+            'payrate',
+            'w2_C2C',
+            'recruiter',
+            'recruiter_name',
+            'sourcer',
+            'sourcer_name',
+            'source',
+            'source_name',
+            'am_sub_date',
+            'am_screen_date',
+            'tech_screen_date',
+            'client_sub_date',
+            'client_interview_date',
+            'offer_date',
+            'start_date',
+            'current_status'
+        ]
+
+
 
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model= Employee
         fields='__all__'
+        
+class PlacementSerializer(serializers.ModelSerializer):
+    class Meta:
+       model= Placement
+       fields='__all__'
+       
