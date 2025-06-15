@@ -3,9 +3,11 @@ import {getJobreqs,getSubmissionsbyReqid}
 from "../services/drop_downService";
 import { Form, Row, Col, Button, FormGroup, FormLabel } from "react-bootstrap";
 import Select from "react-select";
+import axios from "axios";
 
 const SubmissionDatesForm = () =>
 {
+  const baseurl = import.meta.env.VITE_API_BASE_URL;
     const [FormData, setFormData] = useState({
         client_sub_date: "",
         client_interview_date:"",
@@ -39,6 +41,18 @@ const SubmissionDatesForm = () =>
 
  
 },[]);
+const resetform = () => {
+    setFormData({
+      client_sub_date: "",
+        client_interview_date:"",
+        offer_date:"",
+        start_date:"",
+        submission_id:"",
+        requirement_id:"",
+        tech_screen_date:""
+    });
+  };
+
 const fetchCandidateData = async () => {
     const candidateData = await getSubmissionsbyReqid(FormData.requirement_id);
     setCandidateData(candidateData);
@@ -51,6 +65,7 @@ const fetchCandidateData = async () => {
     useEffect(() => {
     fetchCandidateData();
     }, [FormData.requirement_id])
+
   const handleSubmit = async (e) => {
    e.preventDefault();
 
@@ -60,6 +75,7 @@ const fetchCandidateData = async () => {
      
      alert("Submission Success");
        // setShow(true);
+       resetform();
    
       }
      catch (err) {
@@ -187,12 +203,17 @@ const fetchCandidateData = async () => {
               type="date"
               placeholder="Enter Job Open Date"
               name="start_date"  
-              value={FormData.offer_date}
+              value={FormData.start_date}
               onChange={handleChange}
             />
           </Form.Group>
         </Col>
         </Row>
+         <Button className="submit-button" type="submit">
+              Submit</Button>
+              <Button className="submit-button" type="button" onClick={resetform}>
+                Reset
+              </Button>
         </Form>
     </div>)
 }

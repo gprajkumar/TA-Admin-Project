@@ -87,7 +87,7 @@ fetchsubs();
 
     if (selectedvalue.Job) {
       
-      filtered = filtered.filter((item) => item.Job.requirement_id == selectedvalue.Job);
+      filtered = filtered.filter((item) => item.job_details.requirement_id == selectedvalue.Job);
     }
    
     if (selectedvalue.candidate_name) {
@@ -97,11 +97,11 @@ fetchsubs();
     }
     if (selectedvalue.end_client) {
       filtered = filtered.filter(
-        (item) => item.Job.end_client == selectedvalue.end_client
+        (item) => item.job_details.end_client == selectedvalue.end_client
       );
     }
     if (selectedvalue.client) {
-      filtered = filtered.filter((item) => item.Job.client == selectedvalue.client);
+      filtered = filtered.filter((item) => item.job_details.client == selectedvalue.client);
     }
     if (selectedvalue.recruiter) {
       filtered = filtered.filter(
@@ -115,7 +115,7 @@ fetchsubs();
     }
     if(selectedvalue.source)
     {
-      filtered = filtered.filter((item) => item.Job.source == selectedvalue.source)
+      filtered = filtered.filter((item) => item.source_id == selectedvalue.source)
     }
     
     setfilteredSubs(filtered);
@@ -359,7 +359,7 @@ fetchsubs();
       </Row>
       {filteredSubs.map((sub) => (
         <Row key={sub.submission_id} className="data-row">
-          <Col className="col-job">{`${sub.Job.job_code}- ${sub.Job.job_title}`}</Col>
+          <Col className="col-job">{`${sub.job_details.job_code}- ${sub.job_details.job_title}`}</Col>
           <Col className="col-end-client">{new Date(sub.submission_date).toLocaleDateString("en-US")}</Col>
           <Col className="col-client">{sub.candidate_name}</Col>
           <Col className="col-client">{sub.recruiter_name}</Col>

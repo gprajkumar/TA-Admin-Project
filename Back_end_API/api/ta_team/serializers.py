@@ -123,7 +123,8 @@ class ScreeningStatusSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class SubmissionSerializer(serializers.ModelSerializer):
-    Job = RequirementsSerializer(read_only=True)
+    Job = serializers.PrimaryKeyRelatedField(queryset=Requirements.objects.all())
+    job_details = RequirementsSerializer(source='Job', read_only=True)
     recruiter_name = serializers.CharField(source="recruiter.emp_fName", read_only=True)
     sourcer_name = serializers.CharField(source="sourcer.emp_fName", read_only=True)
     source_name = serializers.CharField(source="source.source", read_only=True)
@@ -133,6 +134,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
         fields = [
             'submission_id',
             'Job',
+            'job_details',
             'submission_date',
             'candidate_name',
             'payrate',
