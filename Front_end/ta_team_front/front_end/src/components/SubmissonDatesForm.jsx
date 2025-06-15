@@ -4,7 +4,6 @@ from "../services/drop_downService";
 import { Form, Row, Col, Button, FormGroup, FormLabel } from "react-bootstrap";
 import Select from "react-select";
 import axios from "axios";
-
 const SubmissionDatesForm = () =>
 {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
@@ -215,7 +214,9 @@ const fetchCandidateData = async () => {
                 Reset
               </Button>
         </Form>
-    </div>)
+     
+    </div>
+   )
 }
 
 export default SubmissionDatesForm;

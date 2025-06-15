@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaEye, FaEdit, FaTrash,FaSearch } from "react-icons/fa";
-import Modal from 'react-bootstrap/Modal';
+import { FaEye, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import Modal from "react-bootstrap/Modal";
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
-import RequirementForm from './RequirementForm'
+import RequirementForm from "./RequirementForm";
 import ViewForm from "./ViewForm";
 import {
   getClients,
@@ -13,62 +13,71 @@ import {
   getJobreqs,
   getSources,
   getCurrentCandidateStatus,
-  getSubmissions
+  getSubmissions,
 } from "../services/drop_downService";
-import { Form, Row, Col, Button, Container, FormControl } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Button,
+  Container,
+  FormControl,
+} from "react-bootstrap";
 import Select from "react-select";
-import Alert from "react-bootstrap/Alert";
 
-const AllSubmissions = () => {
+const AllSubmissions = ({ dateform = false }) => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
     end_client: "",
     client: "",
     recruiter: "",
-     sourcer: "",
-    from_sub_date:"",
-    to_sub_date:"",
-    candidate_name:"",
-    current_status:"",
-    source:""
+    sourcer: "",
+    from_sub_date: "",
+    to_sub_date: "",
+    candidate_name: "",
+    current_status: "",
+    source: "",
   });
   const [allSubmissions, setAllSubmissions] = useState([]);
-  const [show, setShow] = useState(false);  
+  const [show, setShow] = useState(false);
   const [dateFilter, setdateFilter] = useState({
-    from_sub_date:'',
-    to_sub_date:'',
+    from_sub_date: "",
+    to_sub_date: "",
   });
-const[currentSubid, setcurrentSubid] =useState('');
-const[viewtype, setviewtype] =useState(false);
-  const handleClose = () => {setShow(false)};
- // const handleShow = () => {setShow(true);}
- const handleView = (subId,sendata) => {
-setcurrentReqid(subId);
-setpassData(sendata);
-setShow(true)
-setviewtype(true)
- }
-const handleEdit = (subId) => {
-setcurrentReqid(subId);
-setShow(true)
-setviewtype(false)
-fetchsubs(); 
- }
- const handleDelete = async (subId) => {
-  if (window.confirm("Are you sure you want to delete this Candidate?")) {
-    try {
-    
-       const response = await axios.delete(`${baseurl}/ta_team/submissions/${subId}/`);
-  console.log('Deleted successfully', response.data);
-      fetchsubs(); 
-    } catch (error) {
-      console.error("Failed to delete requirement:", error);
+  const [currentSubid, setcurrentSubid] = useState("");
+  const [viewtype, setviewtype] = useState(false);
+  const handleClose = () => {
+    setShow(false);
+  };
+  // const handleShow = () => {setShow(true);}
+  const handleView = (subId, sendata) => {
+    setcurrentReqid(subId);
+    setpassData(sendata);
+    setShow(true);
+    setviewtype(true);
+  };
+  const handleEdit = (subId) => {
+    setcurrentReqid(subId);
+    setShow(true);
+    setviewtype(false);
+    fetchsubs();
+  };
+  const handleDelete = async (subId) => {
+    if (window.confirm("Are you sure you want to delete this Candidate?")) {
+      try {
+        const response = await axios.delete(
+          `${baseurl}/ta_team/submissions/${subId}/`
+        );
+        console.log("Deleted successfully", response.data);
+        fetchsubs();
+      } catch (error) {
+        console.error("Failed to delete requirement:", error);
+      }
     }
-  }
-};
+  };
   const [filteredSubs, setfilteredSubs] = useState([]);
-  const [passData,setpassData] =  useState({});
+  const [passData, setpassData] = useState({});
   const [filterdropdowndata, setfilterdropdowndata] = useState({
     jobs: [],
     recruiters: [],
@@ -86,13 +95,18 @@ fetchsubs();
     let filtered = allSubmissions;
 
     if (selectedvalue.Job) {
-      
-      filtered = filtered.filter((item) => item.job_details.requirement_id == selectedvalue.Job);
+      filtered = filtered.filter(
+        (item) => item.job_details.requirement_id == selectedvalue.Job
+      );
     }
-   
+
     if (selectedvalue.candidate_name) {
       filtered = filtered.filter(
-        (item) => item.candidate_name && item.candidate_name.toLowerCase().includes(selectedvalue.candidate_name.toLowerCase())
+        (item) =>
+          item.candidate_name &&
+          item.candidate_name
+            .toLowerCase()
+            .includes(selectedvalue.candidate_name.toLowerCase())
       );
     }
     if (selectedvalue.end_client) {
@@ -101,7 +115,9 @@ fetchsubs();
       );
     }
     if (selectedvalue.client) {
-      filtered = filtered.filter((item) => item.job_details.client == selectedvalue.client);
+      filtered = filtered.filter(
+        (item) => item.job_details.client == selectedvalue.client
+      );
     }
     if (selectedvalue.recruiter) {
       filtered = filtered.filter(
@@ -113,12 +129,12 @@ fetchsubs();
         (item) => item.sourcer == selectedvalue.sourcer
       );
     }
-    if(selectedvalue.source)
-    {
-      filtered = filtered.filter((item) => item.source_id == selectedvalue.source)
+    if (selectedvalue.source) {
+      filtered = filtered.filter((item) => item.source == selectedvalue.source);
     }
-    
+
     setfilteredSubs(filtered);
+    console.log(filtered);
   }, [selectedvalue, allSubmissions]);
 
   const handleChange = (e) => {
@@ -127,20 +143,19 @@ fetchsubs();
       ...prev,
       [name]: value,
     }));
-  
   };
   const handleSearch = async () => {
-  try {
-    const filteredData = await getFilteredSubmissions(
-      selectedvalue.from_date,
-      selectedvalue.to_date
-    );
-    setAllRequirements(filteredData); // optional
-    setfilteredReqs(filteredData);
-  } catch (error) {
-    console.error("Error fetching filtered jobs:", error);
-  }
-};
+    try {
+      const filteredData = await getFilteredSubmissions(
+        selectedvalue.from_date,
+        selectedvalue.to_date
+      );
+      setAllRequirements(filteredData); // optional
+      setfilteredReqs(filteredData);
+    } catch (error) {
+      console.error("Error fetching filtered jobs:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -152,7 +167,7 @@ fetchsubs();
           CurrentStatusRes,
           recruitersRes,
           sourcersRes,
-          sourceRes
+          sourceRes,
         ] = await Promise.all([
           getJobreqs(),
           getClients(),
@@ -175,8 +190,8 @@ fetchsubs();
             "end_client_name"
           ),
           candidate_current_Status: Array.isArray(CurrentStatusRes)
-  ? CurrentStatusRes.map((status) => ({ id: status, name: status }))
-  : [],
+            ? CurrentStatusRes.map((status) => ({ id: status, name: status }))
+            : [],
           recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
           sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
           sources: normalizeData(sourceRes, "source_id", "source"),
@@ -221,14 +236,16 @@ fetchsubs();
   const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
   const fetchsubs = async () => {
-    const data = await getSubmissions(selectedvalue.from_date,selectedvalue.to_date);
+    const data = await getSubmissions(
+      selectedvalue.from_date,
+      selectedvalue.to_date
+    );
     console.log(data);
     setAllSubmissions(data);
     setfilteredSubs(data);
   };
   return (
     <div className="data-container">
- 
       <Row>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="job">
@@ -239,7 +256,12 @@ fetchsubs();
         <Col md={3}>
           <Form.Group className="mb-3 " controlId="candidate_name">
             <Form.Label className="fs-6">Candidate Name</Form.Label>
-            <Form.Control type="input" onChange={handleChange} value={selectedvalue.candidate_name} name="candidate_name" />
+            <Form.Control
+              type="input"
+              onChange={handleChange}
+              value={selectedvalue.candidate_name}
+              name="candidate_name"
+            />
           </Form.Group>
         </Col>
         <Col md={3}>
@@ -283,94 +305,154 @@ fetchsubs();
         <Col md={2}>
           <Form.Group className="mb-3" controlId="sourcer">
             <Form.Label className="fs-6">Sourcer:</Form.Label>
-            {renderSelect(
-              "sourcer",
-              "Sourcer",
-              filterdropdowndata.sourcers
-            )}
+            {renderSelect("sourcer", "Sourcer", filterdropdowndata.sourcers)}
           </Form.Group>
         </Col>
         <Col md={2}>
-           <Form.Group className="mb-3" controlId="source">
+          <Form.Group className="mb-3" controlId="source">
             <Form.Label className="fs-6">Source:</Form.Label>
-            {renderSelect(
-              "source",
-              "Source",
-              filterdropdowndata.sources
-            )}
-            </Form.Group>
+            {renderSelect("source", "Source", filterdropdowndata.sources)}
+          </Form.Group>
         </Col>
       </Row>
-   <Row className="align-items-end mb-3">
-  <Col md={2}>
-    <Form.Group controlId="from_date">
-      <Form.Label className="fs-6">From:</Form.Label>
-      <Form.Control
-        type="date"
-        className="date-filter-input"
-        name="from_date"
-        value={selectedvalue.from_date}
-        onChange={handleChange}
-      />
-    </Form.Group>
-  </Col>
+      <Row className="align-items-end mb-3">
+        <Col md={2}>
+          <Form.Group controlId="from_date">
+            <Form.Label className="fs-6">From:</Form.Label>
+            <Form.Control
+              type="date"
+              className="date-filter-input"
+              name="from_date"
+              value={selectedvalue.from_date}
+              onChange={handleChange}
+            />
+          </Form.Group>
+        </Col>
 
-  <Col md={2}>
-    <Form.Group controlId="to_date">
-      <Form.Label className="fs-6">To:</Form.Label>
-      <Form.Control
-        type="date"
-        className="date-filter-input"
-        name="to_date"
-        value={selectedvalue.to_date}
-        onChange={handleChange}
-      />
-    </Form.Group>
-  </Col>
+        <Col md={2}>
+          <Form.Group controlId="to_date">
+            <Form.Label className="fs-6">To:</Form.Label>
+            <Form.Control
+              type="date"
+              className="date-filter-input"
+              name="to_date"
+              value={selectedvalue.to_date}
+              onChange={handleChange}
+            />
+          </Form.Group>
+        </Col>
 
-  <Col md={2} className="d-flex align-items-center">
-    <button
-      className="search-button"
-      aria-label="Search"
-      title="Search"
-      onClick={handleSearch}
-    >
-      <FaSearch />
-    </button>
-  </Col>
+        <Col md={2} className="d-flex align-items-center">
+          <button
+            className="search-button"
+            aria-label="Search"
+            title="Search"
+            onClick={handleSearch}
+          >
+            <FaSearch />
+          </button>
+        </Col>
 
-  <Col md={3} className="d-flex align-items-center">
-    <div className="jobs-found">
-      <span className="jobs-found-label">Candidates Found:</span>
-      <span className="jobs-found-count ms-2">{filteredSubs.length}</span>
-    </div>
-  </Col>
-</Row>
+        <Col md={3} className="d-flex align-items-center">
+          <div className="jobs-found">
+            <span className="jobs-found-label">Candidates Found:</span>
+            <span className="jobs-found-count ms-2">{filteredSubs.length}</span>
+          </div>
+        </Col>
+      </Row>
       {/* Header row with class 'header-row' */}
       <Row className="header-row">
         <Col className="col-job">Job</Col>
         <Col className="col-end-client">Submission Date</Col>
         <Col className="col-client">Candidate Name</Col>
-        <Col className="col-recruiter">Recruiter</Col>
-        <Col className="col-sourcer">Sourcer</Col>
-        <Col className="col-job-type">Source</Col>
-        <Col className="col-job-status">Current Status</Col>
+        <Col className="col-recruiter">
+          {dateform == true ? "AM Screen Date" : "Recruiter"}
+        </Col>
+        <Col className="col-sourcer">
+          {dateform == true ? "Technical Screen Date" : "Sourcer"}
+        </Col>
+        <Col className="col-job-type">
+          {dateform == true ? "Client  Submission Date" : "Source"}
+        </Col>
+        <Col className="col-job-status">
+          {dateform == true ? "Client Interview Date" : "Current Status"}
+        </Col>
+        <Col
+          className="col-job-status"
+          style={{ display: dateform == true ? "block" : "none" }}
+        >
+          Offer Date
+        </Col>
+        <Col
+          className="col-job-status"
+          style={{ display: dateform == true ? "block" : "none" }}
+        >
+          Start Date
+        </Col>
         <Col className="col-action">Action</Col>
       </Row>
       {filteredSubs.map((sub) => (
         <Row key={sub.submission_id} className="data-row">
           <Col className="col-job">{`${sub.job_details.job_code}- ${sub.job_details.job_title}`}</Col>
-          <Col className="col-end-client">{new Date(sub.submission_date).toLocaleDateString("en-US")}</Col>
+          <Col className="col-end-client">
+            {new Date(sub.submission_date).toLocaleDateString("en-US")}
+          </Col>
           <Col className="col-client">{sub.candidate_name}</Col>
-          <Col className="col-client">{sub.recruiter_name}</Col>
-          <Col className="col-recruiter">{sub.sourcer_name}</Col>
-          <Col className="col-sourcer">{sub.source_name}</Col>
-          <Col className="col-job-status">{sub.current_status}</Col>
+          <Col className="col-client">
+            {dateform == true
+              ? sub.am_screen_date
+                ? new Date(sub.am_screen_date).toLocaleDateString("en-US")
+                : ""
+              : sub.recruiter_name}
+          </Col>
+          <Col className="col-recruiter">
+            {dateform
+              ? sub.tech_screen_date
+                ? new Date(sub.tech_screen_date).toLocaleDateString("en-US")
+                : ""
+              : sub.sourcer_name}
+          </Col>
+
+          <Col className="col-sourcer">
+            {dateform
+              ? sub.client_sub_date
+                ? new Date(sub.client_sub_date).toLocaleDateString("en-US")
+                : ""
+              : sub.source_name}
+          </Col>
+
+          <Col className="col-job-status">
+            {dateform
+              ? sub.client_interview_date
+                ? new Date(sub.client_interview_date).toLocaleDateString(
+                    "en-US"
+                  )
+                : ""
+              : sub.current_status}
+          </Col>
+
+          <Col
+            className="col-job-status"
+            style={{ display: dateform ? "block" : "none" }}
+          >
+            {sub.offer_date
+              ? new Date(sub.offer_date).toLocaleDateString("en-US")
+              : ""}
+          </Col>
+
+          <Col
+            className="col-job-status"
+            style={{ display: dateform ? "block" : "none" }}
+          >
+            {sub.start_date
+              ? new Date(sub.start_date).toLocaleDateString("en-US")
+              : ""}
+          </Col>
           <Col className="col-action">
             <button
               aria-label="View"
               title="View"
-              onClick={() => handleView(sub.submission_id,sub)}
+              onClick={() => handleView(sub.submission_id, sub)}
             >
               <FaEye />
             </button>
@@ -392,13 +474,10 @@ fetchsubs();
         </Row>
       ))}
       <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
-        <Modal.Header closeButton>
-         
-        </Modal.Header>
-        <Modal.Body style={{ width: '100% !important' }}>
+        <Modal.Header closeButton></Modal.Header>
+        <Modal.Body style={{ width: "100% !important" }}>
           {/* { viewtype ? <ViewForm data={passData}/>:
           <RequirementForm reqid={currentSubid} viewtype={viewtype} externaldropdowndata={filterdropdowndata}/>} */}
-        
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
@@ -407,7 +486,6 @@ fetchsubs();
         </Modal.Footer>
       </Modal>
     </div>
-    
   );
 };
 

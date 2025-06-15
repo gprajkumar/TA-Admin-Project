@@ -62,7 +62,7 @@
   color: white;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
-.custom-navbar .dropdown-menu {
+/* .custom-navbar .dropdown-menu {
   opacity: 0;
   transform: translateY(-10px);
   transition: opacity 0.3s ease, transform 0.3s ease;
@@ -74,8 +74,19 @@
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
+} */
+
+.custom-navbar .dropdown-menu {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
 }
 
+.custom-navbar .dropdown-menu.show {
+  max-height: 500px; /* set high enough to fit all items */
+  opacity: 1;
+}
 
 .custom-navbar .dropdown-toggle.active {
   color: #ffffff !important;
@@ -91,4 +102,46 @@
   color: white !important;
   outline: none; /* Remove default outline */
   box-shadow: none; /* Remove focus shadow if any */
+}
+
+
+.auth-section {
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+}
+
+/* Sign In Button Style */
+/* Sign In Button Style */
+.signin-link.nav-link {
+  background-color: #045533 !important;
+  color: #fff !important;
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  padding: 6px 14px !important;
+ 
+  transition: all 0.3s ease;
+}
+
+.signin-link.nav-link:hover {
+  background-color: #9608e9 !important;
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
+}
+
+/* Welcome Dropdown Button Style */
+.welcome-dropdown > .nav-link {
+  background-color: #045533 !important;
+  color: #ffffff !important;
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+
+  transition: all 0.3s ease;
+}
+
+.welcome-dropdown > .nav-link:hover {
+  background-color: #9608e9 !important;
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
 }
