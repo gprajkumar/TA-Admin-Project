@@ -12,10 +12,13 @@ from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientS
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
     AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,
     RecruiterSerializer, RoleTypeSerializer, SourcerSerializer,
-    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer)
+    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
 from .filters.requirement_filter import RequirementFilter,SubmissionFilter
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+
 # Create your views here.
 
 class RequirementsViewSet(ModelViewSet):
@@ -104,9 +107,11 @@ class EmployeeViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['can_recruit','department','is_active','can_source']
     
-
 class UniqueCandidate_Status_ViewSet(ReadOnlyModelViewSet):
     queryset = Submissions.objects.none() 
     def list(self, request):
         unique_status = Submissions.objects.values_list('current_status', flat=True).distinct()
         return Response(unique_status)
+    
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

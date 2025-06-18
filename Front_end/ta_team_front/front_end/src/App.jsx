@@ -2,7 +2,6 @@ import { useState,useEffect } from 'react'
 import Header from './components/Header'
 import axios from "axios";
 import './index.css'
-import RequirementForm from './components/RequirementForm'
 import {Routes,Route} from 'react-router-dom'
 import Submission from './components/Submissions'
 import AllRequirements from './components/AllRequirements'
@@ -12,6 +11,8 @@ import SubmissionDatesForm from './components/SubmissonDatesForm'
 import AllSubmissionDates from './components/AllSubmissionDates'
 import Login from './components/Login'
 import { useNavigate } from 'react-router-dom';
+import TAHomePage from './components/TAHomePage';
+import RequirementForm from './components/RequirementForm';
 
 function App() {
 const navigate = useNavigate(); 
@@ -34,7 +35,10 @@ const baseurl = import.meta.env.VITE_API_BASE_URL;
         password:password,
       });
 
-      const { access, refresh } = response.data;
+      const { access, refresh,is_active } = response.data;
+        if (!is_active) {
+      return { success: false, message: 'User account is inactive.Please contact Administrator' };
+    }
       localStorage.setItem('accessToken', access);
       localStorage.setItem('refreshToken', refresh);
       localStorage.setItem('username', email);
@@ -44,7 +48,10 @@ const baseurl = import.meta.env.VITE_API_BASE_URL;
       return { success: true };
       
     } catch (err) {
-      return { success: false, message: 'Invalid username or password' };
+       const backendMessage = err?.response?.data?.detail || 
+                           err?.response?.data?.non_field_errors?.[0] || 
+                           'Invalid username or password';
+      return { success: false,  message: backendMessage };
     }
 };
   return (
@@ -56,7 +63,8 @@ const baseurl = import.meta.env.VITE_API_BASE_URL;
   setUserDetails(null);
   navigate('/login');}}/>
 <Routes>
-  <Route path='/' element={<RequirementForm/>}/>
+  <Route path='/' element={<TAHomePage/>}/>
+  <Route path='/addrequirements' element={<RequirementForm/>}/>
   <Route path='/submissions' element={<Submission/>}/>
    <Route path='/allreqs' element={<AllRequirements/>}/>
     <Route path='/filledjob' element={<OfferForm/>}/>

@@ -88,12 +88,6 @@ return (
         <Col md={3}>Filled by Recruiter:</Col>
         <Col md={3}>{data.filled_by_recruiter_name || "N/A"}</Col>
       </Row>
-      <Row className="view-row">
-        <Col md={3}>Filled by Sourcer:</Col>
-        <Col md={3}>{data.filled_by_sourcer_name || "N/A"}</Col>
-        <Col md={3}>Notes:</Col>
-        <Col md={3}>{data.notes || "N/A"}</Col>
-      </Row>
      </div>
 )
 };

@@ -62,7 +62,7 @@ const Header = ({ userdetails, onSignOut }) => {
             >
               <NavDropdown.Item
                 as={NavLink}
-                to="/"
+                to="/addrequirements"
                 onClick={() => handleDropdownItemClick("requirement-add")}
                 active={activeSection === "requirement-add"}
               >

@@ -2,6 +2,9 @@ from rest_framework import serializers
 from .models.models import Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Recruiter, Role_Type, Sourcer, Source, Tech_Screener, Screening_Status, Employee
 from .models.requirement import Requirements
 from .models.submission import Placement,Submissions
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 
 class RequirementsSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source='client.client_name', read_only=True)
@@ -167,3 +170,25 @@ class PlacementSerializer(serializers.ModelSerializer):
        model= Placement
        fields='__all__'
        
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+     def validate(self, attrs):
+        username = attrs.get("username")
+        password = attrs.get("password")
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid username or password.")
+        
+
+      
+        if not user.check_password(password):
+            raise serializers.ValidationError("Password is Wrong")
+
+     
+        if not user.is_active:
+            raise serializers.ValidationError("User account is inactive. Please contact Administrator.")
+
+        data = super().validate(attrs)
+        data['is_active'] = user.is_active
+        return data

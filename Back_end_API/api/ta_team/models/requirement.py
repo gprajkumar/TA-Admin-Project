@@ -36,6 +36,7 @@ class Requirements(models.Model):
     role_type = models.ForeignKey(Role_Type,on_delete=models.CASCADE,default=1)
     no_of_positions= models.IntegerField(default=1)
     no_of_positions_filled = models.IntegerField(blank=True,null=True)
+    created_by = models.ForeignKey(Employee,  related_name='created_by_employee', on_delete=models.CASCADE)
     
     def __str__(self):
         return self.job_code+" "+self.job_title

@@ -128,25 +128,7 @@ class Holiday(models.Model):
     def __str__(self):
         return self.holiday_date.strftime("%m-%d-%y")   
     
-class Recruiter(models.Model):
-    recruiter_id = models.AutoField(primary_key=True)
-    recruiter_name = models.CharField(max_length=100, verbose_name="Recruiter Name")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateField(blank=True, null=True)
-    recruiter_status = models.BooleanField(default=True, verbose_name="Active")
 
-    def __str__(self):
-        return self.recruiter_name
-
-class Sourcer(models.Model):
-    sourcer_id = models.AutoField(primary_key=True)
-    sourcer_name = models.CharField(max_length=100, verbose_name="Sourcer Name")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateField(blank=True, null=True)
-    sourcer_status = models.BooleanField(default=True, verbose_name="Active")
-
-    def __str__(self):
-        return self.sourcer_name
 
 class Tech_Screener(models.Model):
     tech_screener_id = models.AutoField(primary_key=True)
@@ -214,3 +196,17 @@ class Employee(models.Model):
     def __str__(self):
         return f"{self.emp_fName} {self.emp_lName}"
     
+class Permission(models.Model):
+    permission_id = models.AutoField(primary_key=True)
+    permission = models.BooleanField()
+    
+    def __str__(self):
+        return self.permission
+    
+class RolePermission(models.Model):
+    role_permission_id = models.AutoField(primary_key=True)
+    role=models.ForeignKey(Designation,  on_delete=models.CASCADE)
+    Permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"{self.role} {self.Permission}"

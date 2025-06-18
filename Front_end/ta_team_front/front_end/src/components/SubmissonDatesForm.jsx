@@ -14,7 +14,8 @@ const SubmissionDatesForm = () =>
         start_date:"",
         submission_id:"",
         requirement_id:"",
-        tech_screen_date:""
+        tech_screen_date:"",
+        am_screen_date: " "
     })
     const [JobData, setJobData] = useState([])
     const[CandidateData,setCandidateData] = useState([])
@@ -48,7 +49,8 @@ const resetform = () => {
         start_date:"",
         submission_id:"",
         requirement_id:"",
-        tech_screen_date:""
+        tech_screen_date:"",
+        am_screen_date:""
     });
   };
 
@@ -136,16 +138,27 @@ const fetchCandidateData = async () => {
                       </Col>
                       <Col md={6}>
                         <Form.Group className="mb-3 " controlId="job">
-                          <Form.Label className="fs-6">Candidate:</Form.Label>
+                          <Form.Label className="fs-6">Candidate Name:</Form.Label>
                           {renderSelect("submission_id", "Candidate", DropdownData.candidatedropdown)}
                         </Form.Group>
                       </Col>
             </Row>
  <Row>
-       
+       <Col md={6}>
+          <Form.Group className="mb-3 " controlId="am_screen_date">
+            <Form.Label className="fs-6">AM Screen Date:</Form.Label>
+             <Form.Control
+              type="date"
+              placeholder="AM Screen Date"
+              name="am_screen_date"  
+              value={FormData.am_screen_date}
+              onChange={handleChange}
+            />
+          </Form.Group>
+        </Col>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="tech_screen_date">
-            <Form.Label className="fs-6">:</Form.Label>
+            <Form.Label className="fs-6">Tech Screen Date:</Form.Label>
              <Form.Control
               type="date"
               placeholder="Tech Screen Date"
@@ -155,9 +168,12 @@ const fetchCandidateData = async () => {
             />
           </Form.Group>
         </Col>
-         <Col md={6}>
+         
+        </Row>
+         <Row>
+          <Col md={6}>
           <Form.Group className="mb-3 " controlId="client_sub_date">
-            <Form.Label className="fs-6">Date Req Opened:</Form.Label>
+            <Form.Label className="fs-6">Client Submission Date:</Form.Label>
              <Form.Control
               type="date"
               placeholder="Client Submission Date"
@@ -167,8 +183,6 @@ const fetchCandidateData = async () => {
             />
           </Form.Group>
         </Col>
-        </Row>
-         <Row>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="client_interview_date">
             <Form.Label className="fs-6">Client Interview Date:</Form.Label>
@@ -181,7 +195,10 @@ const fetchCandidateData = async () => {
             />
           </Form.Group>
         </Col>
-        <Col md={6}>
+        
+        </Row>
+        <Row>
+          <Col md={6}>
           <Form.Group className="mb-3 " controlId="offer_date">
             <Form.Label className="fs-6">Offer Date:</Form.Label>
              <Form.Control
@@ -193,8 +210,6 @@ const fetchCandidateData = async () => {
             />
           </Form.Group>
         </Col>
-        </Row>
-        <Row>
              <Col md={6}>
           <Form.Group className="mb-3 " controlId="start_date">
             <Form.Label className="fs-6">Start Date:</Form.Label>
