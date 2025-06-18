@@ -3,7 +3,7 @@ from rest_framework import status
 from .models.models import (
     Client, EndClient, Account, AccountManager, HiringManager,
     AccountHead, AccountCoordinator, Feedback, JobStatus,
-    Recruiter, Role_Type, Sourcer, Source, Tech_Screener, Screening_Status, Employee
+     Role_Type, Source, Tech_Screener, Screening_Status, Employee
 )
 from django_filters.rest_framework import DjangoFilterBackend
 from .models.requirement import Requirements
@@ -11,7 +11,7 @@ from .models.submission import Placement,Submissions
 from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientSerializer, AccountSerializer,
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
     AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,
-    RecruiterSerializer, RoleTypeSerializer, SourcerSerializer,
+     RoleTypeSerializer, 
     SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
@@ -67,17 +67,11 @@ class JobStatusViewSet(ModelViewSet):
     queryset = JobStatus.objects.all()
     serializer_class = JobStatusSerializer
 
-class RecruiterViewSet(ModelViewSet):
-    queryset = Recruiter.objects.all()
-    serializer_class = RecruiterSerializer
-
 class RoleTypeViewSet(ModelViewSet):
     queryset = Role_Type.objects.all()
     serializer_class = RoleTypeSerializer
 
-class SourcerViewSet(ModelViewSet):
-    queryset = Sourcer.objects.all()
-    serializer_class = SourcerSerializer
+
 
 class SourceViewSet(ModelViewSet):
     queryset = Source.objects.all()

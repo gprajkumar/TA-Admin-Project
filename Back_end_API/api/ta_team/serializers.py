@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models.models import Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Recruiter, Role_Type, Sourcer, Source, Tech_Screener, Screening_Status, Employee
+from .models.models import Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Role_Type, Source, Tech_Screener, Screening_Status, Employee
 from .models.requirement import Requirements
 from .models.submission import Placement,Submissions
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -34,7 +34,7 @@ class RequirementsSerializer(serializers.ModelSerializer):
             'accountManager', 'account_manager_name',
             'hiringManager', 'hiring_manager_name',
             'filled_source', 'filled_source_name',
-            'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name','no_of_positions','no_of_positions_filled','filled_date'
+            'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name','no_of_positions','no_of_positions_filled','filled_date','created_by'
         ]
 
     def get_assigned_recruiter_name(self, obj):
@@ -95,20 +95,13 @@ class JobStatusSerializer(serializers.ModelSerializer):
         model = JobStatus
         fields = '__all__'
 
-class RecruiterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Recruiter
-        fields = '__all__'
 
 class RoleTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role_Type
         fields = '__all__'
 
-class SourcerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Sourcer
-        fields = '__all__'
+
 
 class SourceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -155,7 +148,8 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'client_interview_date',
             'offer_date',
             'start_date',
-            'current_status'
+            'current_status',
+            'created_by'
         ]
 
 
