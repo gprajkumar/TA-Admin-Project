@@ -17,7 +17,7 @@ import {
 } from "../services/drop_downService";
 import { Form, Row, Col, Button, Container, FormControl } from "react-bootstrap";
 import Select from "react-select";
-import Alert from "react-bootstrap/Alert";
+
 
 const AllRequirements = () => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;

@@ -169,6 +169,16 @@ class Department(models.Model):
 class Designation(models.Model):
     designation_id = models.AutoField(primary_key= True)
     designation_name = models.CharField(max_length=50)
+    complete_access = models.BooleanField(default=False)
+    edit_own_data = models.BooleanField(default=False)
+    delete_own_data = models.BooleanField(default=False)
+    edit_data =models.BooleanField(default=False)
+    delete_data = models.BooleanField(default=False)
+    access_Analytics = models.BooleanField(default=True)
+    only_client_Analytics = models.BooleanField(default=False)
+    only_Recruiter_Analytics = models.BooleanField(default=False)
+    only_sourcer_Analytics = models.BooleanField(default=False)
+    only_submission_Analytics = models.BooleanField(default=False)
     
     def __str__(self):
         return self.designation_name
@@ -181,7 +191,7 @@ class ReasonForLeaving(models.Model):
         return self.reason_name
 
 class Employee(models.Model):
-    user=models.OneToOneField(User, on_delete=models.CASCADE,blank=True, null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='employee')
     employee_id = models.AutoField(primary_key=True)
     emp_code = models.CharField(max_length=10,unique=True)
     emp_fName = models.CharField(max_length=50, blank=True,null=True)
@@ -196,17 +206,5 @@ class Employee(models.Model):
     def __str__(self):
         return f"{self.emp_fName} {self.emp_lName}"
     
-class Permission(models.Model):
-    permission_id = models.AutoField(primary_key=True)
-    permission = models.BooleanField()
+
     
-    def __str__(self):
-        return self.permission
-    
-class RolePermission(models.Model):
-    role_permission_id = models.AutoField(primary_key=True)
-    role=models.ForeignKey(Designation,  on_delete=models.CASCADE)
-    Permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return f"{self.role} {self.Permission}"

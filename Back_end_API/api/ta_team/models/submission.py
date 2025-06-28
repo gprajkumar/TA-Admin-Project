@@ -21,7 +21,7 @@ class Submissions(models.Model):
     offer_date = models.DateField(auto_now=False, auto_now_add=False,blank = True,null=True)
     start_date = models.DateField(auto_now=False, auto_now_add=False,blank = True,null=True)
     current_status = models.CharField(blank=True, max_length=50)
-   
+    created_by = models.ForeignKey(Employee,  related_name='submissions_created_by', on_delete=models.CASCADE, null=True)
     
     def __str__(self):
        return self.candidate_name
@@ -50,7 +50,8 @@ class Placement(models.Model):
     placment_id = models.AutoField(primary_key=True)
     Job = models.ForeignKey(Requirements,on_delete=models.CASCADE)
     submission = models.ForeignKey(Submissions,on_delete=models.CASCADE)
-    reason = models.ForeignKey(ReasonForLeaving,on_delete=models.CASCADE,blank=True,null=True)
-    
+    reason_for_leaving = models.ForeignKey(ReasonForLeaving,on_delete=models.CASCADE,blank=True,null=True)
+    Contract_end_close_date= models.DateField(null=True,blank=True)
+    is_Active = models.BooleanField(default=True)
     def __str__(self):
         return self.submission

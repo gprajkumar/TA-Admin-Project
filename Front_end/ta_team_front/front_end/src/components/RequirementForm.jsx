@@ -15,10 +15,13 @@ import { Form, Row, Col, Button } from "react-bootstrap";
 import Select from "react-select";
 import Alert from "react-bootstrap/Alert";
 import { Await } from "react-router-dom";
+import Dropdown_component from "./Dropdown_component";
 
 const RequirementForm = ({ reqid,viewtype = false,externaldropdowndata}) => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [loading, setLoading] = useState(reqid ? true : false);
+  const [errors,setErrors] = useState({});
+  const today = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     job_title: "",
     job_code: "",
@@ -33,7 +36,7 @@ const RequirementForm = ({ reqid,viewtype = false,externaldropdowndata}) => {
     role_type: "",
     notes: "",
     req_opened_date:"",
-    no_of_positions:""
+    no_of_positions:"1"
   });
   const [show, setShow] = useState(false);
   const [dropdownData, setDropdownData] = useState({
@@ -47,6 +50,11 @@ const RequirementForm = ({ reqid,viewtype = false,externaldropdowndata}) => {
     hiringManagers: [],
     roletypes: [],
   });
+const OnhandleSelect = ({name,value}) =>
+{
+  setFormData((prevdata)=>({...prevdata,[name]:value}))
+
+}
 
  
 useEffect(() => {
@@ -130,8 +138,32 @@ useEffect(() => {
       ...prev,
       [name]: value,
     }));
+    if(errors[name]){
+      setErrors((preverrors)=>({...preverrors,[name]:""}))
+    }
   };
 
+  const validateForm = () =>
+  {
+    const newErrors = {};
+    if (!formData.job_code.trim()) newErrors.job_code = "Job code is required";
+  if (!formData.job_title.trim()) newErrors.job_title = "Job title is required";
+  if (!formData.req_opened_date) 
+    {newErrors.req_opened_date = "Date is required";}
+  
+  if (!formData.no_of_positions) newErrors.no_of_positions = "Number of positions is required";
+  if (!formData.account) newErrors.account = "Account is required";
+  if (!formData.client) newErrors.client = "Client is required";
+  if (!formData.end_client) newErrors.end_client = "End client is required";
+  if (!formData.hiringManager) newErrors.hiringManager = "Hiring manager is required";
+  if (!formData.assigned_recruiter) newErrors.assigned_recruiter = "Assigned recruiter is required";
+  if (!formData.assigned_sourcer) newErrors.assigned_sourcer = "Assigned sourcer is required";
+  if (!formData.role_type) newErrors.role_type = "Job type is required";
+  if (!formData.job_status) newErrors.job_status = "Job status is required";
+  if (!formData.accountManager) newErrors.accountManager = "Account manager is required";
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+  }
   const resetform = () => {
     setFormData({
       job_title: "",
@@ -148,7 +180,9 @@ useEffect(() => {
       notes: "",
        req_opened_date:"",
        no_of_positions:""
+       
     });
+    setErrors({})
   };
 
   const normalizeData = (data, idKey, nameKey) =>
@@ -156,6 +190,10 @@ useEffect(() => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if(!validateForm())
+    {
+      return
+    }
 
     try {
       if(!reqid)
@@ -179,34 +217,54 @@ useEffect(() => {
     }
   };
 
-  const renderSelect = (name, label, options) => {
-    const selectOptions = (options || []).map((opt) => ({
-      value: opt.id,
-      label: opt.name,
-    }));
+ const renderSelect = (name, label, options) => {
+  const selectOptions = (options || []).map((opt) => ({
+    value: opt.id,
+    label: opt.name,
+  }));
 
-    // Find the selected option in react-select's format
-    const selectedOption = selectOptions.find(
-      (opt) => opt.value === formData[name]
-    );
+  const selectedOption = selectOptions.find(
+    (opt) => opt.value === formData[name]
+  );
+  const hasError = !!errors[name];
 
-    return (
-      <div className="mb-3">
-        <Select
-          classNamePrefix="my-select"
-          options={selectOptions}
-          value={selectedOption || null}   isDisabled={viewtype}
-          onChange={(selected) => {
-            handleChange({
-              target: { name, value: selected ? selected.value : "" },
-            });
-          }}
-          placeholder={`Select ${label}`}
-          isClearable
-        />
-      </div>
-    );
-  };
+  return (
+    <Form.Group className="mb-3">
+      <Form.Label className="fs-6">{label}<span style={{ color: "red" }}>*</span>:</Form.Label>
+      <Select
+        classNamePrefix="my-select"
+        options={selectOptions}
+        value={selectedOption || null}
+        isDisabled={viewtype}
+        onChange={(selected) => {
+          handleChange({
+            target: { name, value: selected ? selected.value : "" },
+          });
+        }}
+        placeholder={`Select ${label}`}
+        isClearable
+        styles={{
+          control: (base) => ({
+            ...base,
+            borderColor: hasError ? "#dc3545" : base.borderColor,
+            boxShadow: hasError
+              ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
+              : base.boxShadow,
+            '&:hover': {
+              borderColor: hasError ? "#dc3545" : base.borderColor,
+            },
+          }),
+        }}
+      />
+      {hasError && (
+        <Form.Control.Feedback type="invalid" className="d-block">
+          {errors[name]}
+        </Form.Control.Feedback>
+      )}
+    </Form.Group>
+  );
+};
+
 if(loading)
 {
    return  <div className="text-center">Loading requirement...</div>;
@@ -220,135 +278,153 @@ else
       <Row>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="job_code">
-            <Form.Label className="fs-6">Job Code:</Form.Label>
+            <Form.Label className="fs-6">Job Code<span style={{ color: "red" }}>*</span>:</Form.Label>
             <Form.Control
               type="input"
               placeholder="Enter Job Code"
+              minLength={3}
+              maxLength={20}
               name="job_code"
               disabled={viewtype}
               value={formData.job_code}
+              isInvalid={!!errors.job_code}
               onChange={handleChange}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.job_code}
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
         <Col md={6}>
           <Form.Group className="mb-3" controlId="job_title">
-            <Form.Label className="fs-6">Job Title:</Form.Label>
+            <Form.Label className="fs-6">Job Title<span style={{ color: "red" }}>*</span>:</Form.Label>
             <Form.Control
               type="input"
               placeholder="Enter Job Title"
+              minLength={5}
+              maxLength={200}
               name="job_title"   disabled={viewtype}
               value={formData.job_title}
+              isInvalid={!!errors.job_title}
               onChange={handleChange}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.job_title}
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
       </Row>
         <Row>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="req_opened_date">
-            <Form.Label className="fs-6">Date Req Opened:</Form.Label>
+            <Form.Label className="fs-6">Date Req Opened<span style={{ color: "red" }}>*</span>:</Form.Label>
              <Form.Control
               type="date"
               placeholder="Enter Job Open Date"
               name="req_opened_date"   disabled={viewtype}
+         min="2024-01-01"               // 👈 Earliest allowed date
+    max={new Date().toISOString().split("T")[0]}  // 👈 Today’s date
               value={formData.req_opened_date}
               onChange={handleChange}
+              isInvalid={!!errors.req_opened_date}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.req_opened_date}
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
       <Col md={6}>
           <Form.Group className="mb-3" controlId="no_of_positions">
-            <Form.Label className="fs-6">No of Positions:</Form.Label>
+            <Form.Label className="fs-6">No of Positions<span style={{ color: "red" }}>*</span>:</Form.Label>
             <Form.Control
-              type="input"
+              type="Number"
+              min={1}
+              max={5}
               placeholder="Enter No of Positions"
               name="no_of_positions"   disabled={viewtype}
               value={formData.no_of_positions}
+               isInvalid={!!errors.no_of_positions}
               onChange={handleChange}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.no_of_positions}
+            </Form.Control.Feedback>
           </Form.Group>
+          
         </Col>
      
       </Row>
       <Row>
         <Col md={6}>
-          <Form.Group className="mb-3 " controlId="account">
-            <Form.Label className="fs-6">Account:</Form.Label>
+        
             {renderSelect("account", "Account", dropdownData.accounts)}
-          </Form.Group>
+         
         </Col>
         <Col md={6}>
-          <Form.Group className="mb-3" controlId="EndClient">
-            <Form.Label className="fs-6">End Client:</Form.Label>
-            {renderSelect("end_client", "End Client", dropdownData.endClients)}
-          </Form.Group>
+        {/* implement this to also dropdown */}
+         <Dropdown_component name={"end_client"} label={"End Client"} error= {errors.end_client} options={dropdownData.endClients} onSelect={OnhandleSelect} value={formData.end_client}/>
+            {/* {renderSelect("end_client", "End Client", dropdownData.endClients)} */}
+        
         </Col>
       </Row>
       <Row>
         <Col md={6}>
-          <Form.Group className="mb-3 " controlId="Client">
-            <Form.Label className="fs-6">Client:</Form.Label>
+         
             {renderSelect("client", "Client", dropdownData.clients)}
-          </Form.Group>
+       
         </Col>
         <Col md={6}>
-          <Form.Group className="mb-3" controlId="HiringManager">
-            <Form.Label className="fs-6">Hiring Manager:</Form.Label>
+          
             {renderSelect(
               "hiringManager",
               "Hiring Manager",
               dropdownData.hiringManagers
             )}
-          </Form.Group>
+
+          
         </Col>
       </Row>
       <Row>
         <Col md={6}>
-          <Form.Group className="mb-3 " controlId="recruiter">
-            <Form.Label className="fs-6">Assigned Recruiter:</Form.Label>
+        
             {renderSelect(
               "assigned_recruiter",
               "Recruiter",
               dropdownData.recruiters
             )}
-          </Form.Group>
+   
         </Col>
         <Col md={6}>
-          <Form.Group className="mb-3" controlId="sourcer">
-            <Form.Label className="fs-6">Assigned Sourcer:</Form.Label>
+        
             {renderSelect("assigned_sourcer", "Sourcer", dropdownData.sourcers)}
-          </Form.Group>
+       
         </Col>
       </Row>
       <Row>
         <Col md={6}>
-          <Form.Group className="mb-3 " controlId="Jobtype">
-            <Form.Label className="fs-6">Job Type:</Form.Label>
+       
             {renderSelect("role_type", "Job Type", dropdownData.roletypes)}
-          </Form.Group>
+      
         </Col>
         <Col md={6}>
-          <Form.Group className="mb-3" controlId="jobstatus">
-            <Form.Label className="fs-6">Job Status:</Form.Label>
+        
             {renderSelect(
               "job_status",
               "Current Status",
               dropdownData.jobStatuses
             )}
-          </Form.Group>
+     
         </Col>
       </Row>
       <Row>
         <Col md={6}>
-          <Form.Group className="mb-3 " controlId="accountmanager">
-            <Form.Label className="fs-6">Account Manager:</Form.Label>
+        
             {renderSelect(
               "accountManager",
               "Account Manager",
               dropdownData.accountManagers
             )}
-          </Form.Group>
+      
         </Col>
         <Col md={6}>
           <Form.Group className="mb-3" controlId="jobnote">
@@ -357,13 +433,16 @@ else
               as="textarea"
               rows={2}
               placeholder="Enter Note"
+              maxLength={2000}
               name="notes"   disabled={viewtype}
               value={formData.notes}
               onChange={handleChange}
             />
+         
           </Form.Group>
         </Col>
       </Row>
+      <Row>
       <Alert show={show} variant="success">
         <Alert.Heading>Hurray!</Alert.Heading>
         <p>Requirement {reqid ? 'updated' : 'added'} Successfully</p>
@@ -374,13 +453,21 @@ else
           </Button>
         </div>
       </Alert>
-{viewtype ? null: <>
-      <Button className="submit-button" type="submit">
-        {reqid? 'Update':'Submit'} Requirement
-      </Button>
-      <Button className="submit-button" type="button" onClick={resetform}>
-        Reset
-      </Button></>}
+      </Row>
+      <Row className="mt-4">
+  {!viewtype && (
+    <Col>
+      <div className="d-flex justify-content-center gap-3">
+        <Button className="submit-button" type="submit">
+          {reqid ? 'Update' : 'Submit'} Requirement
+        </Button>
+        <Button className="submit-button" type="button" onClick={resetform}>
+          Reset
+        </Button>
+      </div>
+    </Col>
+  )}
+      </Row>
     </Form>
   );
 }

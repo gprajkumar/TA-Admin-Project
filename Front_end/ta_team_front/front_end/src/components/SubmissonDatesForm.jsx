@@ -7,6 +7,7 @@ import axios from "axios";
 const SubmissionDatesForm = () =>
 {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
+   const [errors,setErrors] = useState({});
     const [FormData, setFormData] = useState({
         client_sub_date: "",
         client_interview_date:"",
@@ -41,6 +42,16 @@ const SubmissionDatesForm = () =>
 
  
 },[]);
+const validateForm = () =>
+{
+  const newErrors = {};
+  if(!FormData.requirement_id)  newError.requirement_id = "Please Select Job";
+    if(!FormData.submission_id) newError.submission_id = "Please Select Candidate";
+    
+    setErrors(newError)
+return Object.keys(newError) === 0;
+
+}
 const resetform = () => {
     setFormData({
       client_sub_date: "",
@@ -69,6 +80,10 @@ const fetchCandidateData = async () => {
 
   const handleSubmit = async (e) => {
    e.preventDefault();
+   if(!validateForm)
+   {
+return
+   }
 
     try {
       
@@ -98,49 +113,66 @@ const fetchCandidateData = async () => {
   };
 
 
-   const renderSelect = (name, label, options) => {
-    const selectOptions = (options || []).map((opt) => ({
-      value: opt.id,
-      label: opt.name,
-    }));
+      const renderSelect = (name, label, options) => {
+  const selectOptions = (options || []).map((opt) => ({
+    value: opt.id,
+    label: opt.name,
+  }));
 
-    // Find the selected option in react-select's format
-    const selectedOption = selectOptions.find(
-      (opt) => opt.value === FormData[name]
-    );
+  const selectedOption = selectOptions.find(
+    (opt) => opt.value === formData[name]
+  );
+  const hasError = !!errors[name];
 
-    return (
-      <div className="mb-3">
-        <Select
-          classNamePrefix="my-select"
-          options={selectOptions}
-          value={selectedOption || null}   
-          onChange={(selected) => {
-            handleChange({
-              target: { name, value: selected ? selected.value : "" },
-            });
-          }}
-          placeholder={`Select ${label}`}
-          isClearable
-        />
-      </div>
-    );
-  };
+  return (
+    <Form.Group className="mb-3">
+      <Form.Label className="fs-6">{label}<span style={{ color: "red" }}>*</span>:</Form.Label>
+      <Select
+        classNamePrefix="my-select"
+        options={selectOptions}
+        value={selectedOption || null}
+       
+        onChange={(selected) => {
+          handleChange({
+            target: { name, value: selected ? selected.value : "" },
+          });
+        }}
+        placeholder={`Select ${label}`}
+        isClearable
+        styles={{
+          control: (base) => ({
+            ...base,
+            borderColor: hasError ? "#dc3545" : base.borderColor,
+            boxShadow: hasError
+              ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
+              : base.boxShadow,
+            '&:hover': {
+              borderColor: hasError ? "#dc3545" : base.borderColor,
+            },
+          }),
+        }}
+      />
+      {hasError && (
+        <Form.Control.Feedback type="invalid" className="d-block">
+          {errors[name]}
+        </Form.Control.Feedback>
+      )}
+    </Form.Group>
+  );
+};
     
     return (<div>
         <Form onSubmit={handleSubmit} className="requirement-form container">
             <Row>
                 <Col md={6}>
-                        <Form.Group className="mb-3 " controlId="job">
-                          <Form.Label className="fs-6">Job:</Form.Label>
+                        
                           {renderSelect("requirement_id", "Job", DropdownData.jobdropdown)}
-                        </Form.Group>
+                   
                       </Col>
                       <Col md={6}>
-                        <Form.Group className="mb-3 " controlId="job">
-                          <Form.Label className="fs-6">Candidate Name:</Form.Label>
-                          {renderSelect("submission_id", "Candidate", DropdownData.candidatedropdown)}
-                        </Form.Group>
+                        
+                          {renderSelect("submission_id", "Candidate Name", DropdownData.candidatedropdown)}
+                       
                       </Col>
             </Row>
  <Row>
@@ -223,11 +255,19 @@ const fetchCandidateData = async () => {
           </Form.Group>
         </Col>
         </Row>
-         <Button className="submit-button" type="submit">
-              Submit</Button>
-              <Button className="submit-button" type="button" onClick={resetform}>
-                Reset
-              </Button>
+         <Row className="justify-content-center mt-4">
+  <Col xs="auto">
+    <Button className="submit-button" type="submit">
+      Submit
+    </Button>
+  </Col>
+  <Col xs="auto">
+    <Button className="submit-button" type="button" onClick={resetform}>
+      Reset
+    </Button>
+  </Col>
+</Row>
+
         </Form>
      
     </div>

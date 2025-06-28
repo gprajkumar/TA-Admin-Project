@@ -8,7 +8,7 @@ import { NavLink } from "react-router-dom";
 
 const Header = ({ userdetails, onSignOut }) => {
   const [activeSection, setActiveSection] = useState(null);
-  
+  const token = localStorage.getItem('accessToken')
  
 
   const handleMainLinkClick = (section) => {
@@ -51,7 +51,7 @@ const Header = ({ userdetails, onSignOut }) => {
             </Nav.Link>
 
             {/* Requirement Dropdown */}
-            <NavDropdown
+          {token && <> <NavDropdown
               title="Requirement"
               id="requirement-nav-dropdown"
               active={
@@ -164,7 +164,8 @@ const Header = ({ userdetails, onSignOut }) => {
               >
                 Sourcer Dashboard
               </NavDropdown.Item>
-            </NavDropdown>
+            </NavDropdown></>}
+           
 
             {/* Sign In or Welcome */}
             <Nav className="auth-section">

@@ -13,6 +13,7 @@ import Login from './components/Login'
 import { useNavigate } from 'react-router-dom';
 import TAHomePage from './components/TAHomePage';
 import RequirementForm from './components/RequirementForm';
+import AuthCheck from './components/AuthCheck';
 
 function App() {
 const navigate = useNavigate(); 
@@ -64,13 +65,13 @@ const baseurl = import.meta.env.VITE_API_BASE_URL;
   navigate('/login');}}/>
 <Routes>
   <Route path='/' element={<TAHomePage/>}/>
-  <Route path='/addrequirements' element={<RequirementForm/>}/>
-  <Route path='/submissions' element={<Submission/>}/>
-   <Route path='/allreqs' element={<AllRequirements/>}/>
-    <Route path='/filledjob' element={<OfferForm/>}/>
-    <Route path='/allsubmissions' element={<AllSubmissions/>}/>
-     <Route path='/submissionsDateEntry' element={<SubmissionDatesForm/>}/>
-  <Route path='/submissionsDateDetails' element={<AllSubmissionDates/>}/>
+  <Route path='/addrequirements' element={<AuthCheck><RequirementForm/></AuthCheck>}/>
+  <Route path='/submissions' element={<AuthCheck><Submission/></AuthCheck>}/>
+   <Route path='/allreqs' element={<AuthCheck><AllRequirements/></AuthCheck>}/>
+    <Route path='/filledjob' element={<AuthCheck><OfferForm/></AuthCheck>}/>
+    <Route path='/allsubmissions' element={<AuthCheck><AllSubmissions/></AuthCheck>}/>
+     <Route path='/submissionsDateEntry' element={<AuthCheck><SubmissionDatesForm/></AuthCheck>}/>
+  <Route path='/submissionsDateDetails' element={<AuthCheck><AllSubmissionDates/></AuthCheck>}/>
    <Route path='/login' element={<Login onLogin={handleLogin}/>}/>
 </Routes>
 

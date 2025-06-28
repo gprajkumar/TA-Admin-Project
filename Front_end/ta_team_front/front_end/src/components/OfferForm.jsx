@@ -31,6 +31,19 @@ const OfferForm = () => {
        filled_date: ''
 
     })
+    const [errors,setError] = useState({});
+
+    const validateForm = () =>
+    {
+      const newErrors ={};
+      if(!formData.requirement_id) newErrors.requirement_id = "Please Select Job";
+      if(!formData.no_of_positions_filled || formData.no_of_positions_filled < 1 ) newErrors.no_of_positions_filled = "Please Enter No of roles filled";
+      if(submissions.filter(Boolean).length !== count ) newErrors.subcount = "Please Select Candidates";
+      console.log(`${submissions.length} && ${count}`)
+      if(!formData.filled_date) newErrors.filled_date = "Please Enter Filled Date"
+      setError(newErrors)
+      return Object.keys(newErrors) === 0;
+    }
     const resetform = () => {
     setformData({
       requirement_id : '',
@@ -60,30 +73,54 @@ const OfferForm = () => {
     
   }
   };
-    const renderSelect = (name, label, options,idx) => {
-    const selectOptions = (options || []).map((opt) => ({
-      value: opt.id,
-      label: opt.name,
-    }));
+     const renderSelect = (name, label, options) => {
+  const selectOptions = (options || []).map((opt) => ({
+    value: opt.id,
+    label: opt.name,
+  }));
 
-    //Find the selected option in react-select's format
-    const selectedOption = selectOptions.find(
-     (opt) => idx === 100 ? opt.value === formData[name] : opt.value === submissions[idx]
-    );
+  const selectedOption = selectOptions.find(
+    (opt) => opt.value === formData[name]
+  );
+  const hasError = !!errors[name];
 
-    return (
-      <div className="mb-3">
-        <Select
-          classNamePrefix="my-select"
-          options={selectOptions}
-          value={selectedOption || null}
-          onChange={(selected) => handleChange(selected, name, idx)}
-          placeholder={`Select ${label}`}
-          isClearable
-        />
-      </div>
-    );
-  };
+  return (
+    <Form.Group className="mb-3">
+      <Form.Label className="fs-6">{label}<span style={{ color: "red" }}>*</span>:</Form.Label>
+      <Select
+        classNamePrefix="my-select"
+        options={selectOptions}
+        value={selectedOption || null}
+       
+        onChange={(selected) => {
+          handleChange({
+            target: { name, value: selected ? selected.value : "" },
+          });
+        }}
+        placeholder={`Select ${label}`}
+        isClearable
+        styles={{
+          control: (base) => ({
+            ...base,
+            borderColor: hasError ? "#dc3545" : base.borderColor,
+            boxShadow: hasError
+              ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
+              : base.boxShadow,
+            '&:hover': {
+              borderColor: hasError ? "#dc3545" : base.borderColor,
+            },
+          }),
+        }}
+      />
+      {hasError && (
+        <Form.Control.Feedback type="invalid" className="d-block">
+          {errors[name]}
+        </Form.Control.Feedback>
+      )}
+    </Form.Group>
+  );
+};
+
  const [count, setCount] = useState(1);
  const [jobDropdown, setjobDropdown] = useState([]);
  const [candidateDropdown, setcandidateDropdown] = useState([]);
@@ -129,7 +166,11 @@ useEffect(()=>{
     };
 const handleSubmit = async (e) => {
    e.preventDefault();
-
+  if(!validateForm())
+  {
+  if (errors.subcount) alert(errors.subcount);
+    return
+  }
     try {
       
       await axios.patch(`${baseurl}/ta_team/requirements/${formData.requirement_id}/`, formData);
@@ -158,10 +199,9 @@ const handleSubmit = async (e) => {
 
       <Row>
          <Col md={6}>
-          <Form.Group className="mb-3 " controlId="job">
-            <Form.Label className="fs-6">Job:</Form.Label>
+        
             {renderSelect("requirement_id", "Job", jobDropdown,100)}
-          </Form.Group>
+          
         </Col>
            <Col md={6}>
                    <Form.Group className="mb-3 " controlId="filled_date">
@@ -170,13 +210,18 @@ const handleSubmit = async (e) => {
                        type="Date"
                        name="filled_date"
                        value={formData.filled_date}
+                         isInvalid={!!errors.filled_date}
                        onChange={(e) =>
         setformData((prev) => ({
           ...prev,
           filled_date: e.target.value,
         }))}
                      />
+                     <Form.Control.Feedback type="invalid">
+                    {errors.filled_date}
+                   </Form.Control.Feedback>
                    </Form.Group>
+                   
                  </Col>
         </Row>
         <Row>
@@ -187,30 +232,40 @@ const handleSubmit = async (e) => {
               type="number"
               min="1"
               placeholder="Enter Filled Positions"
+              isInvalid={!!errors.no_of_positions_filled}
               name="no_of_positions_filled"   
               value={formData.no_of_positions_filled}
               onChange={handlecountChange}
             />
+               <Form.Control.Feedback type="invalid">
+                    {errors.no_of_positions_filled}
+                   </Form.Control.Feedback>
           </Form.Group>
         </Col>
         <Col md={6}>
         {submissions.map((val,idx) => (
         <div key={idx}>
-          <Form.Group className="mb-3 " controlId="candidate_name">
-            <Form.Label className="fs-6">Placed Candidate:</Form.Label>
+         
             {renderSelect("candidate_name", "Candidate Name", candidateDropdown,idx)}
-          </Form.Group>
+        
           </div>
        
         ))}
          </Col> 
       </Row>
+   <Row className="justify-content-center mt-4">
+  <Col xs="auto">
     <Button className="submit-button" type="submit">
-            Submit Offer
-          </Button>
-           <Button  className='submit-button' type="button" onClick={resetform}>
-            Reset
-          </Button>
+      Submit Offer
+    </Button>
+  </Col>
+  <Col xs="auto">
+    <Button className="submit-button" type="button" onClick={resetform}>
+      Reset
+    </Button>
+  </Col>
+</Row>
+
     </Form>
     );
 

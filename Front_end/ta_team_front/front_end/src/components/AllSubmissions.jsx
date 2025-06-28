@@ -25,7 +25,7 @@ import {
 } from "react-bootstrap";
 import Select from "react-select";
 
-const AllSubmissions = ({ dateform = false }) => {
+const AllSubmissions = ({ dateform = false, empId }) => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",

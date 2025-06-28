@@ -9,8 +9,9 @@ import {
 } from "../services/drop_downService";
 import { Form, Row, Col, Button } from "react-bootstrap";
 
-const Submission = () => {
-      const baseurl = import.meta.env.VITE_API_BASE_URL
+const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
+      const baseurl = import.meta.env.VITE_API_BASE_URL;
+      const [errors,setErrors] = useState({});
   const [formData, setFormData] = useState({
     Job: "",
     submission_date: "",
@@ -22,6 +23,23 @@ const Submission = () => {
     source: "",
     am_sub_date:"",
   });
+
+  const validationform = () =>
+  {
+
+    const newError ={};
+    if(!formData.job)  newError.job = "Please Select Job";
+    if(!formData.submission_date)  newError.submission_date = "Please Select submission_date";
+    if(!formData.candidate_name)  newError.candidate_name = "Please Select candidate_name";
+    if(!formData.payrate)  newError.payrate = "Please Enter payrate";
+    if(!formData.w2_C2C)  newError.w2_C2C = "Please Select w2_C2C";
+    if(!formData.recruiter)  newError.recruiter = "Please Select recruiter";
+      if(!formData.sourcer)  newError.sourcer = "Please Select sourcer";
+    if(!formData.source)  newError.source = "Please Select source";
+    setErrors(newError)
+return Object.keys(newError) === 0;
+
+  }
 const resetform = () =>
 {
     setFormData({job: "",
@@ -69,6 +87,10 @@ const resetform = () =>
   }, []);
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if(!validationform())
+    {
+      return
+    }
 
     console.log(formData);
     try {
@@ -86,39 +108,63 @@ const resetform = () =>
   const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
 
-  const renderSelect = (name, label, options) => {
-    const selectOptions = (options || []).map((opt) => ({
-      value: opt.id,
-      label: opt.name,
-    }));
+   const renderSelect = (name, label, options) => {
+  const selectOptions = (options || []).map((opt) => ({
+    value: opt.id,
+    label: opt.name,
+  }));
 
-    // Find the selected option in react-select's format
-    const selectedOption = selectOptions.find(
-      (opt) => opt.value === formData[name]
-    );
+  const selectedOption = selectOptions.find(
+    (opt) => opt.value === formData[name]
+  );
+  const hasError = !!errors[name];
 
-    return (
-      <div className="mb-3">
-        <Select classNamePrefix="my-select"
-          options={selectOptions}
-          value={selectedOption || null}
-          onChange={(selected) => {
-            handleChange({
-              target: { name, value: selected ? selected.value : "" },
-            });
-          }}
-          placeholder={`Select ${label}`}
-          isClearable
-        />
-      </div>
-    );
-  };
+  return (
+    <Form.Group className="mb-3">
+      <Form.Label className="fs-6">{label}<span style={{ color: "red" }}>*</span>:</Form.Label>
+      <Select
+        classNamePrefix="my-select"
+        options={selectOptions}
+        value={selectedOption || null}
+       
+        onChange={(selected) => {
+          handleChange({
+            target: { name, value: selected ? selected.value : "" },
+          });
+        }}
+        placeholder={`Select ${label}`}
+        isClearable
+        styles={{
+          control: (base) => ({
+            ...base,
+            borderColor: hasError ? "#dc3545" : base.borderColor,
+            boxShadow: hasError
+              ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
+              : base.boxShadow,
+            '&:hover': {
+              borderColor: hasError ? "#dc3545" : base.borderColor,
+            },
+          }),
+        }}
+      />
+      {hasError && (
+        <Form.Control.Feedback type="invalid" className="d-block">
+          {errors[name]}
+        </Form.Control.Feedback>
+      )}
+    </Form.Group>
+  );
+};
+
   const handleChange = (e) => {
     const { name, value } = e.target;
   setFormData((prev) => {
     const updatedForm = { ...prev, [name]: value };
     if (name === "submission_date") {
       updatedForm["am_sub_date"] = value; // Sync am_submission with submission_date
+    }
+    if(errors[name]){
+      setErrors((preverrors)=>({...preverrors,[name]:""}))
     }
     return updatedForm;
   });
@@ -128,10 +174,9 @@ const resetform = () =>
       <h2 className="mb-4">Candidate Submission</h2>
       <Row>
         <Col md={12}>
-          <Form.Group className="mb-3 " controlId="job">
-            <Form.Label className="fs-6">Job:</Form.Label>
+       
             {renderSelect("Job", "Job", dropdownData.jobs)}
-          </Form.Group>
+        
         </Col>
       </Row>
       <Row>
@@ -139,11 +184,16 @@ const resetform = () =>
           <Form.Group className="mb-3 " controlId="submission_date">
             <Form.Label className="fs-6">Submission Date:</Form.Label>
             <Form.Control
+             isInvalid={!!errors.submission_date}
               type="Date"
               name="submission_date"
+              max={new Date().toISOString().split("T")[0]}
               value={formData.submission_date}
               onChange={handleChange}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.submission_date}
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
         <Col md={6}>
@@ -151,10 +201,14 @@ const resetform = () =>
             <Form.Label className="fs-6">Candidate Name:</Form.Label>
             <Form.Control
               type="input"
+               isInvalid={!!errors.candidate_name}
               name="candidate_name"
               value={formData.candidate_name}
               onChange={handleChange}
             />
+            <Form.Control.Feedback type = 'invalid'>
+              {errors.candidate_name}
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
       </Row>
@@ -164,53 +218,50 @@ const resetform = () =>
             <Form.Label className="fs-6">Payrate in $:</Form.Label>
             <Form.Control
               type="input"
+               isInvalid={!!errors.payrate}
               name="payrate"
               value={formData.payrate}
               onChange={handleChange}
             />
+              <Form.Control.Feedback type = 'invalid'>
+              {errors.payrate}
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
         <Col md={3}>
-          <Form.Group className="mb-3 " controlId="c2c_w2">
-            <Form.Label className="fs-6">Tax Terms:</Form.Label>
-            <select
-              id="myDropdown"
-              name="w2_C2C"
-              value={formData.w2_C2C}
-              onChange={handleChange} className="form-control">
-              <option value="">Select Tax Term:</option>
-              <option value="W2">W2</option>
-              <option value="C2C">C2C</option>
-            </select>
-          </Form.Group>
+          
+           {renderSelect("w2_C2C","Tax Terms",[{id:'W2', name:'W2'}, {id:'C2C', name:'C2C'}])}
         </Col>
          <Col md={6}>
-          <Form.Group className="mb-3" controlId="source">
-            <Form.Label className="fs-6">Source:</Form.Label>
+         
           {renderSelect("source","Source",dropdownData.sources)}
-          </Form.Group>
+         
         </Col>
       </Row>
     <Row>
       <Col md={6}>
-      <Form.Group className="mb-3 " controlId="recruiter">
-         <Form.Label className='fs-6' >Assigned Recruiter:</Form.Label>
+     
        {renderSelect("recruiter","Recruiter",dropdownData.recruiters)}
-      </Form.Group>
+  
       </Col>
       <Col md={6}>
-      <Form.Group className="mb-3" controlId="sourcer">
-   <Form.Label className='fs-6' >Assigned Sourcer:</Form.Label>
+   
        {renderSelect("sourcer","Sourcer",dropdownData.sourcers)}
-      </Form.Group>
+      
       </Col>
       </Row>
-      <Button className="submit-button" type="submit">
-        Submit Candidate
-      </Button>
-       <Button  className='submit-button' type="button" onClick={resetform}>
-        Reset
-      </Button>
+  <Row className="justify-content-center mt-4">
+  <Col xs="auto">
+    <Button className="submit-button" type="submit">
+      Submit Candidate
+    </Button>
+  </Col>
+  <Col xs="auto">
+    <Button className="submit-button" type="button" onClick={resetform}>
+      Reset
+    </Button>
+  </Col>
+</Row>
     </Form>
   );
 };

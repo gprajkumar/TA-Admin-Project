@@ -42,25 +42,22 @@ textarea.form-control {
 }
 
 .submit-button {
-  background: black;
-  color:  rgb(0, 235, 125);;
-
-  font-weight: 500;
-  font-size: 1.2rem;
- min-width: 30%;
+  padding: 12px 28px;
+  background-color: #045533;
+  color: white;
   border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.25s ease;
- padding: 5px;
-  display: block;          
-  margin: 20px auto;  
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
 .submit-button:hover {
-  background-color: #4f46e5; /* Indigo-800 */
-  box-shadow: 0 7px 20px rgba(55, 48, 163, 0.6);
+
+  background-color: #9608e9;
+  transform: scale(1.05);
 }
+
 
 .mb-3 {
   margin-bottom: 20px !important;
