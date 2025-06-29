@@ -45,8 +45,8 @@ const SubmissionDatesForm = () =>
 const validateForm = () =>
 {
   const newErrors = {};
-  if(!FormData.requirement_id)  newError.requirement_id = "Please Select Job";
-    if(!FormData.submission_id) newError.submission_id = "Please Select Candidate";
+  if(!FormData.requirement_id)  newErrors.requirement_id = "Please Select Job";
+    if(!FormData.submission_id) newErrors.submission_id = "Please Select Candidate";
     
     setErrors(newError)
 return Object.keys(newError) === 0;
@@ -86,8 +86,22 @@ return
    }
 
     try {
+      console.log(FormData);
+       const cleanDate = (dateStr) =>
+    dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? dateStr : null;
+
+  const cleanedFormData = {
+    ...FormData,
+    client_sub_date: cleanDate(FormData.client_sub_date),
+    client_interview_date: cleanDate(FormData.client_interview_date),
+    offer_date: cleanDate(FormData.offer_date),
+    start_date: cleanDate(FormData.start_date),
+    tech_screen_date: cleanDate(FormData.tech_screen_date),
+    am_screen_date: cleanDate(FormData.am_screen_date),
+  };
+
       
-      await axios.patch(`${baseurl}/ta_team/submissions/${FormData.submission_id}/`, FormData);
+      await axios.patch(`${baseurl}/ta_team/submissions/${FormData.submission_id}/`, cleanedFormData);
      
      alert("Submission Success");
        // setShow(true);
@@ -120,7 +134,7 @@ return
   }));
 
   const selectedOption = selectOptions.find(
-    (opt) => opt.value === formData[name]
+    (opt) => opt.value === FormData[name]
   );
   const hasError = !!errors[name];
 
@@ -181,6 +195,8 @@ return
             <Form.Label className="fs-6">AM Screen Date:</Form.Label>
              <Form.Control
               type="date"
+              min="2024-01-01"
+              max={new Date().toISOString().split("T")[0]}
               placeholder="AM Screen Date"
               name="am_screen_date"  
               value={FormData.am_screen_date}
@@ -193,6 +209,8 @@ return
             <Form.Label className="fs-6">Tech Screen Date:</Form.Label>
              <Form.Control
               type="date"
+              min="2024-01-01"
+              max={new Date().toISOString().split("T")[0]}
               placeholder="Tech Screen Date"
               name="tech_screen_date"  
               value={FormData.tech_screen_date}
@@ -208,6 +226,8 @@ return
             <Form.Label className="fs-6">Client Submission Date:</Form.Label>
              <Form.Control
               type="date"
+              min="2024-01-01"
+max={new Date().toISOString().split("T")[0]}
               placeholder="Client Submission Date"
               name="client_sub_date"  
               value={FormData.client_sub_date}
@@ -220,6 +240,8 @@ return
             <Form.Label className="fs-6">Client Interview Date:</Form.Label>
              <Form.Control
               type="date"
+              min="2024-01-01"
+max={new Date().toISOString().split("T")[0]}
               placeholder="Client Interview Date:"
               name="client_interview_date"  
               value={FormData.client_interview_date}
@@ -235,6 +257,8 @@ return
             <Form.Label className="fs-6">Offer Date:</Form.Label>
              <Form.Control
               type="date"
+              min="2024-01-01"
+max={new Date().toISOString().split("T")[0]}
               placeholder="Enter Job Open Date"
               name="offer_date"  
               value={FormData.offer_date}
@@ -247,6 +271,8 @@ return
             <Form.Label className="fs-6">Start Date:</Form.Label>
              <Form.Control
               type="date"
+              min="2024-01-01"
+max={new Date().toISOString().split("T")[0]}
               placeholder="Enter Job Open Date"
               name="start_date"  
               value={FormData.start_date}

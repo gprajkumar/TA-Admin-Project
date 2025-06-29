@@ -36,7 +36,8 @@ const fetcchSubmissionsbyReq = async (reqid) =>
     params: { Job: reqid}
   });
     console.log(response.data);
-  return response.data.results;
+    const data = response.data
+  return Array.isArray(data)? data: data.results || [];
   }
   const fetchFilteredJobs = async(fromDate,toDate) =>
   {
@@ -44,7 +45,8 @@ const fetcchSubmissionsbyReq = async (reqid) =>
     params: { from_date: fromDate, to_date: toDate }
   });
     console.log(response.data);
-  return response.data.results;
+ const data = response.data
+  return Array.isArray(data)? data: data.results || [];
   }
 const FilteredfetchDropdownData = async (endpoint, filter) => {
   const query = Object.keys(filter)

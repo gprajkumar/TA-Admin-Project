@@ -23,10 +23,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 class RequirementsViewSet(ModelViewSet):
    queryset = Requirements.objects.select_related(  'client', 'end_client', 'account', 'job_status', 
-        'assigned_recruiter', 'assigned_sourcer', 
-        'filled_by_recruiter', 'filled_by_sourcer', 
+        'assigned_recruiter', 'assigned_sourcer',
         'accountManager', 'hiringManager', 
-        'filled_source', 'role_type').all()
+         'role_type').all()
    serializer_class = RequirementsSerializer
    filter_backends = [DjangoFilterBackend]
    filterset_class = RequirementFilter

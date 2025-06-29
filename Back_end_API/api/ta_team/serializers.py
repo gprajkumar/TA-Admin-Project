@@ -14,12 +14,11 @@ class RequirementsSerializer(serializers.ModelSerializer):
     account_manager_name = serializers.CharField(source='accountManager.account_manager', read_only=True)
     hiring_manager_name = serializers.CharField(source='hiringManager.hiring_manager', read_only=True)
     role_type_name = serializers.CharField(source='role_type.role_type', read_only=True)
-    filled_source_name = serializers.CharField(source='filled_source.source', read_only=True)
+   
 
     assigned_recruiter_name = serializers.SerializerMethodField()
     assigned_sourcer_name = serializers.SerializerMethodField()
-    filled_by_recruiter_name = serializers.SerializerMethodField()
-    filled_by_sourcer_name = serializers.SerializerMethodField()
+ 
 
     class Meta:
         model = Requirements
@@ -29,11 +28,8 @@ class RequirementsSerializer(serializers.ModelSerializer):
             'account', 'account_name', 'job_status', 'job_status_name',
             'assigned_recruiter', 'assigned_recruiter_name',
             'assigned_sourcer', 'assigned_sourcer_name',
-            'filled_by_recruiter', 'filled_by_recruiter_name',
-            'filled_by_sourcer', 'filled_by_sourcer_name',
             'accountManager', 'account_manager_name',
             'hiringManager', 'hiring_manager_name',
-            'filled_source', 'filled_source_name',
             'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name','no_of_positions','no_of_positions_filled','filled_date','created_by'
         ]
 

@@ -28,7 +28,7 @@ const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
   {
 
     const newError ={};
-    if(!formData.job)  newError.job = "Please Select Job";
+    if(!formData.Job)  newError.job = "Please Select Job";
     if(!formData.submission_date)  newError.submission_date = "Please Select submission_date";
     if(!formData.candidate_name)  newError.candidate_name = "Please Select candidate_name";
     if(!formData.payrate)  newError.payrate = "Please Enter payrate";
@@ -37,7 +37,7 @@ const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
       if(!formData.sourcer)  newError.sourcer = "Please Select sourcer";
     if(!formData.source)  newError.source = "Please Select source";
     setErrors(newError)
-return Object.keys(newError) === 0;
+return Object.keys(newError).length === 0;
 
   }
 const resetform = () =>
@@ -87,6 +87,7 @@ const resetform = () =>
   }, []);
   const handleSubmit = async (e) => {
     e.preventDefault();
+  console.log(errors.le)
     if(!validationform())
     {
       return
