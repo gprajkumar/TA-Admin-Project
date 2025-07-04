@@ -1,4 +1,4 @@
-import axios from "axios";
+import axiosInstance from "../services/axiosInstance";
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import "./RequirementForm.css";
@@ -10,7 +10,8 @@ import {
 import { Form, Row, Col, Button } from "react-bootstrap";
 
 const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
-      const baseurl = import.meta.env.VITE_API_BASE_URL;
+  const [loading, setLoading] = useState(submission_id ? true : false);    
+  const baseurl = import.meta.env.VITE_API_BASE_URL;
       const [errors,setErrors] = useState({});
   const [formData, setFormData] = useState({
     Job: "",
@@ -42,7 +43,7 @@ return Object.keys(newError).length === 0;
   }
 const resetform = () =>
 {
-    setFormData({job: "",
+    setFormData({Job: "",
     submission_date: "",
     candidate_name: "",
     payrate: "",
@@ -78,13 +79,19 @@ const resetform = () =>
           sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
           sources: normalizeData(sourceres,"source_id","source"),
         });
+        console.log(submission_id)
+           if (submission_id) {
+        const res = await axiosInstance.get(`/ta_team/submissions/${submission_id}/`);
+        setFormData(res.data);
+        setLoading(false);
+      }
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
       }
     };
 
     fetchData();
-  }, []);
+  }, [submission_id]);
   const handleSubmit = async (e) => {
     e.preventDefault();
   console.log(errors.le)
@@ -95,9 +102,17 @@ const resetform = () =>
 
     console.log(formData);
     try {
-      await axios.post(`${baseurl}/ta_team/submissions/`, formData);
+      if(!submission_id)
+      {
+      await axiosInstance.post(`/ta_team/submissions/`, formData);
       alert("Submission successfully");
       resetform();
+      }
+      else
+      {
+        await axiosInstance.patch(`/ta_team/submissions/${submission_id}/`, formData);
+ alert("Updated successfully");
+      }
     } catch (err) {
       console.error("Error submitting requirement:", err);
       if (err.response) {
@@ -170,9 +185,15 @@ const resetform = () =>
     return updatedForm;
   });
   };
+  if(loading)
+{
+   return  <div className="text-center">Loading Submissions...</div>;
+}
+else
+{
   return (
     <Form onSubmit={handleSubmit} className="requirement-form container">
-      <h2 className="mb-4">Candidate Submission</h2>
+      <h2 className="mb-4">{submission_id && "Edit "}Candidate Submission</h2>
       <Row>
         <Col md={12}>
        
@@ -251,10 +272,10 @@ const resetform = () =>
       
       </Col>
       </Row>
-  <Row className="justify-content-center mt-4">
+    {!viewtype && <Row className="justify-content-center mt-4">
   <Col xs="auto">
     <Button className="submit-button" type="submit">
-      Submit Candidate
+      {submission_id? "Update":"Submit"} Candidate
     </Button>
   </Col>
   <Col xs="auto">
@@ -262,8 +283,9 @@ const resetform = () =>
       Reset
     </Button>
   </Col>
-</Row>
+</Row>}
     </Form>
   );
 };
+}
 export default Submission;

@@ -19,11 +19,7 @@ const Header = ({ userdetails, onSignOut }) => {
     setActiveSection(section);
   };
 
-  const handleLogout = () => {
-    setIsLoggedin(false);
-    setActiveSection(null);
-    // Add your logout logic here
-  };
+
 
   return (
     <Navbar expand="lg" className="custom-navbar" bg="dark" variant="dark">
@@ -166,7 +162,31 @@ const Header = ({ userdetails, onSignOut }) => {
               </NavDropdown.Item>
             </NavDropdown></>}
            
-
+<NavDropdown
+              title="myRequirement"
+              id="myRequirements-nav-dropdown"
+              active={
+                activeSection === "myrequirements" ||
+                activeSection === "mysubmissions" 
+              }
+            >
+              <NavDropdown.Item
+                as={NavLink}
+                to="/addrequirements"
+                onClick={() => handleDropdownItemClick("myrequirements")}
+                active={activeSection === "myrequirements"}
+              >
+                My Requirements
+              </NavDropdown.Item>
+              <NavDropdown.Item
+                as={NavLink}
+                to="/allreqs"
+                onClick={() => handleDropdownItemClick("mysubmissions")}
+                active={activeSection === "mysubmissions"}
+              >
+                My Submissions
+              </NavDropdown.Item>
+            </NavDropdown>
             {/* Sign In or Welcome */}
             <Nav className="auth-section">
               {!userdetails ? (
@@ -186,6 +206,14 @@ const Header = ({ userdetails, onSignOut }) => {
                   active={activeSection === "signout"}
                   className="welcome-dropdown"
                 >
+                  <NavDropdown.Item
+                as={NavLink}
+                to="/myprofile"
+                onClick={() => handleDropdownItemClick("mprofile")}
+                active={activeSection === "myprofile"}
+              >
+                My Profile
+              </NavDropdown.Item>
                   <NavDropdown.Item
                onClick={onSignOut}
                     active={activeSection === "signout"}

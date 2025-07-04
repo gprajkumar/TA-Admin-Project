@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models.models import Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Role_Type, Source, Tech_Screener, Screening_Status, Employee
+from .models.models import Designation,Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Role_Type, Source, Tech_Screener, Screening_Status, Employee
 from .models.requirement import Requirements
 from .models.submission import Placement,Submissions
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -148,9 +148,13 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'created_by'
         ]
 
-
+class DesignationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Designation
+        fields ='__all__'
 
 class EmployeeSerializer(serializers.ModelSerializer):
+    designation = DesignationSerializer(read_only=True)
     class Meta:
         model= Employee
         fields='__all__'
@@ -179,6 +183,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if not user.is_active:
             raise serializers.ValidationError("User account is inactive. Please contact Administrator.")
 
+        try:
+            emp = Employee.objects.get(email_id = username)
+            emp_detail = EmployeeSerializer(emp).data
+        
+        except Employee.DoesNotExist:
+            emp_detail = {}
         data = super().validate(attrs)
         data['is_active'] = user.is_active
+        data['emp_details'] = emp_detail
         return data

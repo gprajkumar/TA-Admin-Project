@@ -1,13 +1,14 @@
-import axios from "axios";
+import axiosInstance from "./axiosInstance";
 const baseurl = import.meta.env.VITE_API_BASE_URL;
 
 const fetchDropdownData = async (endpoint) => {
-  const response = await axios.get(`${baseurl}/ta_team/${endpoint}`);
+  const response = await axiosInstance.get(`/ta_team/${endpoint}`);
   const data= response.data;
   return Array.isArray(data) ? data : data.results || [];
 };
 
 export const getClients = () => fetchDropdownData("clients");
+export const getEmployees = () => fetchDropdownData("employees");
 export const getEndClients = () => fetchDropdownData("endclients");
 export const getAccounts = () => fetchDropdownData("accounts");
 export const getJobStatuses = () => fetchDropdownData("jobstatuses");
@@ -24,7 +25,7 @@ export const getFilteredSubmissions = (filterParams) => fetchFilteredSubmissions
 export const getSubmissionsbyReqid =(reqid) => fetcchSubmissionsbyReq(reqid);
 export const getCurrentCandidateStatus = () => fetchDropdownasArray("candidate_status")
 const fetchDropdownasArray = async (endpoint) => {
-  const response = await axios.get(`${baseurl}/ta_team/${endpoint}`);
+  const response = await axiosInstance.get(`/ta_team/${endpoint}`);
   const data = response.data;
 
   // Return `data.results` if paginated, otherwise return `data` directly
@@ -32,7 +33,7 @@ const fetchDropdownasArray = async (endpoint) => {
 };
 const fetcchSubmissionsbyReq = async (reqid) =>
   {
-    const response = await axios.get(`${baseurl}/ta_team/submissions/`, {
+    const response = await axiosInstance.get(`/ta_team/submissions/`, {
     params: { Job: reqid}
   });
     console.log(response.data);
@@ -41,7 +42,7 @@ const fetcchSubmissionsbyReq = async (reqid) =>
   }
   const fetchFilteredJobs = async(fromDate,toDate) =>
   {
-    const response = await axios.get(`${baseurl}/ta_team/requirements/`, {
+    const response = await axiosInstance.get(`/ta_team/requirements/`, {
     params: { from_date: fromDate, to_date: toDate }
   });
     console.log(response.data);
@@ -52,7 +53,7 @@ const FilteredfetchDropdownData = async (endpoint, filter) => {
   const query = Object.keys(filter)
     .map((key) => `${key}=${encodeURIComponent(filter[key])}`)
     .join("&");
-  const response = await axios.get(`${baseurl}/ta_team/${endpoint}/?${query}`);
+  const response = await axiosInstance.get(`/ta_team/${endpoint}/?${query}`);
  const data=response.data;
   return Array.isArray(data)? data: data.results || [];
 };
@@ -62,7 +63,7 @@ export const getfilteredEmployees = (filter) =>
 
   const fetchFilteredSubmissions = async(filterParams) =>
   {
-    const response = await axios.get(`${baseurl}/ta_team/submissions/`, {
+    const response = await axiosInstance.get(`/ta_team/submissions/`, {
     params: { filterParams}
   });
 }

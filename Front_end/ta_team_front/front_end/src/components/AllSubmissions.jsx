@@ -4,8 +4,9 @@ import { FaEye, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import Modal from "react-bootstrap/Modal";
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
-import RequirementForm from "./RequirementForm";
+
 import ViewForm from "./ViewForm";
+import Submission from "./Submissions";
 import {
   getClients,
   getEndClients,
@@ -24,6 +25,7 @@ import {
   FormControl,
 } from "react-bootstrap";
 import Select from "react-select";
+import SubmissionDatesForm from "./SubmissonDatesForm";
 
 const AllSubmissions = ({ dateform = false, empId }) => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
@@ -52,13 +54,13 @@ const AllSubmissions = ({ dateform = false, empId }) => {
   };
   // const handleShow = () => {setShow(true);}
   const handleView = (subId, sendata) => {
-    setcurrentReqid(subId);
+    setcurrentSubid(subId);
     setpassData(sendata);
     setShow(true);
     setviewtype(true);
   };
   const handleEdit = (subId) => {
-    setcurrentReqid(subId);
+    setcurrentSubid(subId);
     setShow(true);
     setviewtype(false);
     fetchsubs();
@@ -476,8 +478,9 @@ const AllSubmissions = ({ dateform = false, empId }) => {
       <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body style={{ width: "100% !important" }}>
-          {/* { viewtype ? <ViewForm data={passData}/>:
-          <RequirementForm reqid={currentSubid} viewtype={viewtype} externaldropdowndata={filterdropdowndata}/>} */}
+          { viewtype ? <ViewForm data={passData} formtype="submission"/>:
+          dateform? <SubmissionDatesForm submission_id={currentSubid} viewtype={viewtype} externaldropdowndata={filterdropdowndata}/>:
+          <Submission submission_id={currentSubid} viewtype={viewtype} externaldropdowndata={filterdropdowndata}/>} 
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
