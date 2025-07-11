@@ -3,8 +3,11 @@ from rest_framework import status
 from .models.models import (
     Client, EndClient, Account, AccountManager, HiringManager,
     AccountHead, AccountCoordinator, Feedback, JobStatus,
-     Role_Type, Source, Tech_Screener, Screening_Status, Employee
+     Role_Type, Source, Tech_Screener, Screening_Status, Employee, DashboardJobData
 )
+from django.http import JsonResponse
+from django.views import View
+from django.db import connection
 from django_filters.rest_framework import DjangoFilterBackend
 from .models.requirement import Requirements
 from .models.submission import Placement,Submissions
@@ -12,13 +15,13 @@ from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientS
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
     AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,
      RoleTypeSerializer, 
-    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer)
+    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer,DashboardDataSerializer)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
 from .filters.requirement_filter import RequirementFilter,SubmissionFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
-
-
+from rest_framework.decorators import action
+from django.db.models import Count, Sum, Avg
 # Create your views here.
 
 class RequirementsViewSet(ModelViewSet):
@@ -108,3 +111,80 @@ class UniqueCandidate_Status_ViewSet(ReadOnlyModelViewSet):
     
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+    
+
+class RefreshClientDashboardView(View):
+    def get(self,request):
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute('CALL refresh_client_dashboard_data();') 
+            return JsonResponse({'status':'success', 'message':'Data refreshed Succesfully'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        
+class ClientDashboardView(ReadOnlyModelViewSet):
+    queryset = DashboardJobData.objects.all()
+    serializer_class = DashboardDataSerializer
+
+    @action(detail=False, methods=['post'], url_path='filter')
+    def filter_dashboard(self, request):
+        end_clients = request.data.get('end_client', [])
+        accounts = request.data.get('account', [])
+        start_date = request.data.get('from_date')
+        end_date = request.data.get('to_date')
+
+        filters = {}
+        if end_clients and len(end_clients) > 0:
+            filters['end_client__in'] = end_clients
+
+        if accounts and len(accounts) > 0:
+            filters['account__in'] = accounts
+
+        if start_date:
+            filters['req_opened_date__gte'] = start_date
+
+        if end_date:
+            filters['req_opened_date__lte'] = end_date
+        
+        queryset = DashboardJobData.objects.filter(**filters)
+        overall_calculations = queryset.aggregate(
+             roles_opened = Count('job_code'),
+               amsubs = Sum('amsubs'),
+               csubs = Sum('csubs'),
+               interviews = Sum('interviews'),
+               offers = Sum('offers'),
+               starts = Sum('starts')
+        )
+
+        if end_clients:
+           grouped_data = (queryset.values('end_client_id', 'end_client_name').annotate(
+               roles_opened = Count('job_code'),
+               amsubs = Sum('amsubs'),
+               csubs = Sum('csubs'),
+               interviews = Sum('interviews'),
+               offers = Sum('offers'),
+               starts = Sum('starts')
+           ).order_by('end_client_id'))
+           
+           
+        
+        else:
+            grouped_data = (queryset.values('account_id', 'account_name').annotate(
+               roles_opened = Count('job_code'),
+               amsubs = Sum('amsubs'),
+               csubs = Sum('csubs'),
+               interviews = Sum('interviews'),
+               offers = Sum('offers'),
+               starts = Sum('starts')
+           ).order_by('account_name'))
+       
+            
+        data ={
+                "grouped_data": grouped_data,
+                "total_data":overall_calculations,
+                 }
+        
+        print("Grouped Data:", grouped_data)
+        print("total Data:",overall_calculations)
+        
+        return Response(data)

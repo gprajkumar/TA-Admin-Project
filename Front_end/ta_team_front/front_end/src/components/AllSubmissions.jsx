@@ -4,15 +4,12 @@ import { FaEye, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import Modal from "react-bootstrap/Modal";
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
-
+import { useParams } from "react-router-dom";
 import ViewForm from "./ViewForm";
 import Submission from "./Submissions";
 import {
-  getClients,
-  getEndClients,
-  getfilteredEmployees,
+  
   getJobreqs,
-  getSources,
   getCurrentCandidateStatus,
   getSubmissions,
 } from "../services/drop_downService";
@@ -20,14 +17,31 @@ import {
   Form,
   Row,
   Col,
-  Button,
-  Container,
-  FormControl,
+  Button
 } from "react-bootstrap";
 import Select from "react-select";
 import SubmissionDatesForm from "./SubmissonDatesForm";
+import { useSelector } from "react-redux";
 
 const AllSubmissions = ({ dateform = false, empId }) => {
+   const {empcode} = useParams();
+    const drop_down_endClients = useSelector(
+    (state) => state.master_dropdown.endClients
+  );
+  const drop_down_clients = useSelector(
+    (state) => state.master_dropdown.clients
+  );
+  const drop_down_jobStatus = useSelector(
+    (state) => state.master_dropdown.jobStatus
+  );
+  const drop_down_roleTypes = useSelector(
+    (state) => state.master_dropdown.roleTypes
+  );
+  const drop_down_employees = useSelector(
+    (state) => state.master_dropdown.employees
+  );
+  const drop_down_sources = useSelector((state)=> state.master_dropdown.sources);
+   console.log(empcode);
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
@@ -91,7 +105,7 @@ const AllSubmissions = ({ dateform = false, empId }) => {
   });
   useEffect(() => {
     fetchsubs();
-  }, []);
+  }, [empcode]);
 
   useEffect(() => {
     let filtered = allSubmissions;
@@ -163,23 +177,26 @@ const AllSubmissions = ({ dateform = false, empId }) => {
     const fetchData = async () => {
       try {
         const [
-          jobsRes,
+         
           clientRes,
           endClientsRes,
-          CurrentStatusRes,
+         
           recruitersRes,
           sourcersRes,
           sourceRes,
-        ] = await Promise.all([
-          getJobreqs(),
-          getClients(),
-          getEndClients(),
-          getCurrentCandidateStatus(),
-          getfilteredEmployees({ can_recruit: true, department: 2 }),
-          getfilteredEmployees({ can_source: true, department: 1 }),
-          getSources(),
-        ]);
-
+        ] = [
+        
+          drop_down_clients,
+          drop_down_endClients,
+       
+        drop_down_employees.filter((recruiters) => recruiters.can_recruit === true && recruiters.department === 2),
+           drop_down_employees.filter((sourcers) => sourcers.can_source === true && sourcers.department === 1),
+         drop_down_sources
+        ];
+ const [
+          jobsRes, CurrentStatusRes,] =await Promise.all([
+             getJobreqs(),getCurrentCandidateStatus()
+          ])
         setfilterdropdowndata({
           jobs: jobsRes.map((data) => ({
             id: data.requirement_id,
@@ -238,11 +255,15 @@ const AllSubmissions = ({ dateform = false, empId }) => {
   const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
   const fetchsubs = async () => {
-    const data = await getSubmissions(
-      selectedvalue.from_date,
-      selectedvalue.to_date
-    );
+    let data = await getSubmissions();
     console.log(data);
+      if (empcode) {
+  data = data.filter(
+    (item) =>
+      item.assigned_recruiter == empcode ||
+      item.assigned_sourcer == empcode
+  );
+}
     setAllSubmissions(data);
     setfilteredSubs(data);
   };

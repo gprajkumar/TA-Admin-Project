@@ -16,6 +16,7 @@ import RequirementForm from './components/RequirementForm';
 import AuthCheck from './components/AuthCheck';
 import store from './redux/store';
 import {useDispatch} from 'react-redux'
+import ClientDashboard from './components/dashboards/ClientDashboard.jsx';
 import MyProfile from './components/myProfile';
 import { setEmployee,clearEmployee } from './redux/slices/authSlice';
 import {getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers} from './services/drop_downService.js';
@@ -120,7 +121,10 @@ const fetchDropdowns = async () => {
      <Route path='/submissionsDateEntry' element={<AuthCheck><SubmissionDatesForm/></AuthCheck>}/>
   <Route path='/submissionsDateDetails' element={<AuthCheck><AllSubmissionDates/></AuthCheck>}/>
    <Route path='/myprofile' element={<AuthCheck><MyProfile/></AuthCheck>}/>
+   <Route path='/clientdashboard' element={<AuthCheck><ClientDashboard/></AuthCheck>}/>
    <Route path='/login' element={<Login onLogin={handleLogin}/>}/>
+   <Route path="/allreqs/:empcode" element={<AuthCheck><AllRequirements /></AuthCheck>} />
+   <Route path="/allsubmissions/:empcode" element={<AuthCheck><AllSubmissions /></AuthCheck>} />
 </Routes>
 
  </>

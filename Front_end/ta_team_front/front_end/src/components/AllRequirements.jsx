@@ -7,19 +7,34 @@ import "./AllRequirements.css";
 import RequirementForm from './RequirementForm'
 import ViewForm from "./ViewForm";
 import {
-  getClients,
-  getEndClients,
-  getRoleTypes,
-  getJobStatuses,
-  getfilteredEmployees,
   getJobreqs,
   getFilteredJobs,
 } from "../services/drop_downService";
 import { Form, Row, Col, Button, Container, FormControl } from "react-bootstrap";
 import Select from "react-select";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 
 const AllRequirements = () => {
+  const {empcode} = useParams();
+  const drop_down_endClients = useSelector(
+    (state) => state.master_dropdown.endClients
+  );
+  const drop_down_clients = useSelector(
+    (state) => state.master_dropdown.clients
+  );
+  const drop_down_jobStatus = useSelector(
+    (state) => state.master_dropdown.jobStatus
+  );
+  const drop_down_roleTypes = useSelector(
+    (state) => state.master_dropdown.roleTypes
+  );
+  const drop_down_employees = useSelector(
+    (state) => state.master_dropdown.employees
+  );
+
+  console.log("empcode", empcode);
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
@@ -27,6 +42,7 @@ const AllRequirements = () => {
     job_status: "",
     end_client: "",
     client: "",
+    
     assigned_recruiter: "",
     assigned_sourcer: "",
     from_date:"",
@@ -34,10 +50,7 @@ const AllRequirements = () => {
   });
   const [allRequirements, setAllRequirements] = useState([]);
   const [show, setShow] = useState(false);  
-  const [dateFilter, setdateFilter] = useState({
-    from_date:'',
-    to_date:'',
-  });
+  
 const[currentReqid, setcurrentReqid] =useState('');
 const[viewtype, setviewtype] =useState(false);
   const handleClose = () => {setShow(false)};
@@ -52,7 +65,7 @@ const handleEdit = (reqId) => {
 setcurrentReqid(reqId);
 setShow(true)
 setviewtype(false)
-fetchReqs(); 
+
  }
  const handleDelete = async (reqId) => {
   if (window.confirm("Are you sure you want to delete this requirement?")) {
@@ -79,7 +92,7 @@ fetchReqs();
   });
   useEffect(() => {
     fetchReqs();
-  }, []);
+  }, [empcode]);
 
   useEffect(() => {
     let filtered = allRequirements;
@@ -145,23 +158,23 @@ fetchReqs();
     const fetchData = async () => {
       try {
         const [
-          jobsRes,
+         
           clientRes,
           endClientsRes,
           jobStatusesRes,
           recruitersRes,
           sourcersRes,
           roletypeRes,
-        ] = await Promise.all([
-          getJobreqs(),
-          getClients(),
-          getEndClients(),
-          getJobStatuses(),
-          getfilteredEmployees({ can_recruit: true, department: 2 }),
-          getfilteredEmployees({ can_source: true, department: 1 }),
-          getRoleTypes(),
-        ]);
-
+        ] = [
+     
+          drop_down_clients,
+          drop_down_endClients,
+          drop_down_jobStatus,
+          drop_down_employees.filter((recruiters) => recruiters.can_recruit === true && recruiters.department === 2),
+           drop_down_employees.filter((sourcers) => sourcers.can_source === true && sourcers.department === 1),
+          drop_down_roleTypes,
+        ];
+const  jobsRes = await getJobreqs();
         setfilterdropdowndata({
           jobs: jobsRes.map((data) => ({
             id: data.requirement_id,
@@ -222,11 +235,23 @@ fetchReqs();
   const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
   const fetchReqs = async () => {
-    const data = await getJobreqs(selectedvalue.from_date,selectedvalue.to_date);
+    let data = await getJobreqs();
     console.log(data);
+    if (empcode) {
+  data = data.filter(
+    (item) =>
+      item.assigned_recruiter == empcode ||
+      item.assigned_sourcer == empcode
+  );
+}
     setAllRequirements(data);
     setfilteredReqs(data);
   };
+
+    
+   
+
+
   return (
     <div className="data-container">
  

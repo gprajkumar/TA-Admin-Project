@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models.models import Designation,Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Role_Type, Source, Tech_Screener, Screening_Status, Employee
+from .models.models import DashboardJobData, Designation,Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Role_Type, Source, Tech_Screener, Screening_Status, Employee
 from .models.requirement import Requirements
 from .models.submission import Placement,Submissions
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -193,3 +193,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['is_active'] = user.is_active
         data['emp_details'] = emp_detail
         return data
+    
+    
+class DashboardDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardJobData
+        fields = '__all__'

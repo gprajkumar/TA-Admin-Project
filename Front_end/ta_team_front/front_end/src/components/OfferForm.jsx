@@ -4,21 +4,16 @@ import { FaEye, FaEdit, FaTrash,FaSearch } from "react-icons/fa";
 import Modal from 'react-bootstrap/Modal';
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
-import RequirementForm from './RequirementForm'
-import ViewForm from "./ViewForm";
+
 import {
-  getClients,
-  getEndClients,
-  getRoleTypes,
-  getJobStatuses,
-  getfilteredEmployees,
+ 
   getJobreqs,
-  getFilteredJobs,
+  
   getSubmissionsbyReqid,
 } from "../services/drop_downService";
 import { Form, Row, Col, Button, Container, FormControl } from "react-bootstrap";
 import Select from "react-select";
-import Alert from "react-bootstrap/Alert";
+
 
 const OfferForm = () => {
 
@@ -73,30 +68,28 @@ const OfferForm = () => {
     
   }
   };
-     const renderSelect = (name, label, options) => {
+const renderSelect = (name, label, options, idx = 100) => {
   const selectOptions = (options || []).map((opt) => ({
     value: opt.id,
     label: opt.name,
   }));
 
-  const selectedOption = selectOptions.find(
-    (opt) => opt.value === formData[name]
-  );
-  const hasError = !!errors[name];
+  const selectedOption = idx === 100
+    ? selectOptions.find((opt) => opt.value === formData[name])
+    : selectOptions.find((opt) => opt.value === submissions[idx]);
+
+  const hasError = idx === 100 ? !!errors[name] : !!errors.subcount;
 
   return (
     <Form.Group className="mb-3">
-      <Form.Label className="fs-6">{label}<span style={{ color: "red" }}>*</span>:</Form.Label>
+      <Form.Label className="fs-6">
+        {label} <span style={{ color: "red" }}>*</span>:
+      </Form.Label>
       <Select
         classNamePrefix="my-select"
         options={selectOptions}
         value={selectedOption || null}
-       
-        onChange={(selected) => {
-          handleChange({
-            target: { name, value: selected ? selected.value : "" },
-          });
-        }}
+        onChange={(selected) => handleChange(selected, name, idx)}
         placeholder={`Select ${label}`}
         isClearable
         styles={{
@@ -114,13 +107,12 @@ const OfferForm = () => {
       />
       {hasError && (
         <Form.Control.Feedback type="invalid" className="d-block">
-          {errors[name]}
+          {idx === 100 ? errors[name] : errors.subcount}
         </Form.Control.Feedback>
       )}
     </Form.Group>
   );
 };
-
  const [count, setCount] = useState(1);
  const [jobDropdown, setjobDropdown] = useState([]);
  const [candidateDropdown, setcandidateDropdown] = useState([]);

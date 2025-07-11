@@ -19,9 +19,12 @@ router.register(r'techscreeners', TechScreenerViewSet)
 router.register(r'screeningstatuses', ScreeningStatusViewSet)
 router.register(r'submissions', SubmisionViewSet)
 router.register(r'employees',EmployeeViewSet)
+router.register(r'accountdata',ClientDashboardView)
 router.register(r'placements',PlacementViewSet)
 router.register(r'candidate_status',UniqueCandidate_Status_ViewSet,basename='candidate_status')
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('refresh-client-dashboard/', RefreshClientDashboardView.as_view()), 
+    # path('client-dashboard/', ClientDashboardView.as_view()), 
   
 ]

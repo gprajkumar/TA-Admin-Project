@@ -30,4 +30,5 @@ class SubmissionFilter(django_filters.FilterSet):
     class Meta:
         model = Submissions
         fields = ['submission_date', 'client_sub_date', 'client_interview_date', 'offer_date', 'start_date', 'Job', 'recruiter', 'sourcer']
+        
 

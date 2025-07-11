@@ -176,6 +176,7 @@ const RequirementForm = ({ reqid, viewtype = false, externaldropdowndata }) => {
           setFormData(res.data);
           setLoading(false);
         }
+      
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
       }
@@ -183,6 +184,7 @@ const RequirementForm = ({ reqid, viewtype = false, externaldropdowndata }) => {
 
     fetchData();
   }, [reqid, externaldropdowndata]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;

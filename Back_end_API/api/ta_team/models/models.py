@@ -207,4 +207,28 @@ class Employee(models.Model):
         return f"{self.emp_fName} {self.emp_lName}"
     
 
+class DashboardJobData(models.Model):
+    req_opened_date = models.DateField(primary_key=True)
+    job_code = models.CharField(max_length=100)
+    job_title = models.CharField(max_length=255, null=True)
+    filled_date = models.DateField(null=True)
+    client_id = models.IntegerField(null=True)
+    end_client_id = models.IntegerField(null=True)
+    account_id = models.IntegerField(null=True)
+    job_status_id = models.IntegerField(null=True)
+    role_type_id = models.IntegerField(null=True)
     
+    end_client_name = models.CharField(max_length=255, null=True)
+    account_name = models.CharField(max_length=255, null=True)
+    job_status = models.CharField(max_length=100, null=True)
+    role_type = models.CharField(max_length=100, null=True)
+
+    amsubs = models.IntegerField(null=True)
+    csubs = models.IntegerField(null=True)
+    interviews = models.IntegerField(null=True)
+    offers = models.IntegerField(null=True)
+    starts = models.IntegerField(null=True)
+
+    class Meta:
+        managed = False  # Don't let Django manage the DB schema
+        db_table = 'req_submissions' #materialized view name
