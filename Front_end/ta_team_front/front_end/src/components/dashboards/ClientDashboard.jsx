@@ -6,7 +6,7 @@ import Select from "react-select";
 import { useSelector } from 'react-redux';
 import { FaFilter } from 'react-icons/fa';
 import { BarChart, Bar, Rectangle, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import {getCompleteAccountData} from '../../services/helper';
+import {getCompleteAccountData, getCompleteEndClientData} from '../../services/helper';
 const ClientDashboard = () => {
   
   const data = [
@@ -57,39 +57,55 @@ const ClientDashboard = () => {
   
   const accountRes = useSelector((state) => state.master_dropdown.accounts);
   const endClientRes = useSelector((state) => state.master_dropdown.endClients);
-
+const [activeFilter, setActiveFilter] = useState("account");
   const [selectedData, setSelectedData] = useState({
     accounts: [0], // Default is "Select All"
-    endclients: [],
+    endclients: [0],
+    from_date: "",
+    to_date: "",
   });
 
   const [filterdropdowndata, setfilterdropdowndata] = useState({
     account_dropdown: [],
     endclient_dropdown: [],
-    from_date: "",
-    to_date: "",
   });
 
 const [barChartData, setBarChartData] = useState(
   {
-    overall_data : [],
+    overall_data : {},
     grouped_data: []
 
   }
 )
-useEffect( () => {
-  const barChart = async () => {
-    const response = await getCompleteAccountData();
-    console.log(response);
-    // setBarChartData({
-    //   overall_data: response.data.overall_calculations,
-    //   grouped_data: response.data.grouped_data,
 
-    // })
+
+useEffect( () => {
+  const filters = {
+    accounts: selectedData.accounts,
+    end_clients:selectedData.endclients,
+    from_date:selectedData.from_date,
+    to_date:selectedData.to_date,
+    filter_type: activeFilter,
+  }
+  const barChart = async () => {
+    let response;
+    if(activeFilter === "account")
+    {
+    response = await getCompleteAccountData(filters);
+    }
+    else
+    {
+response = await getCompleteEndClientData(filters);
+    }
+    console.log(response)
+    setBarChartData((prev) => ({...prev,
+      overall_data: response.total_data,
+     grouped_data: response.grouped_data,
+  }))
   } 
   barChart();
-},[])
-  const [activeFilter, setActiveFilter] = useState("account");
+},[selectedData,activeFilter])
+  
 
   const normalizeData = (data, idkey, namekey) =>
     data.map((item) => ({ id: item[idkey], name: item[namekey] }));
@@ -109,7 +125,7 @@ useEffect( () => {
     const { name, value } = target;
 
     if (name === "from_date" || name === "to_date") {
-      setfilterdropdowndata((prev) => ({
+      setSelectedData((prev) => ({
         ...prev,
         [name]: value,
       }));
@@ -251,7 +267,7 @@ useEffect( () => {
               type="date"
               className="date-filter-input"
               name="from_date"
-              value={filterdropdowndata.from_date}
+              value={selectedData.from_date}
               onChange={handleChange}
             />
           </Form.Group>
@@ -264,7 +280,7 @@ useEffect( () => {
               type="date"
               className="date-filter-input"
               name="to_date"
-              value={filterdropdowndata.to_date}
+              value={selectedData.to_date}
               onChange={handleChange}
             />
           </Form.Group>
@@ -279,12 +295,12 @@ useEffect( () => {
 
       <div className='dashboard_area'>
         <div className='dashboard'>
-          <div className="chart-box">
+          <div className="chart-box-primary">
             <ResponsiveContainer width="100%" height="100%">
             <BarChart
           width={500}
           height={300}
-          data={data}
+          data={barChartData.grouped_data}
           margin={{
             top: 5,
             right: 30,
@@ -293,12 +309,12 @@ useEffect( () => {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
+          <XAxis dataKey={activeFilter === "account" ? "account_name": "end_client_name"} />
           <YAxis />
           <Tooltip />
           <Legend />
-          <Bar dataKey="pv" fill="#8884d8" activeBar={<Rectangle fill="pink" stroke="blue" />} />
-          <Bar dataKey="uv" fill="#82ca9d" activeBar={<Rectangle fill="gold" stroke="purple" />} />
+          <Bar dataKey="amsubs" fill="#8884d8" activeBar={<Rectangle fill="pink" stroke="blue" />} />
+          <Bar dataKey="csubs" fill="#82ca9d" activeBar={<Rectangle fill="gold" stroke="purple" />} />
         </BarChart>
         </ResponsiveContainer>
           </div>
@@ -307,6 +323,7 @@ useEffect( () => {
           <div className="chart-box">Chart 4</div>
           <div className="chart-box">Chart 5</div>
           <div className="chart-box">Chart 6</div>
+                 <div className="chart-box">Chart 7</div>
         </div>
       </div>
     </div>

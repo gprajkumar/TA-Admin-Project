@@ -14,13 +14,14 @@ import { useNavigate } from 'react-router-dom';
 import TAHomePage from './components/TAHomePage';
 import RequirementForm from './components/RequirementForm';
 import AuthCheck from './components/AuthCheck';
-import store from './redux/store';
+import {store, persistor} from './redux/store';
 import {useDispatch} from 'react-redux'
 import ClientDashboard from './components/dashboards/ClientDashboard.jsx';
 import MyProfile from './components/myProfile';
 import { setEmployee,clearEmployee } from './redux/slices/authSlice';
 import {getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers} from './services/drop_downService.js';
 import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers} from './redux/slices/dropdownSlice';
+
 function App() {
   const dispatch = useDispatch();
 const navigate = useNavigate(); 
@@ -40,6 +41,7 @@ const handleLogout = () =>
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('username');
   setUserDetails(null);
+  persistor.purge();
   dispatch(clearEmployee())
   navigate('/login');
 

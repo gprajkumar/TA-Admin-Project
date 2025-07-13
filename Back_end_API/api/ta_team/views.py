@@ -22,6 +22,7 @@ from .filters.requirement_filter import RequirementFilter,SubmissionFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
 from django.db.models import Count, Sum, Avg
+import traceback
 # Create your views here.
 
 class RequirementsViewSet(ModelViewSet):
@@ -128,63 +129,58 @@ class ClientDashboardView(ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='filter')
     def filter_dashboard(self, request):
-        end_clients = request.data.get('end_client', [])
-        accounts = request.data.get('account', [])
-        start_date = request.data.get('from_date')
-        end_date = request.data.get('to_date')
+        try:
+            end_clients = request.data.get('end_clients', [])
+            accounts = request.data.get('accounts', [])
+            start_date = request.data.get('from_date')
+            end_date = request.data.get('to_date')
+            filter_type = request.data.get('filter_type')
+            print(end_clients,accounts,start_date,end_date,filter_type)
+            filters = {}
+            if end_clients and end_clients[0] != 0:
+                filters['end_client_id__in'] = end_clients
+            if accounts and accounts[0] != 0:
+                filters['account_id__in'] = accounts
+            if start_date:
+                filters['req_opened_date__gte'] = start_date
+            if end_date:
+                filters['req_opened_date__lte'] = end_date
 
-        filters = {}
-        if end_clients and len(end_clients) > 0:
-            filters['end_client__in'] = end_clients
+            queryset = DashboardJobData.objects.filter(**filters)
 
-        if accounts and len(accounts) > 0:
-            filters['account__in'] = accounts
+            overall_calculations = queryset.aggregate(
+                roles_opened=Count('job_code'),
+                amsubs=Sum('amsubs'),
+                csubs=Sum('csubs'),
+                interviews=Sum('interviews'),
+                offers=Sum('offers'),
+                starts=Sum('starts')
+            )
 
-        if start_date:
-            filters['req_opened_date__gte'] = start_date
+            if filter_type == "endclient":
+                grouped_data = queryset.values('end_client_id', 'end_client_name').annotate(
+                    roles_opened=Count('job_code'),
+                    amsubs=Sum('amsubs'),
+                    csubs=Sum('csubs'),
+                    interviews=Sum('interviews'),
+                    offers=Sum('offers'),
+                    starts=Sum('starts')
+                ).order_by('end_client_id')
+            else:
+                grouped_data = queryset.values('account_id', 'account_name').annotate(
+                    roles_opened=Count('job_code'),
+                    amsubs=Sum('amsubs'),
+                    csubs=Sum('csubs'),
+                    interviews=Sum('interviews'),
+                    offers=Sum('offers'),
+                    starts=Sum('starts')
+                ).order_by('account_name')
 
-        if end_date:
-            filters['req_opened_date__lte'] = end_date
-        
-        queryset = DashboardJobData.objects.filter(**filters)
-        overall_calculations = queryset.aggregate(
-             roles_opened = Count('job_code'),
-               amsubs = Sum('amsubs'),
-               csubs = Sum('csubs'),
-               interviews = Sum('interviews'),
-               offers = Sum('offers'),
-               starts = Sum('starts')
-        )
+            return Response({
+                "grouped_data": list(grouped_data),
+                "total_data": overall_calculations,
+            })
 
-        if end_clients:
-           grouped_data = (queryset.values('end_client_id', 'end_client_name').annotate(
-               roles_opened = Count('job_code'),
-               amsubs = Sum('amsubs'),
-               csubs = Sum('csubs'),
-               interviews = Sum('interviews'),
-               offers = Sum('offers'),
-               starts = Sum('starts')
-           ).order_by('end_client_id'))
-           
-           
-        
-        else:
-            grouped_data = (queryset.values('account_id', 'account_name').annotate(
-               roles_opened = Count('job_code'),
-               amsubs = Sum('amsubs'),
-               csubs = Sum('csubs'),
-               interviews = Sum('interviews'),
-               offers = Sum('offers'),
-               starts = Sum('starts')
-           ).order_by('account_name'))
-       
-            
-        data ={
-                "grouped_data": grouped_data,
-                "total_data":overall_calculations,
-                 }
-        
-        print("Grouped Data:", grouped_data)
-        print("total Data:",overall_calculations)
-        
-        return Response(data)
+        except Exception as e:
+            print(traceback.format_exc())
+            return Response({"error": str(e)}, status=500)
