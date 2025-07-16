@@ -4,9 +4,13 @@ const baseurl = import.meta.env.VITE_API_BASE_URL;
 const fetchDropdownData = async (endpoint) => {
   const response = await axiosInstance.get(`/ta_team/${endpoint}`);
   const data= response.data;
+  console.log(data);
   return Array.isArray(data) ? data : data.results || [];
 };
-
+export const getPaginatedJobReqs = async() =>{
+  const response = await axiosInstance.get('/ta_team/requirements');
+  return response.data;
+}
 export const getClients = () => fetchDropdownData("clients");
 export const getEmployees = () => fetchDropdownData("employees");
 export const getEndClients = () => fetchDropdownData("endclients");
@@ -18,9 +22,10 @@ export const getAccountManagers = () => fetchDropdownData("accountmanagers");
 export const getHiringManagers = () => fetchDropdownData("hiringmanagers");
 export const getSources = () => fetchDropdownData("sources");
 export const getRoleTypes = () => fetchDropdownData("roletypes");
+
 export const getJobreqs = () => fetchDropdownData("requirements");
 export const getSubmissions = () => fetchDropdownData("submissions");
-export const getFilteredJobs = (from_date, to_date) => fetchFilteredJobs(from_date, to_date);
+export const getFilteredJobs = (filterParams) => fetchFilteredJobs(filterParams);
 export const getFilteredSubmissions = (filterParams) => fetchFilteredSubmissions(filterParams);
 export const getSubmissionsbyReqid =(reqid) => fetcchSubmissionsbyReq(reqid);
 export const getCurrentCandidateStatus = () => fetchDropdownasArray("candidate_status")
@@ -40,14 +45,27 @@ const fetcchSubmissionsbyReq = async (reqid) =>
     const data = response.data
   return Array.isArray(data)? data: data.results || [];
   }
-  const fetchFilteredJobs = async(fromDate,toDate) =>
+  const fetchFilteredJobs = async(filterParams) =>
   {
-    const response = await axiosInstance.get(`/ta_team/requirements/`, {
-    params: { from_date: fromDate, to_date: toDate }
+    console.log("filteredParams",filterParams);
+    const response = await axiosInstance.get(`/ta_team/requirements/`,{
+      params: {
+        from_date: filterParams.from_date,
+        to_date: filterParams.to_date,
+        end_client: filterParams.end_client,
+        client: filterParams.client,
+        job_status: filterParams.job_status,
+        role_type: filterParams.role_type,
+        assigned_recruiter: filterParams.assigned_recruiter,
+        assigned_sourcer: filterParams.assigned_sourcer,
+        requirement_id: filterParams.Job,
+        page: filterParams.page || 1  // if using pagination
+      }
   });
     console.log(response.data);
  const data = response.data
-  return Array.isArray(data)? data: data.results || [];
+  //return Array.isArray(data)? data: data.results || [];
+  return data;
   }
 const FilteredfetchDropdownData = async (endpoint, filter) => {
   const query = Object.keys(filter)

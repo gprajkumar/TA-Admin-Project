@@ -6,7 +6,7 @@ import Select from "react-select";
 import { useSelector } from 'react-redux';
 import { FaFilter } from 'react-icons/fa';
 import { BarChart, Bar, Rectangle, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import {getCompleteAccountData, getCompleteEndClientData} from '../../services/helper';
+import {getCompleteAccountData, getCompleteEndClientData, getMonthlySubsData} from '../../services/helper';
 const ClientDashboard = () => {
   
   const data = [
@@ -77,7 +77,7 @@ const [barChartData, setBarChartData] = useState(
 
   }
 )
-
+const[monthlySubsData, SetmonthlySubsData] = useState([])
 
 useEffect( () => {
   const filters = {
@@ -102,6 +102,9 @@ response = await getCompleteEndClientData(filters);
       overall_data: response.total_data,
      grouped_data: response.grouped_data,
   }))
+  const monthlydataResponse = await getMonthlySubsData(filters);
+  console.log("monthlyData",monthlydataResponse)
+  SetmonthlySubsData(monthlydataResponse.grouped_data);
   } 
   barChart();
 },[selectedData,activeFilter])
@@ -318,7 +321,27 @@ response = await getCompleteEndClientData(filters);
         </BarChart>
         </ResponsiveContainer>
           </div>
-          <div className="chart-box">Chart 2</div>
+          <div className="chart-box-primary"> <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+          width={500}
+          height={300}
+          data={monthlySubsData}
+          margin={{
+            top: 5,
+            right: 30,
+            left: 20,
+            bottom: 5,
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={"month"} />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="amsubs" fill="#8884d8" activeBar={<Rectangle fill="pink" stroke="blue" />} />
+          <Bar dataKey="csubs" fill="#82ca9d" activeBar={<Rectangle fill="gold" stroke="purple" />} />
+        </BarChart>
+        </ResponsiveContainer></div>
           <div className="chart-box">Chart 3</div>
           <div className="chart-box">Chart 4</div>
           <div className="chart-box">Chart 5</div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import axios from "axios";
 import { FaEye, FaEdit, FaTrash,FaSearch } from "react-icons/fa";
 import Modal from 'react-bootstrap/Modal';
@@ -8,33 +8,24 @@ import RequirementForm from './RequirementForm'
 import ViewForm from "./ViewForm";
 import {
   getJobreqs,
-  getFilteredJobs,
+  getFilteredJobs,getPaginatedJobReqs
 } from "../services/drop_downService";
 import { Form, Row, Col, Button, Container, FormControl } from "react-bootstrap";
 import Select from "react-select";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-
+import Pagination from 'react-bootstrap/Pagination';
 
 const AllRequirements = () => {
   const {empcode} = useParams();
-  const drop_down_endClients = useSelector(
-    (state) => state.master_dropdown.endClients
-  );
-  const drop_down_clients = useSelector(
-    (state) => state.master_dropdown.clients
-  );
-  const drop_down_jobStatus = useSelector(
-    (state) => state.master_dropdown.jobStatus
-  );
-  const drop_down_roleTypes = useSelector(
-    (state) => state.master_dropdown.roleTypes
-  );
-  const drop_down_employees = useSelector(
-    (state) => state.master_dropdown.employees
-  );
+ const {
+  endClients: drop_down_endClients,
+  clients: drop_down_clients,
+  jobStatus: drop_down_jobStatus,
+  roleTypes: drop_down_roleTypes,
+  employees: drop_down_employees,
+} = useSelector((state) => state.master_dropdown);
 
-  console.log("empcode", empcode);
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
@@ -48,7 +39,8 @@ const AllRequirements = () => {
     from_date:"",
     to_date:"",
   });
-  const [allRequirements, setAllRequirements] = useState([]);
+  
+  
   const [show, setShow] = useState(false);  
   
 const[currentReqid, setcurrentReqid] =useState('');
@@ -71,7 +63,7 @@ setviewtype(false)
   if (window.confirm("Are you sure you want to delete this requirement?")) {
     try {
     
-       const response = await axios.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
+  const response = await axios.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
   console.log('Deleted successfully', response.data);
       fetchReqs(); 
     } catch (error) {
@@ -94,44 +86,11 @@ setviewtype(false)
     fetchReqs();
   }, [empcode]);
 
-  useEffect(() => {
-    let filtered = allRequirements;
-
-    if (selectedvalue.Job) {
-      
-      filtered = filtered.filter((item) => item.requirement_id == selectedvalue.Job);
-    }
-    if (selectedvalue.role_type) {
-      filtered = filtered.filter(
-        (item) => item.role_type == selectedvalue.role_type
-      );
-    }
-    if (selectedvalue.job_status) {
-      filtered = filtered.filter(
-        (item) => item.job_status == selectedvalue.job_status
-      );
-    }
-    if (selectedvalue.end_client) {
-      filtered = filtered.filter(
-        (item) => item.end_client == selectedvalue.end_client
-      );
-    }
-    if (selectedvalue.client) {
-      filtered = filtered.filter((item) => item.client == selectedvalue.client);
-    }
-    if (selectedvalue.assigned_recruiter) {
-      filtered = filtered.filter(
-        (item) => item.assigned_recruiter == selectedvalue.assigned_recruiter
-      );
-    }
-    if (selectedvalue.assigned_sourcer) {
-      filtered = filtered.filter(
-        (item) => item.assigned_sourcer == selectedvalue.assigned_sourcer
-      );
-    }
-    
-    setfilteredReqs(filtered);
-  }, [selectedvalue, allRequirements]);
+   useEffect(() => {
+  
+  handleSearch();
+   
+  }, [selectedvalue]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -141,13 +100,70 @@ setviewtype(false)
     }));
   
   };
+ const paginatedItemGenerate = () => {
+  let paginatedItems = [];
+  const { totalpages, startpageitemno, endpageitemno, currentpage } = paginationData;
+
+  if (totalpages <= 10) {
+    for (let i = 2; i <= totalpages; i++) {
+      paginatedItems.push(
+        <Pagination.Item
+          key={i}
+          active={i === currentpage}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </Pagination.Item>
+      );
+    }
+  } else {
+    for (let i = startpageitemno; i <= endpageitemno; i++) {
+      if (i !== 1 && i !== totalpages) {
+        paginatedItems.push(
+          <Pagination.Item
+            key={i}
+            active={i === currentpage}
+            onClick={() => handlePageChange(i)}
+          >
+            {i}
+          </Pagination.Item>
+        );
+      }
+    }
+
+    if (endpageitemno < totalpages - 1) {
+      paginatedItems.push(<Pagination.Ellipsis key="ellipsis" />);
+    }
+
+    if (endpageitemno < totalpages) {
+      paginatedItems.push(
+        <Pagination.Item
+          key={totalpages}
+          active={totalpages === currentpage}
+          onClick={() => handlePageChange(totalpages)}
+        >
+          {totalpages}
+        </Pagination.Item>
+      );
+    }
+  }
+
+  return paginatedItems;
+};
   const handleSearch = async () => {
   try {
-    const filteredData = await getFilteredJobs(
-      selectedvalue.from_date,
-      selectedvalue.to_date
+        const cleanFilters = {};
+    Object.entries(selectedvalue).forEach(([key, value]) => {
+      if (value !== "") {
+        cleanFilters[key] = value;
+      }
+    });
+    cleanFilters["page"] = paginationData.currentpage;
+    const paginatedfilteredData = await getFilteredJobs(
+      cleanFilters
     );
-    setAllRequirements(filteredData); // optional
+  setPaginationData((prev)=>({...prev,totalpages:Math.ceil(paginatedfilteredData.count/25),totalrecords:paginatedfilteredData.count,currentpage:1}));
+   const filteredData = paginatedfilteredData.results;
     setfilteredReqs(filteredData);
   } catch (error) {
     console.error("Error fetching filtered jobs:", error);
@@ -203,6 +219,17 @@ const  jobsRes = await getJobreqs();
     fetchData();
   }, []);
 
+  const [paginationData, setPaginationData] = useState(
+    {
+      totalpages:0,
+      currentpage: 1,
+      totalrecords:0,
+      endpageitemno:0,
+      startpageitemno:0
+     
+    }
+  )
+
   const renderSelect = (name, label, options) => {
     const selectOptions = (options || []).map((opt) => ({
       value: opt.id,
@@ -235,21 +262,82 @@ const  jobsRes = await getJobreqs();
   const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
   const fetchReqs = async () => {
-    let data = await getJobreqs();
-    console.log(data);
-    if (empcode) {
-  data = data.filter(
-    (item) =>
-      item.assigned_recruiter == empcode ||
-      item.assigned_sourcer == empcode
-  );
+    
+    
+  let  paginatedata;
+ 
+   if (empcode) {
+   
+paginatedata = await getPaginatedJobReqs();
+paginatedata = paginatedata.filter(
+   (item) =>
+  item.assigned_recruiter == empcode ||
+   item.assigned_sourcer == empcode
+   );
+}else{
+paginatedata = await getPaginatedJobReqs();
 }
-    setAllRequirements(data);
-    setfilteredReqs(data);
+    setPaginationData((prev) => {
+  const totalPages = Math.ceil(paginatedata.count / 25);
+  return {
+    ...prev,
+    totalpages: totalPages,
+    totalrecords: paginatedata.count,
+    currentpage: 1,
+    startpageitemno: 2,
+    endpageitemno: totalPages > 10 ? 6 : totalPages - 1,
+  };
+});
+
+    setfilteredReqs(paginatedata.results);
+   
   };
 
-    
-   
+ const handlePageChange = async (page) => {
+  try {
+    const cleanFilters = {};
+    Object.entries(selectedvalue).forEach(([key, value]) => {
+      if (value !== "") {
+        cleanFilters[key] = value;
+      }
+    });
+    cleanFilters["page"] = page;
+
+    const paginatedfilteredData = await getFilteredJobs(cleanFilters);
+
+    const totalPages = paginationData.totalpages;
+    let newStart = paginationData.startpageitemno;
+    let newEnd = paginationData.endpageitemno;
+
+    // Adjust window to show 5 page numbers at a time dynamically
+    if (totalPages > 10) {
+      if (page <= 3) {
+        newStart = 2;
+        newEnd = 6;
+      } else if (page >= totalPages - 2) {
+        newStart = totalPages - 5;
+        newEnd = totalPages - 1;
+      } else {
+        newStart = page - 2;
+        newEnd = page + 2;
+      }
+    } else {
+      newStart = 2;
+      newEnd = totalPages - 1;
+    }
+
+    setPaginationData((prev) => ({
+      ...prev,
+      currentpage: page,
+      startpageitemno: newStart,
+      endpageitemno: newEnd,
+    }));
+
+    setfilteredReqs(paginatedfilteredData.results);
+  } catch (error) {
+    console.error("Error fetching page data:", error);
+  }
+};
 
 
   return (
@@ -362,7 +450,7 @@ const  jobsRes = await getJobreqs();
   <Col md={3} className="d-flex align-items-center">
     <div className="jobs-found">
       <span className="jobs-found-label">Jobs Found:</span>
-      <span className="jobs-found-count ms-2">{filteredReqs.length}</span>
+      <span className="jobs-found-count ms-2">{paginationData.totalrecords}</span>
     </div>
   </Col>
 </Row>
@@ -410,7 +498,11 @@ const  jobsRes = await getJobreqs();
             </button>
           </Col>
         </Row>
+      
       ))}
+      
+        
+        
       <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
         <Modal.Header closeButton>
          
@@ -426,6 +518,44 @@ const  jobsRes = await getJobreqs();
           </Button>
         </Modal.Footer>
       </Modal>
+      <Row className="justify-content-center mt-3">
+  <Pagination>
+  <Pagination.First
+    onClick={() => handlePageChange(1)}
+    disabled={paginationData.currentpage === 1}
+  />
+  <Pagination.Prev
+    onClick={() =>
+      handlePageChange(Math.max(paginationData.currentpage - 1, 1))
+    }
+    disabled={paginationData.currentpage === 1}
+  />
+  <Pagination.Item
+      key={1}
+      active={1 === paginationData.currentpage}
+      onClick={() =>
+       handlePageChange(1)
+      }
+    >
+      {1}
+    </Pagination.Item>
+ 
+  {paginatedItemGenerate()}
+  <Pagination.Next
+    onClick={() =>
+      handlePageChange(Math.min(paginationData.currentpage + 1, paginationData.totalpages))
+    }
+    disabled={paginationData.currentpage === paginationData.totalpages}
+  />
+  <Pagination.Last
+    onClick={() =>
+    handlePageChange(paginationData.totalpages)
+    }
+    disabled={paginationData.currentpage === paginationData.totalpages}
+  />
+</Pagination>
+
+</Row>
     </div>
     
   );

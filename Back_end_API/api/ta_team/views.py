@@ -22,7 +22,10 @@ from .filters.requirement_filter import RequirementFilter,SubmissionFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
 from django.db.models import Count, Sum, Avg
+from django.db.models.functions import TruncMonth
 import traceback
+from datetime import datetime
+from .filters.pagination import RequirementPagination
 # Create your views here.
 
 class RequirementsViewSet(ModelViewSet):
@@ -33,6 +36,7 @@ class RequirementsViewSet(ModelViewSet):
    serializer_class = RequirementsSerializer
    filter_backends = [DjangoFilterBackend]
    filterset_class = RequirementFilter
+   pagination_class = RequirementPagination
    
 class ClientViewSet(ModelViewSet):
     queryset = Client.objects.all()
@@ -121,8 +125,11 @@ class RefreshClientDashboardView(View):
                 cursor.execute('CALL refresh_client_dashboard_data();') 
             return JsonResponse({'status':'success', 'message':'Data refreshed Succesfully'})
         except Exception as e:
+            import traceback
+            print("Error while refreshing client dashboard:")
+            traceback.print_exc()
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-        
+
 class ClientDashboardView(ReadOnlyModelViewSet):
     queryset = DashboardJobData.objects.all()
     serializer_class = DashboardDataSerializer
@@ -179,6 +186,51 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             return Response({
                 "grouped_data": list(grouped_data),
                 "total_data": overall_calculations,
+            })
+
+        except Exception as e:
+            print(traceback.format_exc())
+            return Response({"error": str(e)}, status=500)
+    
+    @action(detail=False, methods=['post'], url_path='filter/monthdata')
+    def filter_monthly_dashboard(self, request):
+        try:
+            end_clients = request.data.get('end_clients', [])
+            accounts = request.data.get('accounts', [])
+            start_date = request.data.get('from_date')
+            end_date = request.data.get('to_date')
+            filter_type = request.data.get('filter_type')
+            print(end_clients,accounts,start_date,end_date,filter_type)
+            filters = {}
+            if end_clients and end_clients[0] != 0:
+                filters['end_client_id__in'] = end_clients
+            if accounts and accounts[0] != 0:
+                filters['account_id__in'] = accounts
+            if start_date:
+                filters['req_opened_date__gte'] = start_date
+            if end_date:
+                filters['req_opened_date__lte'] = end_date
+
+            queryset = DashboardJobData.objects.filter(**filters)
+
+            
+
+            grouped_data = queryset.annotate(month=TruncMonth('req_opened_date')).values('month').annotate(
+                 roles_opened=Count('job_code'),
+                amsubs=Sum('amsubs'),
+                csubs=Sum('csubs'),
+                interviews=Sum('interviews'),
+                offers=Sum('offers'),
+                starts=Sum('starts')
+            ).order_by('month')
+            
+            for item in grouped_data:
+                item['month'] = item['month'].strftime("%b %Y")
+                
+            print("month aggregation", grouped_data)
+
+            return Response({
+                "grouped_data": list(grouped_data),
             })
 
         except Exception as e:

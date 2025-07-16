@@ -8,7 +8,7 @@ class RequirementFilter(django_filters.FilterSet):
     
     class Meta:
         model = Requirements
-        fields = ["from_date","to_date"]
+        fields = ["from_date","to_date","assigned_recruiter","assigned_sourcer","requirement_id","end_client","client","job_status","role_type"]
 
 
 class SubmissionFilter(django_filters.FilterSet):

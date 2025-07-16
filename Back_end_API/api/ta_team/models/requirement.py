@@ -22,7 +22,7 @@ class Requirements(models.Model):
     accountManager = models.ForeignKey(AccountManager, on_delete=models.CASCADE)
     hiringManager = models.ForeignKey(HiringManager, on_delete=models.CASCADE, blank=True, null=True)
 
-    notes = models.CharField(max_length=2000, blank=True)
+    notes = models.CharField(max_length=2000, blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(blank=True, null=True)
     role_type = models.ForeignKey(Role_Type, on_delete=models.CASCADE, default=1)
