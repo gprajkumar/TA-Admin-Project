@@ -117,16 +117,16 @@ const fetchDropdowns = async () => {
   <Route path='/' element={<TAHomePage/>}/>
   <Route path='/addrequirements' element={<AuthCheck><RequirementForm/></AuthCheck>}/>
   <Route path='/submissions' element={<AuthCheck><Submission/></AuthCheck>}/>
-   <Route path='/allreqs' element={<AuthCheck><AllRequirements/></AuthCheck>}/>
+   {/* <Route path='/allreqs' element={<AuthCheck><AllRequirements/></AuthCheck>}/> */}
     <Route path='/filledjob' element={<AuthCheck><OfferForm/></AuthCheck>}/>
-    <Route path='/allsubmissions' element={<AuthCheck><AllSubmissions/></AuthCheck>}/>
+    {/* <Route path='/allsubmissions' element={<AuthCheck><AllSubmissions/></AuthCheck>}/> */}
      <Route path='/submissionsDateEntry' element={<AuthCheck><SubmissionDatesForm/></AuthCheck>}/>
   <Route path='/submissionsDateDetails' element={<AuthCheck><AllSubmissionDates/></AuthCheck>}/>
    <Route path='/myprofile' element={<AuthCheck><MyProfile/></AuthCheck>}/>
    <Route path='/clientdashboard' element={<AuthCheck><ClientDashboard/></AuthCheck>}/>
    <Route path='/login' element={<Login onLogin={handleLogin}/>}/>
-   <Route path="/allreqs/:empcode" element={<AuthCheck><AllRequirements /></AuthCheck>} />
-   <Route path="/allsubmissions/:empcode" element={<AuthCheck><AllSubmissions /></AuthCheck>} />
+   <Route path="/allreqs/:empcode?" element={<AuthCheck><AllRequirements /></AuthCheck>} />
+   <Route path="/allsubmissions/:empcode?" element={<AuthCheck><AllSubmissions /></AuthCheck>} />
 </Routes>
 
  </>

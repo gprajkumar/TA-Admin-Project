@@ -59,6 +59,7 @@ const fetcchSubmissionsbyReq = async (reqid) =>
         assigned_recruiter: filterParams.assigned_recruiter,
         assigned_sourcer: filterParams.assigned_sourcer,
         requirement_id: filterParams.Job,
+        empcode:filterParams.empcode,
         page: filterParams.page || 1  // if using pagination
       }
   });

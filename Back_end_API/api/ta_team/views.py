@@ -24,19 +24,33 @@ from rest_framework.decorators import action
 from django.db.models import Count, Sum, Avg
 from django.db.models.functions import TruncMonth
 import traceback
+from django.db.models import Q
 from datetime import datetime
 from .filters.pagination import RequirementPagination
 # Create your views here.
 
 class RequirementsViewSet(ModelViewSet):
-   queryset = Requirements.objects.select_related(  'client', 'end_client', 'account', 'job_status', 
-        'assigned_recruiter', 'assigned_sourcer',
-        'accountManager', 'hiringManager', 
-         'role_type').all()
-   serializer_class = RequirementsSerializer
-   filter_backends = [DjangoFilterBackend]
-   filterset_class = RequirementFilter
-   pagination_class = RequirementPagination
+    serializer_class = RequirementsSerializer
+    pagination_class = RequirementPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = RequirementFilter
+
+    def get_queryset(self):
+        queryset = Requirements.objects.select_related(
+            'client', 'end_client', 'account', 'job_status', 
+            'assigned_recruiter', 'assigned_sourcer',
+            'accountManager', 'hiringManager', 'role_type'
+        ).all()
+
+        empcode = self.request.query_params.get("empcode")
+        print("Empcode:", empcode)
+        if empcode:
+            queryset = queryset.filter(
+                Q(assigned_recruiter_id=empcode) | 
+                Q(assigned_sourcer_id=empcode)
+            )
+
+        return queryset
    
 class ClientViewSet(ModelViewSet):
     queryset = Client.objects.all()

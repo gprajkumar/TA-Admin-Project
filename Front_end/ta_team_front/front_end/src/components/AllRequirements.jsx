@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEye, FaEdit, FaTrash,FaSearch } from "react-icons/fa";
 import Modal from 'react-bootstrap/Modal';
@@ -18,6 +18,7 @@ import Pagination from 'react-bootstrap/Pagination';
 
 const AllRequirements = () => {
   const {empcode} = useParams();
+  console.log("empcode", empcode)
  const {
   endClients: drop_down_endClients,
   clients: drop_down_clients,
@@ -35,9 +36,10 @@ const AllRequirements = () => {
     client: "",
     
     assigned_recruiter: "",
-    assigned_sourcer: "",
+    assigned_sourcer:  "",
     from_date:"",
     to_date:"",
+    empcode:""
   });
   
   
@@ -65,7 +67,7 @@ setviewtype(false)
     
   const response = await axios.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
   console.log('Deleted successfully', response.data);
-      fetchReqs(); 
+      await handleSearch();
     } catch (error) {
       console.error("Failed to delete requirement:", error);
     }
@@ -82,15 +84,32 @@ setviewtype(false)
     roletypes: [],
     end_clients: [],
   });
-  useEffect(() => {
-    fetchReqs();
-  }, [empcode]);
+useEffect(() => {
+  if (empcode) {
+    setSelectedvalue((prev) => ({
+      ...prev,
+      empcode: empcode,
+      assigned_recruiter:"",
+      assigned_sourcer:"",
+    }));
+  }
+  else
+  {
+     setSelectedvalue((prev) => ({
+      ...prev,
+      empcode: "",
+    }));
+  }
+}, [empcode]);
 
-   useEffect(() => {
-  
+useEffect(() => {
   handleSearch();
+}, [selectedvalue]);
+  //  useEffect(() => {
+  
+  // handleSearch();
    
-  }, [selectedvalue]);
+  // }, [selectedvalue]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -117,8 +136,14 @@ setviewtype(false)
       );
     }
   } else {
+     if (startpageitemno > 2) {
+      paginatedItems.push(<Pagination.Ellipsis key="startellipsis" />);
+     }
+   
+
     for (let i = startpageitemno; i <= endpageitemno; i++) {
       if (i !== 1 && i !== totalpages) {
+       
         paginatedItems.push(
           <Pagination.Item
             key={i}
@@ -152,17 +177,25 @@ setviewtype(false)
 };
   const handleSearch = async () => {
   try {
+    setPaginationData((prev) => ({ ...prev, currentpage: 1 }));
         const cleanFilters = {};
     Object.entries(selectedvalue).forEach(([key, value]) => {
       if (value !== "") {
         cleanFilters[key] = value;
       }
     });
-    cleanFilters["page"] = paginationData.currentpage;
+        cleanFilters["page"] = 1;
     const paginatedfilteredData = await getFilteredJobs(
       cleanFilters
     );
-  setPaginationData((prev)=>({...prev,totalpages:Math.ceil(paginatedfilteredData.count/25),totalrecords:paginatedfilteredData.count,currentpage:1}));
+  const totalPages = Math.ceil(paginatedfilteredData.count / 25);
+    setPaginationData({
+      totalpages: totalPages,
+      currentpage: 1,
+      totalrecords: paginatedfilteredData.count,
+      startpageitemno: 2,
+      endpageitemno: totalPages > 10 ? 6 : totalPages - 1,
+    });
    const filteredData = paginatedfilteredData.results;
     setfilteredReqs(filteredData);
   } catch (error) {
@@ -261,37 +294,29 @@ const  jobsRes = await getJobreqs();
 
   const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
-  const fetchReqs = async () => {
+//   const fetchReqs = async () => {
     
     
-  let  paginatedata;
- 
-   if (empcode) {
-   
-paginatedata = await getPaginatedJobReqs();
-paginatedata = paginatedata.filter(
-   (item) =>
-  item.assigned_recruiter == empcode ||
-   item.assigned_sourcer == empcode
-   );
-}else{
-paginatedata = await getPaginatedJobReqs();
-}
-    setPaginationData((prev) => {
-  const totalPages = Math.ceil(paginatedata.count / 25);
-  return {
-    ...prev,
-    totalpages: totalPages,
-    totalrecords: paginatedata.count,
-    currentpage: 1,
-    startpageitemno: 2,
-    endpageitemno: totalPages > 10 ? 6 : totalPages - 1,
-  };
-});
+//     if (empcode) {
+//     await handleSearch(); // just call it directly
+//     return;
+//   }
 
-    setfilteredReqs(paginatedata.results);
-   
-  };
+//   try {
+//     const paginatedata = await getPaginatedJobReqs();
+//     const totalPages = Math.ceil(paginatedata.count / 25);
+//     setPaginationData({
+//       totalpages: totalPages,
+//       currentpage: 1,
+//       totalrecords: paginatedata.count,
+//       startpageitemno: 2,
+//       endpageitemno: totalPages > 10 ? 6 : totalPages - 1,
+//     });
+//     setfilteredReqs(paginatedata.results);
+//   } catch (error) {
+//     console.error("Error fetching unfiltered data:", error);
+//   }
+// };
 
  const handlePageChange = async (page) => {
   try {
@@ -388,6 +413,7 @@ paginatedata = await getPaginatedJobReqs();
             {renderSelect("client", "Client", filterdropdowndata.clients)}
           </Form.Group>
         </Col>
+       
         <Col md={3}>
           <Form.Group className="mb-3 " controlId="recruiter">
             <Form.Label className="fs-6">Assigned Recruiter:</Form.Label>
