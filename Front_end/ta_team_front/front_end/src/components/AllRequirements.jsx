@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect,useMemo } from "react";
 import axios from "axios";
 import { FaEye, FaEdit, FaTrash,FaSearch } from "react-icons/fa";
 import Modal from 'react-bootstrap/Modal';
@@ -10,7 +10,7 @@ import {
   getJobreqs,
   getFilteredJobs,getPaginatedJobReqs
 } from "../services/drop_downService";
-import { Form, Row, Col, Button, Container, FormControl } from "react-bootstrap";
+import { Form, Row, Col, Button } from "react-bootstrap";
 import Select from "react-select";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -105,11 +105,7 @@ useEffect(() => {
 useEffect(() => {
   handleSearch();
 }, [selectedvalue]);
-  //  useEffect(() => {
-  
-  // handleSearch();
-   
-  // }, [selectedvalue]);
+ 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -229,20 +225,20 @@ const  jobsRes = await getJobreqs();
             id: data.requirement_id,
             name: `${data.job_code} - ${data.job_title}`,
           })),
-          clients: normalizeData(clientRes, "client_id", "client_name"),
-          endClients: normalizeData(
+          clients: useNormalizedData(clientRes, "client_id", "client_name"),
+          endClients: useNormalizedData(
             endClientsRes,
             "end_client_id",
             "end_client_name"
           ),
-          jobstatuses: normalizeData(
+          jobstatuses: useNormalizedData(
             jobStatusesRes,
             "job_status_id",
             "job_status"
           ),
-          recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
-          sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
-          roletypes: normalizeData(roletypeRes, "role_type_id", "role_type"),
+          recruiters: useNormalizedData(recruitersRes, "employee_id", "emp_fName"),
+          sourcers: useNormalizedData(sourcersRes, "employee_id", "emp_fName"),
+          roletypes: useNormalizedData(roletypeRes, "role_type_id", "role_type"),
         });
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
@@ -292,31 +288,16 @@ const  jobsRes = await getJobreqs();
     );
   };
 
-  const normalizeData = (data, idKey, nameKey) =>
-    data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
-//   const fetchReqs = async () => {
-    
-    
-//     if (empcode) {
-//     await handleSearch(); // just call it directly
-//     return;
-//   }
+const useNormalizedData = (data, idKey, nameKey) => {
+  return useMemo(() => {
+    // Normalize each item in the array to { id, name }
+    return data.map((item) => ({
+      id: item[idKey],
+      name: item[nameKey]
+    }));
+  }, [data, idKey, nameKey]); // Dependencies for recalculation
+};
 
-//   try {
-//     const paginatedata = await getPaginatedJobReqs();
-//     const totalPages = Math.ceil(paginatedata.count / 25);
-//     setPaginationData({
-//       totalpages: totalPages,
-//       currentpage: 1,
-//       totalrecords: paginatedata.count,
-//       startpageitemno: 2,
-//       endpageitemno: totalPages > 10 ? 6 : totalPages - 1,
-//     });
-//     setfilteredReqs(paginatedata.results);
-//   } catch (error) {
-//     console.error("Error fetching unfiltered data:", error);
-//   }
-// };
 
  const handlePageChange = async (page) => {
   try {
@@ -430,7 +411,7 @@ const  jobsRes = await getJobreqs();
             {renderSelect(
               "assigned_sourcer",
               "Sourcer",
-              filterdropdowndata.sourcers
+              filterdropdowndata.sourcers 
             )}
           </Form.Group>
         </Col>

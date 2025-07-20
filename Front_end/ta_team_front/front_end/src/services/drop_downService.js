@@ -83,6 +83,19 @@ export const getfilteredEmployees = (filter) =>
   const fetchFilteredSubmissions = async(filterParams) =>
   {
     const response = await axiosInstance.get(`/ta_team/submissions/`, {
-    params: { filterParams}
+    params: { 
+       Job: filterParams.Job,
+    end_client: filterParams.end_client,
+    client: filterParams.client,
+    recruiter: filterParams.recruiter,
+    sourcer: filterParams.sourcer,
+    from_sub_date: filterParams.from_sub_date,
+    to_sub_date: filterParams.to_sub_date,
+    candidate_name: filterParams.candidate_name,
+    current_status: filterParams.current_status,
+    source: filterParams.source,
+    empcode:filterParams.empcode,
+    page: filterParams.page || 1 
+    }
   });
 }

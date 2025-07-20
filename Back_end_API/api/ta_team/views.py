@@ -107,11 +107,24 @@ class ScreeningStatusViewSet(ModelViewSet):
     serializer_class = ScreeningStatusSerializer
 
 class SubmisionViewSet(ModelViewSet):
-    queryset = Submissions.objects.all().select_related('Job', 'recruiter', 'sourcer', 'source')
     serializer_class = SubmissionSerializer
+    pagination_class = RequirementPagination
     filter_backends =[DjangoFilterBackend]
     filterset_class = SubmissionFilter
+    def get_queryset(self):
+        queryset = Submissions.objects.select_related(
+            'Job', 'recruiter', 'sourcer', 'source'
+        ).all()
 
+        empcode = self.request.query_params.get("empcode")
+        print("Empcode:", empcode)
+        if empcode:
+            queryset = queryset.filter(
+                Q(recruiter_id=empcode) | 
+                Q(sourcer_id=empcode)
+            )
+
+        return queryset
 class PlacementViewSet(ModelViewSet):
     queryset = Placement.objects.all()
     serializer_class = PlacementSerializer
