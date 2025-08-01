@@ -21,10 +21,12 @@ router.register(r'submissions', SubmisionViewSet, basename='submissions')
 router.register(r'employees',EmployeeViewSet)
 router.register(r'accountdata',ClientDashboardView)
 router.register(r'placements',PlacementViewSet)
+
 router.register(r'candidate_status',UniqueCandidate_Status_ViewSet,basename='candidate_status')
 urlpatterns = [
     path('', include(router.urls)),
     path('refresh-client-dashboard/', RefreshClientDashboardView.as_view()), 
-    # path('client-dashboard/', ClientDashboardView.as_view()), 
+    path('requirement-search/', RequirementSearchDropdownAPI.as_view(), name='requirement-search'),
+    path('clientdashboard-updated-date/', get_client_update_date.as_view(), name='clientdashboard-updated-date')
   
 ]

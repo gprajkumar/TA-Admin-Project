@@ -98,4 +98,6 @@ export const getfilteredEmployees = (filter) =>
     page: filterParams.page || 1 
     }
   });
+  return response.data;
+  
 }

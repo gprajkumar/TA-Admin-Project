@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useMemo } from "react";
 import axios from "axios";
 import { FaEye, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import Modal from "react-bootstrap/Modal";
@@ -6,12 +6,14 @@ import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
 import { useParams } from "react-router-dom";
 import ViewForm from "./ViewForm";
+import Pagination from 'react-bootstrap/Pagination';
 import Submission from "./Submissions";
 import {
   
   getJobreqs,
   getCurrentCandidateStatus,
   getSubmissions,
+  getFilteredSubmissions
 } from "../services/drop_downService";
 import {
   Form,
@@ -22,10 +24,13 @@ import {
 import Select from "react-select";
 import SubmissionDatesForm from "./SubmissonDatesForm";
 import { useSelector } from "react-redux";
+import AsyncSelect from 'react-select/async';
+import axiosInstance from "../services/axiosInstance";
 
 const AllSubmissions = ({ dateform = false, empId }) => {
    const {empcode} = useParams();
-    const drop_down_endClients = useSelector(
+ 
+   const drop_down_endClients = useSelector(
     (state) => state.master_dropdown.endClients
   );
   const drop_down_clients = useSelector(
@@ -77,6 +82,7 @@ const AllSubmissions = ({ dateform = false, empId }) => {
      
     }
   )
+  
   // const handleShow = () => {setShow(true);}
   const handleView = (subId, sendata) => {
     setcurrentSubid(subId);
@@ -90,6 +96,16 @@ const AllSubmissions = ({ dateform = false, empId }) => {
     setviewtype(false);
     
   };
+    const loadOptions = async (inputValue) => {
+  const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
+    params: { q: inputValue }
+  });
+console.log("searchData",res.data);
+  return res.data.map(job => ({
+    label: `${job.job_code}-${job.job_title} `,
+    value: job.requirement_id
+  }));
+};  
   const handleDelete = async (subId) => {
     if (window.confirm("Are you sure you want to delete this Candidate?")) {
       try {
@@ -115,22 +131,17 @@ const AllSubmissions = ({ dateform = false, empId }) => {
     end_clients: [],
   });
   useEffect(() => {
-   if (empcode) {
-    setSelectedvalue((prev) => ({
-      ...prev,
-      empcode: empcode,
-      recruiter:"",
-      sourcer:"",
-    }));
+  if (empcode) {
+    handleSearch();
   }
-  else
-  {
-     setSelectedvalue((prev) => ({
+  else{
+    setSelectedvalue((prev) => ({
       ...prev,
       empcode: "",
     }));
   }
-  }, [empcode]);
+  
+}, [empcode]);
 
   useEffect(() => {
   handleSearch();
@@ -152,6 +163,13 @@ const AllSubmissions = ({ dateform = false, empId }) => {
         if (value !== "") {
           cleanFilters[key] = value;
         }});
+          if (empcode) {
+      cleanFilters["empcode"] = empcode;
+    }
+    else
+    {
+      delete cleanFilters["empcode"] ;
+    }
         cleanFilters["page"] = 1;
 
       const paginatedfilteredData = await getFilteredSubmissions(
@@ -227,6 +245,7 @@ const paginatedItemGenerate = () => {
 
   return paginatedItems;
 };
+ 
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -243,8 +262,8 @@ const paginatedItemGenerate = () => {
           drop_down_clients,
           drop_down_endClients,
        
-        drop_down_employees.filter((recruiters) => recruiters.can_recruit === true && recruiters.department === 2),
-           drop_down_employees.filter((sourcers) => sourcers.can_source === true && sourcers.department === 1),
+        drop_down_employees.filter((recruiters) => recruiters.can_recruit === true || recruiters.department === 2),
+           drop_down_employees.filter((sourcers) => sourcers.can_source === true || sourcers.department === 1),
          drop_down_sources
         ];
  const [
@@ -256,8 +275,8 @@ const paginatedItemGenerate = () => {
             id: data.requirement_id,
             name: `${data.job_code} - ${data.job_title}`,
           })),
-          clients: useNormalizedData(clientRes, "client_id", "client_name"),
-          endClients: useNormalizedData(
+          clients: normalizeData(clientRes, "client_id", "client_name"),
+          endClients: normalizeData(
             endClientsRes,
             "end_client_id",
             "end_client_name"
@@ -265,9 +284,9 @@ const paginatedItemGenerate = () => {
           candidate_current_Status: Array.isArray(CurrentStatusRes)
             ? CurrentStatusRes.map((status) => ({ id: status, name: status }))
             : [],
-          recruiters: useNormalizedData(recruitersRes, "employee_id", "emp_fName"),
-          sourcers: useNormalizedData(sourcersRes, "employee_id", "emp_fName"),
-          sources: useNormalizedData(sourceRes, "source_id", "source"),
+          recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
+          sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
+          sources: normalizeData(sourceRes, "source_id", "source"),
         });
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
@@ -305,6 +324,10 @@ const paginatedItemGenerate = () => {
       </div>
     );
   };
+   
+  
+ const normalizeData = (data, idKey, nameKey) =>
+    data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
  const handlePageChange = async (page) => {
   try {
     const cleanFilters = {};
@@ -315,7 +338,7 @@ const paginatedItemGenerate = () => {
     });
     cleanFilters["page"] = page;
 
-    const paginatedfilteredData = await getFilteredJobs(cleanFilters);
+    const paginatedfilteredData = await getFilteredSubmissions(cleanFilters);
 
     const totalPages = paginationData.totalpages;
     let newStart = paginationData.startpageitemno;
@@ -350,23 +373,25 @@ const paginatedItemGenerate = () => {
     console.error("Error fetching page data:", error);
   }
 };
-const useNormalizedData = (data, idKey, nameKey) => {
-  return useMemo(() => {
-    // Normalize each item in the array to { id, name }
-    return data.map((item) => ({
-      id: item[idKey],
-      name: item[nameKey]
-    }));
-  }, [data, idKey, nameKey]); // Dependencies for recalculation
-};
-  
+
   return (
     <div className="data-container">
       <Row>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="job">
             <Form.Label className="fs-6">Job:</Form.Label>
-            {renderSelect("Job", "Job", filterdropdowndata.jobs)}
+           <AsyncSelect
+  cacheOptions
+  defaultOptions
+  loadOptions={loadOptions}
+  onChange={(selectedOption) => {
+    setSelectedvalue((prev) => ({
+      ...prev,Job: selectedOption ? selectedOption.value : ""
+    }));
+  }}
+  isClearable
+  placeholder="Search job by title or ID"
+/>
           </Form.Group>
         </Col>
         <Col md={3}>
@@ -472,7 +497,7 @@ const useNormalizedData = (data, idKey, nameKey) => {
         <Col md={3} className="d-flex align-items-center">
           <div className="jobs-found">
             <span className="jobs-found-label">Candidates Found:</span>
-            <span className="jobs-found-count ms-2">{filteredSubs.length}</span>
+            <span className="jobs-found-count ms-2">{paginationData.totalrecords}</span>
           </div>
         </Col>
       </Row>

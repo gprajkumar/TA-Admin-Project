@@ -24,11 +24,63 @@
   justify-content:center;
   align-items: center;
   padding-top: 10px;
+  
 
   background-color:rgb(6, 102, 78);
   
 }
+.submissions-scorecard-layout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 24px;
+  padding: 24px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
 
+.submissions-scorecard-layout .scorecard {
+  background-color: #ffffff;
+  width: 15%;
+  min-width: 150px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.submissions-scorecard-layout .scorecard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.scorecard .title {
+  font-size: 1.1rem;
+  background-color: #06664e;
+  font-weight: 500;
+  color: #ffffff;
+  text-align: center;
+  padding: 8px;
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.scorecard > p {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #222;
+  text-align: center;
+  margin: 0;
+}
 .filter_Container .fs-6 {
   color: white;
 }

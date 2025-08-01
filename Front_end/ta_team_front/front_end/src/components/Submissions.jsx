@@ -1,5 +1,5 @@
 import axiosInstance from "../services/axiosInstance";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Select from "react-select";
 import "./RequirementForm.css";
 import {
@@ -8,9 +8,11 @@ import {
   getJobreqs,
 } from "../services/drop_downService";
 import { Form, Row, Col, Button } from "react-bootstrap";
+import useCalTAT from "../services/customHooks/useCalTAT";
 
 const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
-  const [loading, setLoading] = useState(submission_id ? true : false);    
+  const [loading, setLoading] = useState(submission_id ? true : false); 
+  const[fetchedJobs,setFetchedJobs] = useState([]);
   const baseurl = import.meta.env.VITE_API_BASE_URL;
       const [errors,setErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -23,6 +25,7 @@ const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
     sourcer: "",
     source: "",
     am_sub_date:"",
+    turn_around_time: "",
   });
 
   const validationform = () =>
@@ -51,7 +54,9 @@ const resetform = () =>
     recruiter: "",
     sourcer: "",
     source: "",
-    am_sub_date:"",})
+    am_sub_date:"",
+    turn_around_time: "",});  
+    
 }
   const [dropdownData, setDropdownData] = useState({
     jobs: [],
@@ -69,7 +74,7 @@ const resetform = () =>
             getfilteredEmployees({ can_source: true, department: 1 }),
             getSources(),
           ]);
-
+setFetchedJobs(jobres);
         setDropdownData({
           jobs: jobres.map((data) => ({
             id: data.requirement_id,
@@ -123,7 +128,15 @@ const resetform = () =>
   };
   const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
-
+const tat =useCalTAT(formData.submission_date, fetchedJobs, formData.Job);
+useEffect(() => {
+  if (tat !== null && tat !== undefined && tat !== formData.turn_around_time) {
+    setFormData((prev) => ({
+      ...prev,
+      turn_around_time: tat
+    }));
+  }
+}, [tat]);
    const renderSelect = (name, label, options) => {
   const selectOptions = (options || []).map((opt) => ({
     value: opt.id,
@@ -261,15 +274,21 @@ else
         </Col>
       </Row>
     <Row>
-      <Col md={6}>
+      <Col md={5}>
      
        {renderSelect("recruiter","Recruiter",dropdownData.recruiters)}
   
       </Col>
-      <Col md={6}>
+      <Col md={5}>
    
        {renderSelect("sourcer","Sourcer",dropdownData.sourcers)}
       
+      </Col>
+      <Col md="auto" className="d-flex align-items-center">
+      {formData.turn_around_time && <div className="jobs-found">
+            <span className="jobs-found-label">TAT</span>
+            <span className="jobs-found-count ms-2">{formData.turn_around_time}</span>
+          </div>}
       </Col>
       </Row>
     {!viewtype && <Row className="justify-content-center mt-4">

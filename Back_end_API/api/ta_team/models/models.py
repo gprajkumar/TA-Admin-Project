@@ -228,6 +228,7 @@ class DashboardJobData(models.Model):
     interviews = models.IntegerField(null=True)
     offers = models.IntegerField(null=True)
     starts = models.IntegerField(null=True)
+    avg_turnaround_time = models.FloatField(null=True)
 
     class Meta:
         managed = False  # Don't let Django manage the DB schema

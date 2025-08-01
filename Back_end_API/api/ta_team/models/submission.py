@@ -8,7 +8,7 @@ class Submissions(models.Model):
     Job = models.ForeignKey(Requirements, on_delete=models.CASCADE)
     submission_date = models.DateField()
     candidate_name = models.CharField(max_length=100)
-    payrate = models.IntegerField(null=True, blank=True)
+    payrate = models.CharField(max_length=200,null=True, blank=True)
     w2_C2C = models.CharField(null=True, blank=True)
     
     recruiter = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="submission_recruiter")
@@ -22,7 +22,7 @@ class Submissions(models.Model):
     client_interview_date = models.DateField(blank=True, null=True)
     offer_date = models.DateField(blank=True, null=True)
     start_date = models.DateField(blank=True, null=True)
-
+    turn_around_time =models.IntegerField(null=True, blank=True)
     current_status = models.CharField(blank=True, max_length=50)
     created_by = models.ForeignKey(Employee, related_name='submissions_created_by', on_delete=models.CASCADE, null=True)
 

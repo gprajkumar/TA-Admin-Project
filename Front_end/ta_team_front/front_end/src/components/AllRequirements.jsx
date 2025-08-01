@@ -5,6 +5,7 @@ import Modal from 'react-bootstrap/Modal';
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
 import RequirementForm from './RequirementForm'
+import AsyncSelect from 'react-select/async';
 import ViewForm from "./ViewForm";
 import {
   getJobreqs,
@@ -15,6 +16,7 @@ import Select from "react-select";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Pagination from 'react-bootstrap/Pagination';
+import axiosInstance from "../services/axiosInstance";
 
 const AllRequirements = () => {
   const {empcode} = useParams();
@@ -38,10 +40,10 @@ const AllRequirements = () => {
     assigned_recruiter: "",
     assigned_sourcer:  "",
     from_date:"",
-    to_date:"",
-    empcode:""
+    to_date:""
+    // empcode:empcode || ""
   });
-  
+ 
   
   const [show, setShow] = useState(false);  
   
@@ -61,6 +63,16 @@ setShow(true)
 setviewtype(false)
 
  }
+     const loadOptions = async (inputValue) => {
+   const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
+     params: { q: inputValue }
+   });
+ console.log("searchData",res.data);
+   return res.data.map(job => ({
+     label: `${job.job_code}-${job.job_title} `,
+     value: job.requirement_id
+   }));
+ };  
  const handleDelete = async (reqId) => {
   if (window.confirm("Are you sure you want to delete this requirement?")) {
     try {
@@ -84,28 +96,29 @@ setviewtype(false)
     roletypes: [],
     end_clients: [],
   });
-useEffect(() => {
+ useEffect(() => {
   if (empcode) {
-    setSelectedvalue((prev) => ({
-      ...prev,
-      empcode: empcode,
-      assigned_recruiter:"",
-      assigned_sourcer:"",
-    }));
+    handleSearch();
   }
-  else
-  {
-     setSelectedvalue((prev) => ({
+  else{
+    setSelectedvalue((prev) => ({
       ...prev,
       empcode: "",
     }));
   }
+  
 }, [empcode]);
 
 useEffect(() => {
+  
   handleSearch();
+  
 }, [selectedvalue]);
- 
+
+
+
+ const normalizeData = (data, idKey, nameKey) =>
+    data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -180,6 +193,14 @@ useEffect(() => {
         cleanFilters[key] = value;
       }
     });
+      if (empcode) {
+      cleanFilters["empcode"] = empcode;
+    }
+    else
+    {
+      delete cleanFilters["empcode"] ;
+    }
+
         cleanFilters["page"] = 1;
     const paginatedfilteredData = await getFilteredJobs(
       cleanFilters
@@ -225,20 +246,20 @@ const  jobsRes = await getJobreqs();
             id: data.requirement_id,
             name: `${data.job_code} - ${data.job_title}`,
           })),
-          clients: useNormalizedData(clientRes, "client_id", "client_name"),
-          endClients: useNormalizedData(
+          clients: normalizeData(clientRes, "client_id", "client_name"),
+          endClients: normalizeData(
             endClientsRes,
             "end_client_id",
             "end_client_name"
           ),
-          jobstatuses: useNormalizedData(
+          jobstatuses: normalizeData(
             jobStatusesRes,
             "job_status_id",
             "job_status"
           ),
-          recruiters: useNormalizedData(recruitersRes, "employee_id", "emp_fName"),
-          sourcers: useNormalizedData(sourcersRes, "employee_id", "emp_fName"),
-          roletypes: useNormalizedData(roletypeRes, "role_type_id", "role_type"),
+          recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
+          sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
+          roletypes: normalizeData(roletypeRes, "role_type_id", "role_type"),
         });
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
@@ -288,15 +309,6 @@ const  jobsRes = await getJobreqs();
     );
   };
 
-const useNormalizedData = (data, idKey, nameKey) => {
-  return useMemo(() => {
-    // Normalize each item in the array to { id, name }
-    return data.map((item) => ({
-      id: item[idKey],
-      name: item[nameKey]
-    }));
-  }, [data, idKey, nameKey]); // Dependencies for recalculation
-};
 
 
  const handlePageChange = async (page) => {
@@ -353,7 +365,18 @@ const useNormalizedData = (data, idKey, nameKey) => {
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="job">
             <Form.Label className="fs-6">Job:</Form.Label>
-            {renderSelect("Job", "Job", filterdropdowndata.jobs)}
+                 <AsyncSelect
+  cacheOptions
+  defaultOptions
+  loadOptions={loadOptions}
+  onChange={(selectedOption) => {
+    setSelectedvalue((prev) => ({
+      ...prev,Job: selectedOption ? selectedOption.value : ""
+    }));
+  }}
+  isClearable
+  placeholder="Search job by title or ID"
+/>
           </Form.Group>
         </Col>
         <Col md={3}>
