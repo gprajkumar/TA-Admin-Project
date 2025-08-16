@@ -194,17 +194,23 @@ const jobstatusfetch = async () => {
 
       setJobStatusChartData(job_status_response.grouped_data);
   } 
-  useEffect(() => { 
-    handleFilterSearch();
-  }
-  , [activeFilter]);
- const handleFilterSearch =useCallback(() => {
-    barChart();
-     jobstatusfetch();
-     roletypesfetch();  
-      monthlycharts();
-      carryforwardfetch();  
-  },[selectedData, activeFilter]);
+//   const handleFilterSearch = useCallback(() => {
+//   barChart();
+//   jobstatusfetch();
+//   roletypesfetch();  
+//   monthlycharts();
+//   carryforwardfetch();  
+// }, [selectedData, activeFilter]);
+  const handleFilterSearch = () => {
+  barChart();
+  jobstatusfetch();
+  roletypesfetch();  
+  monthlycharts();
+  carryforwardfetch();  
+}
+useEffect(() => { 
+  handleFilterSearch();
+}, []);
  
   const carryforwardfetch = async () => {
    
