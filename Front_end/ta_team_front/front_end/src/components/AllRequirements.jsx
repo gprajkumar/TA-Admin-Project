@@ -15,8 +15,8 @@ import { Form, Row, Col, Button } from "react-bootstrap";
 import Select from "react-select";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import Pagination from 'react-bootstrap/Pagination';
 import axiosInstance from "../services/axiosInstance";
+import CustomPagination from "./sharedComponents/CustomPagination";
 
 const AllRequirements = () => {
   const {empcode} = useParams();
@@ -128,62 +128,7 @@ useEffect(() => {
     }));
   
   };
- const paginatedItemGenerate = () => {
-  let paginatedItems = [];
-  const { totalpages, startpageitemno, endpageitemno, currentpage } = paginationData;
 
-  if (totalpages <= 10) {
-    for (let i = 2; i <= totalpages; i++) {
-      paginatedItems.push(
-        <Pagination.Item
-          key={i}
-          active={i === currentpage}
-          onClick={() => handlePageChange(i)}
-        >
-          {i}
-        </Pagination.Item>
-      );
-    }
-  } else {
-     if (startpageitemno > 2) {
-      paginatedItems.push(<Pagination.Ellipsis key="startellipsis" />);
-     }
-   
-
-    for (let i = startpageitemno; i <= endpageitemno; i++) {
-      if (i !== 1 && i !== totalpages) {
-       
-        paginatedItems.push(
-          <Pagination.Item
-            key={i}
-            active={i === currentpage}
-            onClick={() => handlePageChange(i)}
-          >
-            {i}
-          </Pagination.Item>
-        );
-      }
-    }
-
-    if (endpageitemno < totalpages - 1) {
-      paginatedItems.push(<Pagination.Ellipsis key="ellipsis" />);
-    }
-
-    if (endpageitemno < totalpages) {
-      paginatedItems.push(
-        <Pagination.Item
-          key={totalpages}
-          active={totalpages === currentpage}
-          onClick={() => handlePageChange(totalpages)}
-        >
-          {totalpages}
-        </Pagination.Item>
-      );
-    }
-  }
-
-  return paginatedItems;
-};
   const handleSearch = async () => {
   try {
     setPaginationData((prev) => ({ ...prev, currentpage: 1 }));
@@ -549,41 +494,10 @@ const  jobsRes = await getJobreqs();
         </Modal.Footer>
       </Modal>
       <Row className="justify-content-center mt-3">
-  <Pagination>
-  <Pagination.First
-    onClick={() => handlePageChange(1)}
-    disabled={paginationData.currentpage === 1}
+   <CustomPagination 
+    paginationData={paginationData} 
+    handlePageChange={handlePageChange} 
   />
-  <Pagination.Prev
-    onClick={() =>
-      handlePageChange(Math.max(paginationData.currentpage - 1, 1))
-    }
-    disabled={paginationData.currentpage === 1}
-  />
-  <Pagination.Item
-      key={1}
-      active={1 === paginationData.currentpage}
-      onClick={() =>
-       handlePageChange(1)
-      }
-    >
-      {1}
-    </Pagination.Item>
- 
-  {paginatedItemGenerate()}
-  <Pagination.Next
-    onClick={() =>
-      handlePageChange(Math.min(paginationData.currentpage + 1, paginationData.totalpages))
-    }
-    disabled={paginationData.currentpage === paginationData.totalpages}
-  />
-  <Pagination.Last
-    onClick={() =>
-    handlePageChange(paginationData.totalpages)
-    }
-    disabled={paginationData.currentpage === paginationData.totalpages}
-  />
-</Pagination>
 
 </Row>
     </div>
