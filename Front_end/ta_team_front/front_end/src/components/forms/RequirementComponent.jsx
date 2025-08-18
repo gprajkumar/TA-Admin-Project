@@ -1,9 +1,9 @@
 import React from "react";
 import { Form, Row, Col, Button } from "react-bootstrap";
-import Dropdown_component from "./sharedComponents/Dropdown_component";
-import CustomAlert from "./sharedComponents/Alert";
-import "./RequirementForm.css"; 
-import Loader from "./sharedComponents/Loader";
+import Dropdown_component from "../sharedComponents/Dropdown_component";
+import CustomAlert from "../sharedComponents/Alert";
+import "../RequirementForm.css"; 
+import Loader from "../sharedComponents/Loader";
 const RequirementComponent = ({
   viewtype,
   reqid,
@@ -244,7 +244,7 @@ const RequirementComponent = ({
                 <Button
                   className="submit-button"
                   type="button"
-                  onClick={resetform}
+                  onClick={() => resetform(false)}
                 >
                   Reset
                 </Button>

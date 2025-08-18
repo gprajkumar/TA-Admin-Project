@@ -6,6 +6,8 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 import { FaFilter } from "react-icons/fa";
 import AlertComponent from "../AlertComponent";
+import CustomBarchart from "../charts/CustomBarchart";
+import CustomPieChart from "../charts/CustomPieChart";
 import {
   PieChart,
   Pie,
@@ -30,6 +32,8 @@ import {
   getcarryforwardActiveData,
   getdashboardUpdateData,
 } from "../../services/helper";
+import ScoreCard from "./ScoreCard.JSX";
+
 
 const ClientDashboard = () => {
     const [barChartData, setBarChartData] = useState({
@@ -194,13 +198,7 @@ const jobstatusfetch = async () => {
 
       setJobStatusChartData(job_status_response.grouped_data);
   } 
-//   const handleFilterSearch = useCallback(() => {
-//   barChart();
-//   jobstatusfetch();
-//   roletypesfetch();  
-//   monthlycharts();
-//   carryforwardfetch();  
-// }, [selectedData, activeFilter]);
+
   const handleFilterSearch = () => {
   barChart();
   jobstatusfetch();
@@ -353,42 +351,7 @@ useEffect(() => {
     );
   };
 
-  const COLORS = [
-    "#8884d8",
-    "#82ca9d",
-    "#ffc658",
-    "#ff8042",
-    "#ec4fa5ff",
-    "#85b0f1ff",
-  ];
-  const renderCustomizedLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-    index,
-  }) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="black"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize={15}
-        fontWeight={"bold"}
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  };
   useEffect(() => {
     if (dateAlert) {
       const timer = setTimeout(() => setDateAlert(false), 3000); // auto-dismiss after 3 sec
@@ -485,383 +448,47 @@ useEffect(() => {
       <div className="dashboard_area">
         <div className="dashboard">
           <div className="submissions-scorecard-layout">
-            <div className="scorecard">
-              <p className="title">AM Submissions</p>
-              <p>{barChartData.overall_data.amsubs || 0}</p>
-            </div>
-            <div className="scorecard">
-              <p className="title">Client Submissions</p>
-              <p>{barChartData.overall_data.csubs || 0}</p>
-            </div>
-            <div className="scorecard">
-              <p className="title">Interviews</p>
-              <p>{barChartData.overall_data.interviews || 0}</p>
-            </div>
-            <div className="scorecard">
-              <p className="title">Offers</p>
-              <p>{barChartData.overall_data.offers || 0}</p>
-            </div>
-            <div className="scorecard">
-              <p className="title">Starts</p>
-              <p>{barChartData.overall_data.starts || 0}</p>
-            </div>
-            <div className="scorecard">
-              <p className="title">Req to Hire</p>
-              <p>
-                {req_to_hire ||0}
-              </p>
-            </div>
-            <div className="scorecard">
-              <p className="title">AM to Client Submissions</p>
-              <p>
-                {am_to_client_subs || 0}
-              </p>
-            </div>
-            <div className="scorecard">
-              <p className="title">Clients to interviews</p>
-              <p>
-                {client_to_interviews || 0}
-              </p>
-            </div>
-            <div className="scorecard">
-              <p className="title">Interviews to Offer</p>
-              <p>
-                {interviews_to_offers
-                || 0}
-              </p>
-            </div>
-            <div className="scorecard">
-              <p className="title">Offers to Starts</p>
-              <p>
-                {offers_to_starts || 0}
-              </p>
-            </div>
+           <ScoreCard title="AM Submissions" score={barChartData.overall_data.amsubs} />
+           <ScoreCard title="Client Submissions" score={barChartData.overall_data.csubs} />
+           <ScoreCard title="Interviews" score={barChartData.overall_data.interviews} />
+           <ScoreCard title="Starts" score={barChartData.overall_data.starts} />
+           <ScoreCard title="Reqs to Hire" score={req_to_hire} />
+           <ScoreCard title="AM to Client Submissions" score={am_to_client_subs} />
+           <ScoreCard title="CSubs to interviews" score={client_to_interviews} />
+            <ScoreCard title="Interviews to Offers" score={interviews_to_offers} />
+            <ScoreCard title="Offers to Starts" score={offers_to_starts} />
+           
           </div>
           <div className="chart-box-primary">
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={barChartData.grouped_data}
-                margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-                barCategoryGap="10%"
-                maxBarSize={50}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey={
-                    activeFilter === "account"
-                      ? "account_name"
-                      : "end_client_name"
-                  }
-                  tick={{ fontSize: 12, fill: "#333", fontWeight: "bold" }}
-                  textAnchor="end"
-                  interval={0}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={formatTooltip} />
-                <Legend formatter={formatLegend} />
-
-                <Bar dataKey="roles_opened" fill="#1f77b4">
-                  {" "}
-                  {/* Blue */}
-                  <LabelList
-                    dataKey="roles_opened"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="amsubs" fill="#ff7f0e">
-                  {" "}
-                  {/* Orange */}
-                  <LabelList
-                    dataKey="amsubs"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="csubs" fill="#2ca02c">
-                  {" "}
-                  {/* Green for Client Submissions */}
-                  <LabelList
-                    dataKey="csubs"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="interviews" fill="#d62728">
-                  {" "}
-                  {/* Red */}
-                  <LabelList
-                    dataKey="interviews"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="offers" fill="#9467bd">
-                  {" "}
-                  {/* Purple */}
-                  <LabelList
-                    dataKey="offers"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="starts" fill="#28a745">
-                  {" "}
-                  {/* Green for Starts */}
-                  <LabelList
-                    dataKey="starts"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <CustomBarchart data={barChartData.grouped_data} xaxis={ activeFilter === "account" ? "account_name" : "end_client_name"} datakeys={["roles_opened","amsubs", "csubs", "interviews", "offers", "starts"]} />
+            
           </div>
           <div className="chart-box-primary">
-            {" "}
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={monthlySubsData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-                barCategoryGap="10%"
-                maxBarSize={50}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey={"month"}
-                  tick={{ fontSize: 12, fill: "#333", fontWeight: "bold" }}
-                  textAnchor="end"
-                  interval={0}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={formatTooltip} />
-                <Legend formatter={formatLegend} />
-
-                <Bar dataKey="roles_opened" fill="#1f77b4">
-                  {" "}
-                  {/* Blue */}
-                  <LabelList
-                    dataKey="roles_opened"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="amsubs" fill="#ff7f0e">
-                  {" "}
-                  {/* Orange */}
-                  <LabelList
-                    dataKey="amsubs"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="csubs" fill="#2ca02c">
-                  {" "}
-                  {/* Green for Client Submissions */}
-                  <LabelList
-                    dataKey="csubs"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="interviews" fill="#d62728">
-                  {" "}
-                  {/* Red */}
-                  <LabelList
-                    dataKey="interviews"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="offers" fill="#9467bd">
-                  {" "}
-                  {/* Purple */}
-                  <LabelList
-                    dataKey="offers"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-                <Bar dataKey="starts" fill="#28a745">
-                  {" "}
-                  {/* Green for Starts */}
-                  <LabelList
-                    dataKey="starts"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <CustomBarchart
+              data={monthlySubsData}
+              xaxis={"month"}   
+              datakeys={["roles_opened", "amsubs", "csubs", "interviews", "offers", "starts"]}
+            />
+          </div>
+          
+          <div className="chart-box">
+            <CustomPieChart data={roleTypeChartData} dataKey="no_of_roles_opened" nameKey="role_type" />  
           </div>
           <div className="chart-box">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={roleTypeChartData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={150}
-                  innerRadius={50} // makes it a donut chart, optional
-                  dataKey="no_of_roles_opened"
-                  nameKey="role_type"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                >
-                  {roleTypeChartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value, name) => [`${value}`, name]} />
-                <Legend
-                  layout="horizontal" // or "vertical"
-                  verticalAlign="bottom" // top, middle, bottom
-                  align="center" // left, center, right
-                  iconType="square" // line, circle, square
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <CustomPieChart data={jobStatusChartData} dataKey="no_of_roles_opened" nameKey="job_status" />
+          
           </div>
           <div className="chart-box">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={jobStatusChartData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={150}
-                  innerRadius={50} // makes it a donut chart, optional
-                  dataKey="no_of_roles_opened"
-                  nameKey="job_status"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                >
-                  {jobStatusChartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value, name) => [`${value}`, name]} />
-                <Legend
-                  layout="horizontal" // or "vertical"
-                  verticalAlign="bottom" // top, middle, bottom
-                  align="center" // left, center, right
-                  iconType="square" // line, circle, square
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="chart-box">
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={carryforwardChartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-                barCategoryGap="10%"
-                maxBarSize={50}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey={"month"}
-                  tick={{ fontSize: 12, fill: "#333", fontWeight: "bold" }}
-                  textAnchor="end"
-                  interval={0}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={formatTooltip} />
-                <Legend formatter={formatLegend} />
-
-                <Bar dataKey="roles_opened" fill="#d62728">
-                  {" "}
-                  {/* Red */}
-                  <LabelList
-                    dataKey="roles_opened"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <CustomBarchart data={carryforwardChartData} xaxis={"month"} datakeys={["roles_opened"]} />
+    
           </div>
           <div className="chart-box-primary">
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={barChartData.grouped_data}
-                margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-                barCategoryGap="10%"
-                maxBarSize={50}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey={
-                    activeFilter === "account"
-                      ? "account_name"
-                      : "end_client_name"
-                  }
-                  tick={{ fontSize: 12, fill: "#333", fontWeight: "bold" }}
-                  textAnchor="end"
-                  interval={0}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={formatTooltip} />
-                <Legend formatter={formatLegend} />
-
-                <Bar dataKey="avg_turnaround_time" fill="#1f77b4">
-                  {" "}
-                  {/* Blue */}
-                  <LabelList
-                    dataKey="avg_turnaround_time"
-                    position="top"
-                    fill="black"
-                    fontSize={12}
-                    fontWeight="bold"
-                  />
-                </Bar>
-
-             
-                
-              </BarChart>
-            </ResponsiveContainer>
+            <CustomBarchart
+              data={barChartData.grouped_data}
+              xaxis={ activeFilter === "account" ? "account_name" : "end_client_name"}
+              datakeys={["avg_turnaround_time"]}
+            />
+          
           </div>
           
         </div>

@@ -4,7 +4,7 @@ import "./RequirementForm.css"; // External CSS
 import { normalizeData } from "../services/utilities/utilities";
 import useMasterDropdowns from "../services/customHooks/useMasterDropdowns";
 import Loader from "./sharedComponents/Loader";
-import RequirementComponent from "./RequirementComponent";
+import RequirementComponent from "./forms/RequirementComponent";
 const RequirementForm = ({ reqid, viewtype = false, externaldropdowndata }) => {
 
   const initialFormData = {
@@ -68,11 +68,17 @@ const RequirementForm = ({ reqid, viewtype = false, externaldropdowndata }) => {
       setErrors((preverrors) => ({ ...preverrors, [name]: "" }));
     }
   };
-  const resetform = () => {
+  const resetform = (submission = false) => {
+    if (submission) {
+      setFormData(initialFormData);
+      setErrors({});
+    }
+    else{
     if (window.confirm("Are you sure you want to reset the form?")) {
       setFormData(initialFormData);
       setErrors({});
     }
+  }
   };
   useEffect(() => {
     if (externaldropdowndata) {
@@ -221,11 +227,11 @@ const RequirementForm = ({ reqid, viewtype = false, externaldropdowndata }) => {
       if (!reqid) {
         await axiosInstance.post(`/ta_team/requirements/`, formData);
         setShow(true);
-        resetform();
+        resetform(true);
       } else {
         await axiosInstance.patch(`/ta_team/requirements/${reqid}/`, formData);
         setShow(true);
-        resetform();
+        resetform(true);
       }
     } catch (err) {
       console.error("Error submitting requirement:", err);
