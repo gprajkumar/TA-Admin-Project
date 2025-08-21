@@ -97,6 +97,10 @@ class JobStatus(models.Model):
     job_status = models.CharField(max_length=100, verbose_name="Job Status")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(blank=True, null=True)
+    
+    class Meta:
+        verbose_name = "Job Status"            # Singular name in Admin
+        verbose_name_plural = "Job Statuses" 
 
     def __str__(self):
         return self.job_status
@@ -136,7 +140,10 @@ class Tech_Screener(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(blank=True, null=True)
     tech_screener_status = models.BooleanField(default=True, verbose_name="Active")
-
+    class Meta:
+        verbose_name = "Technical Screener"            # Singular name in Admin
+        verbose_name_plural = "Technical Screeners"
+    
     def __str__(self):
         return self.tech_screener_name
 
@@ -145,6 +152,10 @@ class Screening_Status(models.Model):
     screening_status = models.CharField(max_length=100, verbose_name="Screening Status")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(blank=True, null=True)
+    
+    class Meta:
+        verbose_name = "Screening Status"            # Singular name in Admin
+        verbose_name_plural = "Screening Statuses"
 
     def __str__(self):
         return self.screening_status
@@ -154,6 +165,10 @@ class Role_Type(models.Model):
     role_type = models.CharField(max_length=100, verbose_name="Role Type")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(blank=True, null=True)
+    
+    class Meta:
+        verbose_name = "Role Type"            # Singular name in Admin
+        verbose_name_plural = "Role Types"
 
     def __str__(self):
         return self.role_type
@@ -186,6 +201,10 @@ class Designation(models.Model):
 class ReasonForLeaving(models.Model):
     reason_id=models.AutoField(primary_key=True)
     reason_name = models.CharField(max_length = 100)
+    
+    class Meta:
+        verbose_name = "Reason For Leaving"            # Singular name in Admin
+        verbose_name_plural = "Reasons For Leaving"
     
     def __str__(self):
         return self.reason_name

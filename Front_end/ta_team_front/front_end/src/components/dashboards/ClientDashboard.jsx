@@ -9,21 +9,6 @@ import AlertComponent from "../AlertComponent";
 import CustomBarchart from "../charts/CustomBarchart";
 import CustomPieChart from "../charts/CustomPieChart";
 import {
-  PieChart,
-  Pie,
-  BarChart,
-  Bar,
-  Cell,
-  Rectangle,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  LabelList,
-} from "recharts";
-import {
   getRoleTypeGroupbyData,
   getCompleteAccountData,
   getCompleteEndClientData,
@@ -53,15 +38,7 @@ const ClientDashboard = () => {
     to_date: new Date().toISOString().split("T")[0],
     filter_type: activeFilter,
   });
-  const displayNames = {
-    roles_opened: "Roles Opened",
-    amsubs: "AM Subs",
-    csubs: "Client Subs",
-    interviews: "Interviews",
-    offers: "Offers",
-    starts: "Starts",
-    avg_turnaround_time:"Roles TAT"
-  };
+
   let [req_to_hire, am_to_client_subs, client_to_interviews, interviews_to_offers, offers_to_starts] = [0, 0, 0, 0, 0];
   const toPercentage =(denominator, numerator) => {
      if (
@@ -468,6 +445,7 @@ useEffect(() => {
               data={monthlySubsData}
               xaxis={"month"}   
               datakeys={["roles_opened", "amsubs", "csubs", "interviews", "offers", "starts"]}
+            chartTitle="Monthly Submissions"
             />
           </div>
           
@@ -479,14 +457,14 @@ useEffect(() => {
           
           </div>
           <div className="chart-box">
-            <CustomBarchart data={carryforwardChartData} xaxis={"month"} datakeys={["roles_opened"]} />
+            <CustomBarchart data={carryforwardChartData} xaxis={"month"} datakeys={["roles_opened"]} chartTitle={"Carry Forwarded roles"} />
     
           </div>
           <div className="chart-box-primary">
             <CustomBarchart
               data={barChartData.grouped_data}
               xaxis={ activeFilter === "account" ? "account_name" : "end_client_name"}
-              datakeys={["avg_turnaround_time"]}
+              datakeys={["avg_turnaround_time"]} chartTitle={"Average Turnaround Time"}
             />
           
           </div>

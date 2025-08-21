@@ -19,6 +19,8 @@ from django.urls import path, include
 from django.contrib import admin
 from rest_framework_simplejwt.views import  TokenRefreshView
 from ta_team.views import CustomTokenObtainPairView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
 
@@ -28,8 +30,6 @@ urlpatterns = [
      path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh')
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
-admin.site.site_header = "Talent Acquistion Admin"
-admin.site.site_title = "TA Admin Portal"
-admin.site.index_title = "Welcome to TA Management Portal"

@@ -1,6 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-const CustomPieChart = ({data,dataKey,nameKey}) => {
+const CustomPieChart = ({data,dataKey,nameKey,chartTitle}) => {
      const COLORS = [
     "#8884d8",
     "#82ca9d",
@@ -38,6 +38,10 @@ const CustomPieChart = ({data,dataKey,nameKey}) => {
         );
       };
     return (
+      <>
+     {chartTitle && <h3 className="text-xs font-semibold text-center mb-4">
+    {chartTitle}
+  </h3>}
          <ResponsiveContainer width="100%" height="100%">
                      <PieChart>
                        <Pie
@@ -67,6 +71,7 @@ const CustomPieChart = ({data,dataKey,nameKey}) => {
                        />
                      </PieChart>
                    </ResponsiveContainer>
+                   </>
     );
 }
 

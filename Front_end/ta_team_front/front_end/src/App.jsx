@@ -105,6 +105,7 @@ const fetchDropdowns = async () => {
     dispatch(setEmployees(employeeData));
     dispatch(setAccountManagers(accountManagersData));
     dispatch(setHiringManagers(HiringManagersData));
+    console.log("Dropdowns fetched successfully");
   } catch (err) {
     console.error('Dropdown fetch failed:', err.message);
   }

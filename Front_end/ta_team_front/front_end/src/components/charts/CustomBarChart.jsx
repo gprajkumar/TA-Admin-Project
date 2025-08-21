@@ -12,7 +12,7 @@ import {
   LabelList,
 } from "recharts";
 
-const CustomBarchart = ({ data, xaxis, datakeys }) => {
+const CustomBarchart = ({ data, xaxis, datakeys,chartTitle }) => {
   const fill = ["#1f77b4", "#ff7f0e", "#052b41ff", "#d62728", "#9467bd", "#28a745"]; 
 
   const displayNames = {
@@ -85,6 +85,10 @@ const renderLegend = () => (
   };
 
   return (
+    <>
+    {chartTitle && <h3 className="text-xs font-semibold text-center mb-4">
+    {chartTitle}
+  </h3>}
     <ResponsiveContainer width="100%" height={400}>
       <BarChart
         data={data}
@@ -116,6 +120,7 @@ const renderLegend = () => (
         ))}
       </BarChart>
     </ResponsiveContainer>
+    </>
   );
 };
 
