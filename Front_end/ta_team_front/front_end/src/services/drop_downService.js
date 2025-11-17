@@ -11,6 +11,11 @@ export const getPaginatedJobReqs = async() =>{
   const response = await axiosInstance.get('/ta_team/requirements');
   return response.data;
 }
+
+export const authdebug = async() =>{
+  const response = await axiosInstance.get('/ta_team/debug-auth/');
+  return response.data;
+}
 export const getClients = () => fetchDropdownData("clients");
 export const getEmployees = () => fetchDropdownData("employees");
 export const getEndClients = () => fetchDropdownData("endclients");
@@ -82,6 +87,7 @@ export const getfilteredEmployees = (filter) =>
 
   const fetchFilteredSubmissions = async(filterParams) =>
   {
+    console.log("Submission filteredParams",filterParams);
     const response = await axiosInstance.get(`/ta_team/submissions/`, {
     params: { 
        Job: filterParams.Job,

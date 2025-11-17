@@ -17,6 +17,7 @@ import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axiosInstance from "../services/axiosInstance";
 import CustomPagination from "./sharedComponents/CustomPagination";
+import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
 
 const AllRequirements = () => {
   const {empcode} = useParams();
@@ -310,18 +311,8 @@ const  jobsRes = await getJobreqs();
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="job">
             <Form.Label className="fs-6">Job:</Form.Label>
-                 <AsyncSelect
-  cacheOptions
-  defaultOptions
-  loadOptions={loadOptions}
-  onChange={(selectedOption) => {
-    setSelectedvalue((prev) => ({
-      ...prev,Job: selectedOption ? selectedOption.value : ""
-    }));
-  }}
-  isClearable
-  placeholder="Search job by title or ID"
-/>
+                
+<CustomAsyncSelect placeholder={"Search job by title or ID"} loadOptions={loadOptions} name="Job" onChange={handleChange}/>
           </Form.Group>
         </Col>
         <Col md={3}>

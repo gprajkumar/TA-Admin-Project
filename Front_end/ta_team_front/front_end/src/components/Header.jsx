@@ -180,7 +180,8 @@ const Header = ({ userdetails, onSignOut }) => {
                     Client Dashboard
                   </NavDropdown.Item>
                   <NavDropdown.Item
-                    href="#recruiter-dashboard"
+                   as={NavLink}
+                      to={'/comingsoon/recruiterdashboard'}
                     onClick={() =>
                       handleDropdownItemClick("analytics-recruiter")
                     }
@@ -189,7 +190,8 @@ const Header = ({ userdetails, onSignOut }) => {
                     Recruiter Dashboard
                   </NavDropdown.Item>
                   <NavDropdown.Item
-                    href="#sourcer-dashboard"
+                   as={NavLink}
+                     to={'/comingsoon/sourcerdashboard'}
                     onClick={() => handleDropdownItemClick("analytics-sourcer")}
                     active={activeSection === "analytics-sourcer"}
                   >
@@ -198,7 +200,40 @@ const Header = ({ userdetails, onSignOut }) => {
                 </NavDropdown>
               </>
             )}
-
+ <NavDropdown
+                  title="AI Tools"
+                  id="ai-tools-nav-dropdown"
+                  active={
+                    activeSection === "aiFormatter" ||
+                    activeSection === "aiBooleanGenerator" ||
+                    activeSection === "aiProfileRanker"
+                  }
+                >
+                  <NavDropdown.Item
+                    as={NavLink}
+                    to={'/comingsoon/formatter'} 
+                    onClick={() => handleDropdownItemClick("aiFormatter")}
+                    active={activeSection === "aiFormatter"}
+                  >
+                    AI Resume Formatter
+                  </NavDropdown.Item>
+                  <NavDropdown.Item
+                    as={NavLink}
+                    to={`/comingsoon/booleangenerator`}
+                    onClick={() => handleDropdownItemClick("aiBooleanGenerator")}
+                    active={activeSection === "aiBooleanGenerator"}
+                  >
+                    AI Boolean String Generator
+                  </NavDropdown.Item>
+                      <NavDropdown.Item
+                    as={NavLink}
+                    to={`/comingsoon/profileranker`}
+                    onClick={() => handleDropdownItemClick("aiProfileRanker")}
+                    active={activeSection === "aiProfileRanker"}
+                  >
+                    AI Resume Ranker
+                  </NavDropdown.Item>
+                </NavDropdown>
             {/* Sign In or Welcome */}
             <Nav className="auth-section">
               {!userdetails ? (

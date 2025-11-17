@@ -7,7 +7,9 @@ import "./AllRequirements.css";
 import { useParams } from "react-router-dom";
 import ViewForm from "./ViewForm";
 import Pagination from 'react-bootstrap/Pagination';
+import CustomPagination from "./sharedComponents/CustomPagination";
 import Submission from "./Submissions";
+import useMasterDropdowns from "../services/customHooks/useMasterDropdowns";
 import {
   
   getJobreqs,
@@ -29,23 +31,17 @@ import axiosInstance from "../services/axiosInstance";
 
 const AllSubmissions = ({ dateform = false, empId }) => {
    const {empcode} = useParams();
+   const {
+    drop_down_endClients,
+    drop_down_clients,
+    drop_down_jobStatus,
+   
+    drop_down_roleTypes,
+    drop_down_employees,
+    drop_down_sources
+  } = useMasterDropdowns();
  
-   const drop_down_endClients = useSelector(
-    (state) => state.master_dropdown.endClients
-  );
-  const drop_down_clients = useSelector(
-    (state) => state.master_dropdown.clients
-  );
-  const drop_down_jobStatus = useSelector(
-    (state) => state.master_dropdown.jobStatus
-  );
-  const drop_down_roleTypes = useSelector(
-    (state) => state.master_dropdown.roleTypes
-  );
-  const drop_down_employees = useSelector(
-    (state) => state.master_dropdown.employees
-  );
-  const drop_down_sources = useSelector((state)=> state.master_dropdown.sources);
+  
    console.log(empcode);
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
@@ -368,7 +364,7 @@ const paginatedItemGenerate = () => {
       endpageitemno: newEnd,
     }));
 
-    setfilteredReqs(paginatedfilteredData.results);
+    setfilteredSubs(paginatedfilteredData.results);
   } catch (error) {
     console.error("Error fetching page data:", error);
   }
@@ -463,8 +459,8 @@ const paginatedItemGenerate = () => {
             <Form.Control
               type="date"
               className="date-filter-input"
-              name="from_date"
-              value={selectedvalue.from_date}
+              name="from_sub_date"
+              value={selectedvalue.from_sub_date}
               onChange={handleChange}
             />
           </Form.Group>
@@ -476,8 +472,8 @@ const paginatedItemGenerate = () => {
             <Form.Control
               type="date"
               className="date-filter-input"
-              name="to_date"
-              value={selectedvalue.to_date}
+              name="to_sub_date"
+              value={selectedvalue.to_sub_date}
               onChange={handleChange}
             />
           </Form.Group>

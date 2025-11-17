@@ -1,4 +1,4 @@
-import React, { use, useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Row, Col, Button, Form, Alert } from "react-bootstrap";
 import "./Dashboard.css";
 import axiosInstance from "../../services/axiosInstance";
@@ -17,7 +17,7 @@ import {
   getcarryforwardActiveData,
   getdashboardUpdateData,
 } from "../../services/helper";
-import ScoreCard from "./ScoreCard.JSX";
+import ScoreCard from "./ScoreCard.jsx";
 
 
 const ClientDashboard = () => {
@@ -36,7 +36,7 @@ const ClientDashboard = () => {
     from_date:
       new Date(new Date().getFullYear(), 0, 1).toISOString().split("T")[0] ,
     to_date: new Date().toISOString().split("T")[0],
-    filter_type: activeFilter,
+    filter_type: "account", // Default filter type
   });
 
   let [req_to_hire, am_to_client_subs, client_to_interviews, interviews_to_offers, offers_to_starts] = [0, 0, 0, 0, 0];
@@ -50,7 +50,7 @@ const ClientDashboard = () => {
     return "0%";
   }
 
-    if (denominator === 0) return 0;
+    if (denominator === 0) return "0%";
     console.log("denominator", denominator);
     console.log("numerator", numerator);
     return ((numerator / denominator) * 100).toFixed(2) + "%";
@@ -123,21 +123,16 @@ return toPercentage(
   const [jobStatusChartData, setJobStatusChartData] = useState([]);
   const [carryforwardChartData, setcarryforwardChartData] = useState([]);
   
-   const getfilters=() => ({
-      accounts: selectedData.accounts,
-      end_clients: selectedData.endclients,
-      from_date: selectedData.from_date,
-      to_date: selectedData.to_date,
-      filter_type: activeFilter,
-    });
-
+  
     
     const barChart = async () => {
+      try{
       const updatedDateResponse = await getdashboardUpdateData();
 console.log("updatedDateResponse", updatedDateResponse);
       setUpdatedDate(updatedDateResponse.last_updated || "No data available");
       let response;
       console.log("selected Data", selectedData)
+      
       if (activeFilter === "account") {
         response =await getCompleteAccountData(selectedData);
       } else {
@@ -149,31 +144,53 @@ console.log("updatedDateResponse", updatedDateResponse);
         overall_data: response.total_data,
         grouped_data: response.grouped_data,
       }));
+    }
+    catch (error) {
+      console.error("Error fetching bar chart data:", error);
+    }
       
     };
    
 
 const monthlycharts = async () => {
-  const monthlydataResponse =await getMonthlySubsData(selectedData);
+  try{
+      const monthlydataResponse =await getMonthlySubsData(selectedData);
 
       SetmonthlySubsData(monthlydataResponse.grouped_data);
+
+  }
+  catch (error) {
+    console.error("Error fetching monthly submissions data:", error);
+  }
+
   } 
  
   
 const roletypesfetch = async () => {
-   
-    const role_type_response =await getRoleTypeGroupbyData(selectedData);
+   try{
+ const role_type_response =await getRoleTypeGroupbyData(selectedData);
 
       setRoleTypeChartData(role_type_response.grouped_data);
+   }
+    catch (error) { 
+    console.error("Error fetching role type data:", error);
+    }
+   
   } 
  
 
    
 const jobstatusfetch = async () => {
-   
+  try { 
      const job_status_response =await getJobStatusGroupbyData(selectedData);
 
       setJobStatusChartData(job_status_response.grouped_data);
+  }
+  catch (error) {
+    console.error("Error fetching job status data:", error);  
+  }
+   
+    
   } 
 
   const handleFilterSearch = () => {
@@ -185,13 +202,17 @@ const jobstatusfetch = async () => {
 }
 useEffect(() => { 
   handleFilterSearch();
-}, []);
+}, [activeFilter]);
  
   const carryforwardfetch = async () => {
-   
-      const carry_forward_activedata =await getcarryforwardActiveData(selectedData);
+   try {
+     const carry_forward_activedata =await getcarryforwardActiveData(selectedData);
 
       setcarryforwardChartData(carry_forward_activedata.grouped_data);
+   } catch (error) {
+    console.error("Error fetching carry forward data:", error);
+   }
+     
   } 
      
   const normalizeData = (data, idkey, namekey) =>
@@ -343,6 +364,7 @@ useEffect(() => {
 
     setUpdatedDate(updatedDateResponse.last_updated || "No data available");
     setDateAlert(true);
+    handleFilterSearch();
   };
 
   return (
@@ -369,9 +391,16 @@ useEffect(() => {
               label="Filter by End Client"
               checked={activeFilter === "endclient"}
               onChange={(e) => {
-                setActiveFilter(e.target.checked ? "endclient" : "account")
-                setSelectedData((prev)=>({...prev, filter_type:e.target.checked ? "endclient" : "account"}))
-              }
+              const newFilter = e.target.checked ? "endclient" : "account";
+  setActiveFilter(newFilter);
+  setSelectedData((prev) => ({
+    ...prev,
+    accounts:[0], 
+    endclients:[0],
+    filter_type: newFilter,  // keep in sync
+  }));
+}
+              
               }
             />
           </Form.Group>

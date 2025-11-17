@@ -9,14 +9,18 @@ import {
 } from "../services/drop_downService";
 import { Form, Row, Col, Button } from "react-bootstrap";
 import useCalTAT from "../services/customHooks/useCalTAT";
+import { normalizeData } from "../services/utilities/utilities";
+import Loader from "./sharedComponents/Loader";
+import Dropdown_component from "./sharedComponents/Dropdown_component";
+import CustomAlert from "./sharedComponents/Alert";
+import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
 
 const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
   const [loading, setLoading] = useState(submission_id ? true : false); 
   const[fetchedJobs,setFetchedJobs] = useState([]);
   const baseurl = import.meta.env.VITE_API_BASE_URL;
       const [errors,setErrors] = useState({});
-  const [formData, setFormData] = useState({
-    Job: "",
+      const initialFormData = {Job: "",
     submission_date: "",
     candidate_name: "",
     payrate: "",
@@ -26,8 +30,23 @@ const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
     source: "",
     am_sub_date:"",
     turn_around_time: "",
-  });
+      }
 
+  const [formData, setFormData] = useState(initialFormData);
+   const loadOptions = async (inputValue) => {
+   const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
+     params: { q: inputValue }
+   });
+ console.log("searchData",res.data);
+ setFetchedJobs(res.data);
+   return res.data.map(job => ({
+     label: `${job.job_code}-${job.job_title} `,
+     value: job.requirement_id
+   }));
+ };  
+const OnhandleSelect = useCallback(
+    ({ name, value }) => {  setFormData((prevdata) => ({ ...prevdata, [name]: value })); },
+    [setFormData] );
   const validationform = () =>
   {
 
@@ -46,20 +65,11 @@ return Object.keys(newError).length === 0;
   }
 const resetform = () =>
 {
-    setFormData({Job: "",
-    submission_date: "",
-    candidate_name: "",
-    payrate: "",
-    w2_C2C: "",
-    recruiter: "",
-    sourcer: "",
-    source: "",
-    am_sub_date:"",
-    turn_around_time: "",});  
+    setFormData(initialFormData);  
     
 }
   const [dropdownData, setDropdownData] = useState({
-    jobs: [],
+   
     recruiters: [],
     sourcers: [],
     sources: [],
@@ -67,19 +77,19 @@ const resetform = () =>
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [jobres, recruitersRes, sourcersRes, sourceres] =
+        const [recruitersRes, sourcersRes, sourceres] =
           await Promise.all([
-            getJobreqs(),
+           
             getfilteredEmployees({ can_recruit: true, department: 2 }),
             getfilteredEmployees({ can_source: true, department: 1 }),
             getSources(),
           ]);
-setFetchedJobs(jobres);
+
         setDropdownData({
-          jobs: jobres.map((data) => ({
-            id: data.requirement_id,
-            name: `${data.job_code} - ${data.job_title}`,
-          })),
+          // jobs: jobres.map((data) => ({
+          //   id: data.requirement_id,
+          //   name: `${data.job_code} - ${data.job_title}`,
+          // })),
           recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
           sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
           sources: normalizeData(sourceres,"source_id","source"),
@@ -99,9 +109,11 @@ setFetchedJobs(jobres);
   }, [submission_id]);
   const handleSubmit = async (e) => {
     e.preventDefault();
-  console.log(errors.le)
+    console.log("formData",formData.Job);
+    
     if(!validationform())
     {
+     
       return
     }
 
@@ -110,24 +122,29 @@ setFetchedJobs(jobres);
       if(!submission_id)
       {
       await axiosInstance.post(`/ta_team/submissions/`, formData);
-      alert("Submission successfully");
+      alert("Submitted successfully");
+     <CustomAlert message={"Submitted successfully"} type="success" />
       resetform();
       }
       else
       {
         await axiosInstance.patch(`/ta_team/submissions/${submission_id}/`, formData);
- alert("Updated successfully");
+        alert("Updated successfully");
+ 
+  <CustomAlert message={"Updated successfully"} type="success" />
       }
     } catch (err) {
       console.error("Error submitting requirement:", err);
+      
+  
       if (err.response) {
         console.error("Response data:", err.response.data);
       }
-      alert("Submission failed");
+     <CustomAlert message={"Submission Failed"} type="error" />
+      alert("Submission Failed");
     }
   };
-  const normalizeData = (data, idKey, nameKey) =>
-    data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
+  
 const tat =useCalTAT(formData.submission_date, fetchedJobs, formData.Job);
 useEffect(() => {
   if (tat !== null && tat !== undefined && tat !== formData.turn_around_time) {
@@ -200,7 +217,7 @@ useEffect(() => {
   };
   if(loading)
 {
-   return  <div className="text-center">Loading Submissions...</div>;
+   return <Loader />;
 }
 else
 {
@@ -209,9 +226,12 @@ else
       <h2 className="mb-4">{submission_id && "Edit "}Candidate Submission</h2>
       <Row>
         <Col md={12}>
-       
-            {renderSelect("Job", "Job", dropdownData.jobs)}
-        
+           <Form.Group className="mb-3 " controlId="job">
+                    <Form.Label className="fs-6">Job:</Form.Label>
+       <CustomAsyncSelect placeholder={"Search job by title or ID"} loadOptions={loadOptions} name="Job" onChange={handleChange} error={errors.job}/>
+          
+
+       </Form.Group>
         </Col>
       </Row>
       <Row>

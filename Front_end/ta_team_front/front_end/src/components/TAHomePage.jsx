@@ -45,7 +45,7 @@ const TAHomePage = () => {
         <p>
           We power business growth by hiring top talent, building strong relationships, and creating meaningful candidate experiences.
         </p>
-        <button onClick={() => navigate('/allsubmissions')}>
+        <button onClick={() => navigate('/clientdashboard')} className="ta-cta-button">
           Visit Dashboard
         </button>
       </motion.header>

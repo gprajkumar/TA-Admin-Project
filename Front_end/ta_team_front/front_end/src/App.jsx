@@ -18,72 +18,114 @@ import {store, persistor} from './redux/store';
 import {useDispatch} from 'react-redux'
 import ClientDashboard from './components/dashboards/ClientDashboard.jsx';
 import MyProfile from './components/myProfile';
+import ComingSoon from './components/ComingSoon.jsx';
 import { setEmployee,clearEmployee } from './redux/slices/authSlice';
 import {getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers} from './services/drop_downService.js';
 import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers} from './redux/slices/dropdownSlice';
 
+import {
+  useMsal,
+  AuthenticatedTemplate,
+  UnauthenticatedTemplate,
+} from "@azure/msal-react";
+import { loginRequest } from "./services/utilities/authConfig.js";
+
 function App() {
   const dispatch = useDispatch();
 const navigate = useNavigate(); 
+const { instance, accounts } = useMsal();
 const [userDetails, setUserDetails] = useState(null);
 const baseurl = import.meta.env.VITE_API_BASE_URL;
   // If token exists, get user info
+  // useEffect(() => {
+  //   const token = localStorage.getItem('accessToken');
+  //   const name = localStorage.getItem('username');
+  //   if (token && name) {
+  //     setUserDetails({ empName: name });
+  //   }
+  // }, []);
+
+ // When account list changes, update userDetails and fetch dropdowns
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    const name = localStorage.getItem('username');
-    if (token && name) {
-      setUserDetails({ empName: name });
+    const account = accounts[0];
+    if (account) {
+      setUserDetails({ empName: account.username });
+      dispatch(setEmployee())
+      fetchDropdowns();
+      // You can also call a Django /api/me/ to get full employee data and dispatch(setEmployee(data))
+    } else {
+      setUserDetails(null);
     }
-  }, []);
-const handleLogout = () =>
-{
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('username');
-  setUserDetails(null);
-  persistor.purge();
-  dispatch(clearEmployee())
-  navigate('/login');
+  }, [accounts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-}
-  const handleLogin = async ({ email, password }) => {
-    
-    try {
-      const response = await axios.post(`${baseurl}/api/login/`, {
-        username: email,
-        password:password,
+// const handleLogout = () =>
+// {
+//   localStorage.removeItem('accessToken');
+//   localStorage.removeItem('refreshToken');
+//   localStorage.removeItem('username');
+//   setUserDetails(null);
+//   persistor.purge();
+//   dispatch(clearEmployee())
+//   navigate('/login');
+
+// }
+const handleLogin = () => {
+    instance
+      .loginPopup(loginRequest)
+      .then(() => {
+        navigate("/allsubmissions");
+      })
+      .catch((err) => console.error("Login error:", err));
+  };
+ const handleLogout = () => {
+    instance
+      .logoutPopup()
+      .finally(() => {
+        setUserDetails(null);
+        persistor.purge();
+        dispatch(clearEmployee());
+        navigate("/login");
       });
+  };
+//   const handleLogin = async ({ email, password }) => {
+    
+//     try {
+//       const response = await axios.post(`${baseurl}/api/login/`, {
+//         username: email,
+//         password:password,
+//       });
 
-      const { access, refresh,is_active,emp_details } = response.data;
-        if (!is_active) {
-      return { success: false, message: 'User account is inactive.Please contact Administrator' };
-    }
-      localStorage.setItem('accessToken', access);
-      localStorage.setItem('refreshToken', refresh);
-      localStorage.setItem('username', email);
+//       const { access, refresh,is_active,emp_details } = response.data;
+//         if (!is_active) {
+//       return { success: false, message: 'User account is inactive.Please contact Administrator' };
+//     }
+//       localStorage.setItem('accessToken', access);
+//       localStorage.setItem('refreshToken', refresh);
+//       localStorage.setItem('username', email);
       
      
 
-      setUserDetails({ empName: email });
+//       setUserDetails({ empName: email });
       
-      navigate('/allsubmissions');
-      console.log(response.data);
-      dispatch(setEmployee(response.data))
-      setTimeout(() => {
-      fetchDropdowns(); // No await here — fire and forget
-    }, 100);
+//       navigate('/allsubmissions');
+//       console.log(response.data);
+//       dispatch(setEmployee(response.data))
+//       setTimeout(() => {
+//       fetchDropdowns(); // No await here — fire and forget
+//     }, 100);
 
-      return { success: true };
+//       return { success: true };
       
-    } catch (err) {
-       const backendMessage = err?.response?.data?.detail || 
-                           err?.response?.data?.non_field_errors?.[0] || 
-                           'Invalid username or password';
-      return { success: false,  message: backendMessage };
-    }
-};
+//     } catch (err) {
+//        const backendMessage = err?.response?.data?.detail || 
+//                            err?.response?.data?.non_field_errors?.[0] || 
+//                            'Invalid username or password';
+//       return { success: false,  message: backendMessage };
+//     }
+// };
 const fetchDropdowns = async () => {
   try {
+    authdebug();
     const [accountData, endClientData,clientData,jobstatusData,sourceData,roleTypeData,employeeData,accountManagersData,HiringManagersData] = await Promise.all([
       getAccounts(),
       getEndClients(),
@@ -127,7 +169,10 @@ const fetchDropdowns = async () => {
    <Route path='/clientdashboard' element={<AuthCheck><ClientDashboard/></AuthCheck>}/>
    <Route path='/login' element={<Login onLogin={handleLogin}/>}/>
    <Route path="/allreqs/:empcode?" element={<AuthCheck><AllRequirements /></AuthCheck>} />
-   <Route path="/allsubmissions/:empcode?" element={<AuthCheck><AllSubmissions /></AuthCheck>} />
+   <Route path="/allsubmissions/:empcode?" element={<AuthCheck><AllSubmissions /></AuthCheck>}
+   
+   />
+   <Route path="/comingsoon/:feature" element={<AuthCheck><ComingSoon/></AuthCheck>}/>
 </Routes>
 
  </>
