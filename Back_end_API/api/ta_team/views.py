@@ -30,6 +30,16 @@ from datetime import datetime
 from .filters.pagination import RequirementPagination
 from rest_framework.permissions import AllowAny
 # Create your views here.
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def debug_auth(request):
+    claims = request.auth or {}
+    print("AUTH OK. user:", request.user.username)
+    print("claims scp:", claims.get("scp"))
+    return Response({"user": request.user.username, "scp": claims.get("scp")})
 
 class RequirementsViewSet(ModelViewSet):
     serializer_class = RequirementsSerializer
@@ -63,7 +73,7 @@ class RequirementSearchDropdownAPI(APIView):
         q = request.query_params.get("q", "")
         queryset = Requirements.objects.filter(
            Q(job_title__icontains=q) | Q(job_code__icontains=q)
-        ).values("requirement_id","job_code", "job_title")[:20]  # Limit result
+        ).values("requirement_id","job_code", "job_title","req_opened_date")[:20]  # Limit result
         return Response(queryset)
 
 class EndClientViewSet(ModelViewSet):
@@ -119,20 +129,24 @@ class ScreeningStatusViewSet(ModelViewSet):
 class SubmisionViewSet(ModelViewSet):
     serializer_class = SubmissionSerializer
     pagination_class = RequirementPagination
-    filter_backends =[DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend]
     filterset_class = SubmissionFilter
+
     def get_queryset(self):
         queryset = Submissions.objects.select_related(
             'Job', 'recruiter', 'sourcer', 'source'
         ).all()
 
         empcode = self.request.query_params.get("empcode")
-        print("Empcode:", empcode)
+        
+    
+
         if empcode:
             queryset = queryset.filter(
-                Q(recruiter_id=empcode) | 
-                Q(sourcer_id=empcode)
+                Q(recruiter_id=empcode) | Q(sourcer_id=empcode)
             )
+       
+       
 
         return queryset
 class PlacementViewSet(ModelViewSet):
@@ -363,3 +377,4 @@ class ClientDashboardView(ReadOnlyModelViewSet):
         except Exception as e:
          print(traceback.format_exc())
         return Response({"error": str(e)}, status=500)
+  

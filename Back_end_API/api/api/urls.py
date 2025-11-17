@@ -28,8 +28,12 @@ urlpatterns = [
     path('ta_team/', include('ta_team.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
      path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh')
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+admin.site.site_header = "Talent Acquistion Admin"
+admin.site.site_title = "TA Admin Portal"
+admin.site.index_title = "Welcome to TA Management Portal"

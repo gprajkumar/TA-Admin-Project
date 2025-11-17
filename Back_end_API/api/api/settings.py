@@ -29,8 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / 'media'
 # Application definition
 
 INSTALLED_APPS = [
@@ -109,10 +108,17 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     # 'PAGE_SIZE': 10,
      'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+         'api.auth.AzureADJWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
       'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated']
+}
+
+AZURE_AD_CONFIG = {
+    "TENANT_ID": "2fc647ee-9496-4a1d-8d87-105bca14b7ef",
+    "CLIENT_ID": "67bceed3-96c0-418c-b9c7-9464342aa28b",              # Django API app registration
+    "AUDIENCE": "67bceed3-96c0-418c-b9c7-9464342aa28b",         # Application ID URI from Expose an API
 }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

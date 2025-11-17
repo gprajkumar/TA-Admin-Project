@@ -15,24 +15,15 @@ class SubmissionFilter(django_filters.FilterSet):
     from_sub_date = django_filters.DateFilter(field_name="submission_date", lookup_expr='gte')
     to_sub_date = django_filters.DateFilter(field_name="submission_date", lookup_expr='lte')
 
-    from_client_sub_date = django_filters.DateFilter(field_name="client_sub_date", lookup_expr='gte')
-    to_client_sub_date = django_filters.DateFilter(field_name="client_sub_date", lookup_expr='lte')
 
-    from_client_interview_date = django_filters.DateFilter(field_name="client_interview_date", lookup_expr='gte')
-    to_client_interview_date = django_filters.DateFilter(field_name="client_interview_date", lookup_expr='lte')
-
-    from_offer_date = django_filters.DateFilter(field_name="offer_date", lookup_expr='gte')
-    to_offer_date = django_filters.DateFilter(field_name="offer_date", lookup_expr='lte')
-
-    from_start_date = django_filters.DateFilter(field_name="start_date", lookup_expr='gte')
-    to_start_date = django_filters.DateFilter(field_name="start_date", lookup_expr='lte')
-    #
+   
     # Filter by Job → Client → client_id (foreign key chaining)
     client = django_filters.CharFilter(field_name="Job__client__client_id", lookup_expr='icontains')
     # Filter by Job → End Client → end_client_id
     end_client = django_filters.CharFilter(field_name="Job__end_client__end_client_id", lookup_expr='icontains')
+    candidate_name = django_filters.CharFilter(field_name="candidate_name", lookup_expr='icontains')
     class Meta:
         model = Submissions
-        fields = ['submission_date', 'client_sub_date', 'client_interview_date', 'offer_date', 'start_date', 'Job', 'recruiter', 'sourcer','source','candidate_name']
+        fields = ['from_sub_date','to_sub_date','Job', 'recruiter', 'sourcer','source','candidate_name','current_status']
         
 
