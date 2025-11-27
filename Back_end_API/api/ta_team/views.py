@@ -15,7 +15,7 @@ from .models.submission import Placement,Submissions
 from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientSerializer, AccountSerializer,
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
     AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,
-     RoleTypeSerializer, 
+     RoleTypeSerializer, EmployeeSerializer,
     SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer,DashboardDataSerializer)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
@@ -166,9 +166,40 @@ class UniqueCandidate_Status_ViewSet(ReadOnlyModelViewSet):
         return Response(unique_status)
     
 class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
-    
+    serializer_class = CustomTokenObtainPairSerializer    
 
+class CurrentEmployeeView(APIView):
+    def get(self,request):
+        username = request.user.username
+        
+        try:
+            user = Employee.objects.get(email_id=username)
+            emp_detail = EmployeeSerializer(user).data
+            
+            return Response(
+                {
+                    "user": username,
+                    "emp_details": emp_detail,
+                    "is_active": user.is_active,
+                },
+                status=status.HTTP_200_OK,
+            )
+            
+           
+
+        except Employee.DoesNotExist:
+            # User is valid in Azure AD but not in your TA system
+            return Response(
+                {
+                    "user": username,
+                    "emp_details": None,
+                    "is_active": None,
+                    "detail": "User is authenticated via Azure AD but not registered in TA system.",
+                },
+                status=status.HTTP_200_OK,
+            )
+               
+        
 class RefreshClientDashboardView(View):
     def get(self,request):
         try:

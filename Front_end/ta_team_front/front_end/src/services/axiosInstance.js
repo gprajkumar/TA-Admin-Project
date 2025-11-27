@@ -56,7 +56,7 @@ const axiosInstance = axios.create({
 // );
 
 
-const getToken = async () => {
+export const getToken = async () => {
   try {
     const accounts = msalInstance.getAllAccounts();
     console.log("[axiosInstance] MSAL accounts:", accounts);

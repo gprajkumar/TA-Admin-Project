@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import "./Header.css";
 import { NavLink, useNavigate } from "react-router-dom";
-
+import { getToken } from "../services/axiosInstance";
 import { useSelector } from "react-redux";
 
-const Header = ({ userdetails, onSignOut }) => {
+const Header = ({ userdetails, onSignOut, onLogin }) => {
   const employee_id = useSelector(
     (state) => state.employee.employee_details?.employee_id
   );
   const [activeSection, setActiveSection] = useState(null);
-  const token = localStorage.getItem("accessToken");
+ 
+
+
 
   const handleMainLinkClick = (section) => {
     setActiveSection(section);
@@ -49,7 +51,7 @@ const Header = ({ userdetails, onSignOut }) => {
             </Nav.Link>
 
             {/* Requirement Dropdown */}
-            {token && (
+            {employee_id && (
               <>
                 {" "}
                 <NavDropdown
@@ -239,8 +241,9 @@ const Header = ({ userdetails, onSignOut }) => {
               {!userdetails ? (
                 <Nav.Link
                   as={NavLink}
-                  to="/login"
-                  onClick={() => setIsLoggedin(true)}
+                  // to="/login"
+                  // onClick={() => setIsLoggedin(true)}
+                  onClick={onLogin}
                   active={activeSection === "signin"}
                   className="signin-link"
                 >

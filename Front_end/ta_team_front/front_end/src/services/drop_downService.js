@@ -12,10 +12,18 @@ export const getPaginatedJobReqs = async() =>{
   return response.data;
 }
 
+export const fetchCurrentEmployee = async () => {
+  const res = await axiosInstance.get("/api/login/");
+  return res.data;
+};
+
 export const authdebug = async() =>{
   const response = await axiosInstance.get('/ta_team/debug-auth/');
   return response.data;
 }
+
+
+
 export const getClients = () => fetchDropdownData("clients");
 export const getEmployees = () => fetchDropdownData("employees");
 export const getEndClients = () => fetchDropdownData("endclients");

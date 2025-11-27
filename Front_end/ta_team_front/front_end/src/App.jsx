@@ -20,7 +20,7 @@ import ClientDashboard from './components/dashboards/ClientDashboard.jsx';
 import MyProfile from './components/myProfile';
 import ComingSoon from './components/ComingSoon.jsx';
 import { setEmployee,clearEmployee } from './redux/slices/authSlice';
-import {getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers} from './services/drop_downService.js';
+import {fetchCurrentEmployee, getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers} from './services/drop_downService.js';
 import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers} from './redux/slices/dropdownSlice';
 
 import {
@@ -36,96 +36,66 @@ const navigate = useNavigate();
 const { instance, accounts } = useMsal();
 const [userDetails, setUserDetails] = useState(null);
 const baseurl = import.meta.env.VITE_API_BASE_URL;
-  // If token exists, get user info
-  // useEffect(() => {
-  //   const token = localStorage.getItem('accessToken');
-  //   const name = localStorage.getItem('username');
-  //   if (token && name) {
-  //     setUserDetails({ empName: name });
-  //   }
-  // }, []);
+ 
 
- // When account list changes, update userDetails and fetch dropdowns
   useEffect(() => {
     const account = accounts[0];
     if (account) {
       setUserDetails({ empName: account.username });
-      dispatch(setEmployee())
+      
       fetchDropdowns();
-      // You can also call a Django /api/me/ to get full employee data and dispatch(setEmployee(data))
+    
     } else {
       setUserDetails(null);
     }
-  }, [accounts]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accounts]); 
 
-// const handleLogout = () =>
-// {
-//   localStorage.removeItem('accessToken');
-//   localStorage.removeItem('refreshToken');
-//   localStorage.removeItem('username');
-//   setUserDetails(null);
-//   persistor.purge();
-//   dispatch(clearEmployee())
-//   navigate('/login');
 
-// }
-const handleLogin = () => {
-    instance
-      .loginPopup(loginRequest)
-      .then(() => {
-        navigate("/allsubmissions");
-      })
-      .catch((err) => console.error("Login error:", err));
-  };
- const handleLogout = () => {
-    instance
-      .logoutPopup()
-      .finally(() => {
-        setUserDetails(null);
-        persistor.purge();
-        dispatch(clearEmployee());
-        navigate("/login");
-      });
-  };
-//   const handleLogin = async ({ email, password }) => {
-    
-//     try {
-//       const response = await axios.post(`${baseurl}/api/login/`, {
-//         username: email,
-//         password:password,
-//       });
-
-//       const { access, refresh,is_active,emp_details } = response.data;
-//         if (!is_active) {
-//       return { success: false, message: 'User account is inactive.Please contact Administrator' };
-//     }
-//       localStorage.setItem('accessToken', access);
-//       localStorage.setItem('refreshToken', refresh);
-//       localStorage.setItem('username', email);
-      
-     
-
-//       setUserDetails({ empName: email });
-      
-//       navigate('/allsubmissions');
-//       console.log(response.data);
-//       dispatch(setEmployee(response.data))
-//       setTimeout(() => {
-//       fetchDropdowns(); // No await here — fire and forget
-//     }, 100);
-
-//       return { success: true };
-      
-//     } catch (err) {
-//        const backendMessage = err?.response?.data?.detail || 
-//                            err?.response?.data?.non_field_errors?.[0] || 
-//                            'Invalid username or password';
-//       return { success: false,  message: backendMessage };
-//     }
-// };
-const fetchDropdowns = async () => {
+const handleLogin = async () => {
   try {
-    authdebug();
+    await instance.loginPopup(loginRequest);
+
+    // Fetch employee details from Django
+    const profile = await fetchCurrentEmployee();
+   console.log("Profile: " + JSON.stringify(profile));  
+
+    if (!profile.emp_details || !profile.is_active) {
+    
+
+      alert(`Hi ${profile.user}, you're authenticated in Entra but not registered in the TA System.Please Contact admin.`);
+
+
+      handleLogout()
+      return;
+    }
+
+    // Valid employee
+    dispatch(setEmployee(profile));
+    setUserDetails({ empName: profile.user });
+    navigate("/allsubmissions");
+
+  } catch (err) {
+    console.error("Login / employee fetch error:", err);
+  }
+};
+const handleLogout = async () => {
+  try {
+    await instance.logoutPopup();
+
+    // After successful logout
+    setUserDetails(null);
+    persistor.purge();
+    dispatch(clearEmployee());
+    navigate("/");
+
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
+};
+
+const fetchDropdowns = async () => {
+
+  try {
     const [accountData, endClientData,clientData,jobstatusData,sourceData,roleTypeData,employeeData,accountManagersData,HiringManagersData] = await Promise.all([
       getAccounts(),
       getEndClients(),
@@ -155,7 +125,7 @@ const fetchDropdowns = async () => {
   return (
     <>
    
- <Header userdetails={userDetails} onSignOut={handleLogout}/>
+ <Header userdetails={userDetails} onSignOut={handleLogout} onLogin={handleLogin}/>
 <Routes>
   <Route path='/' element={<TAHomePage/>}/>
   <Route path='/addrequirements' element={<AuthCheck><RequirementForm/></AuthCheck>}/>

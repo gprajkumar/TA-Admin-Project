@@ -28,6 +28,7 @@ urlpatterns = [
     path('refresh-client-dashboard/', RefreshClientDashboardView.as_view()), 
     path('requirement-search/', RequirementSearchDropdownAPI.as_view(), name='requirement-search'),
     path('clientdashboard-updated-date/', get_client_update_date.as_view(), name='clientdashboard-updated-date'),
-    path('debug-auth/', debug_auth, name='debug-auth')
+    path('debug-auth/', debug_auth, name='debug-auth'),
+ 
   
 ]

@@ -15,6 +15,7 @@ const authSlice = createSlice(
         reducers:{
             setEmployee(state,action){
       const {is_active,emp_details} = action.payload;
+      console.log("Employee data:", emp_details);
       state.username = emp_details.email_id,
       state.employee_details = emp_details,
       state.isAuthenticated = is_active
