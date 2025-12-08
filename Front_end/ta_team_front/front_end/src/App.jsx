@@ -1,6 +1,5 @@
 import { useState,useEffect } from 'react'
 import Header from './components/Header'
-import axios from "axios";
 import './index.css'
 import {Routes,Route} from 'react-router-dom'
 import Submission from './components/Submissions'
@@ -14,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import TAHomePage from './components/TAHomePage';
 import RequirementForm from './components/RequirementForm';
 import AuthCheck from './components/AuthCheck';
-import {store, persistor} from './redux/store';
+import {persistor} from './redux/store';
 import {useDispatch} from 'react-redux'
 import ClientDashboard from './components/dashboards/ClientDashboard.jsx';
 import MyProfile from './components/myProfile';
@@ -24,9 +23,7 @@ import {fetchCurrentEmployee, getAccounts,getClients,getEndClients,getJobStatuse
 import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers} from './redux/slices/dropdownSlice';
 
 import {
-  useMsal,
-  AuthenticatedTemplate,
-  UnauthenticatedTemplate,
+  useMsal
 } from "@azure/msal-react";
 import { loginRequest } from "./services/utilities/authConfig.js";
 
@@ -35,7 +32,6 @@ function App() {
 const navigate = useNavigate(); 
 const { instance, accounts } = useMsal();
 const [userDetails, setUserDetails] = useState(null);
-const baseurl = import.meta.env.VITE_API_BASE_URL;
  
 
   useEffect(() => {
@@ -53,8 +49,33 @@ const baseurl = import.meta.env.VITE_API_BASE_URL;
 
 const handleLogin = async () => {
   try {
-    await instance.loginPopup(loginRequest);
+    
+     // Step 1: interactive login
+    const loginResponse = await instance.loginPopup(loginRequest);
 
+    // Step 2: get the account
+    const account =
+      loginResponse.account ||
+      instance.getActiveAccount() ||
+      instance.getAllAccounts()[0];
+
+    if (!account) {
+      throw new Error("No MSAL account found after login");
+    }
+
+    // Step 3: remember the active account for the whole app
+    instance.setActiveAccount(account);
+
+    // Step 4: get access token for the API silently
+    await instance.acquireTokenSilent({
+      ...loginRequest,
+      account,
+    });
+
+
+
+
+    // Step 3: Now API call will include Authorization header
     // Fetch employee details from Django
     const profile = await fetchCurrentEmployee();
    console.log("Profile: " + JSON.stringify(profile));  

@@ -169,9 +169,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer    
 
 class CurrentEmployeeView(APIView):
-    def get(self,request):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+       
         username = request.user.username
-        
         try:
             user = Employee.objects.get(email_id=username)
             emp_detail = EmployeeSerializer(user).data

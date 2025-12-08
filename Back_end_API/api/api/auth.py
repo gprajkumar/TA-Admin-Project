@@ -9,14 +9,9 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class AzureADJWTAuthentication(BaseAuthentication):
-    """
-    Validates JWT access tokens issued by Azure AD (v2.0).
-    Expects Authorization: Bearer <token>.
-    """
 
     def authenticate(self, request):
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
-   
         if not auth_header.startswith("Bearer "):
             return None  # no/malformed auth -> DRF treats as unauthenticated
 
@@ -31,13 +26,14 @@ class AzureADJWTAuthentication(BaseAuthentication):
         config = settings.AZURE_AD_CONFIG
         tenant_id = config["TENANT_ID"]
         audience = config["AUDIENCE"]
-
+     
         # 1. Fetch OpenID configuration
         openid_config_url = (
             f"https://login.microsoftonline.com/{tenant_id}/v2.0/.well-known/openid-configuration"
         )
         try:
             openid_config = requests.get(openid_config_url).json()
+     
         except Exception as e:
             raise exceptions.AuthenticationFailed(
                 f"Failed to fetch OpenID configuration: {e}"
@@ -48,6 +44,7 @@ class AzureADJWTAuthentication(BaseAuthentication):
         # 2. Get signing key from JWKS
         try:
             jwk_client = PyJWKClient(jwks_uri)
+
             signing_key = jwk_client.get_signing_key_from_jwt(token)
         except Exception as e:
             raise exceptions.AuthenticationFailed(f"Invalid token (key error): {e}")
@@ -88,7 +85,9 @@ class AzureADJWTAuthentication(BaseAuthentication):
         )
 
         email = claims.get("email") or claims.get("preferred_username") or username
+        print("Authenticated username:", username)
 
+         # Get or create the user in the local database
         user, created = User.objects.get_or_create(
             username=username,
             defaults={"email": email},

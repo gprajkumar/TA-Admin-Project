@@ -12,21 +12,37 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
 from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+env = environ.Env(DEBUG=(bool, False))
+# 2) Decide which .env file to load (only if it exists)
+DJANGO_ENV = os.getenv("DJANGO_ENV", "development")  # "development" or "production"
 
+env_file_map = {
+    "development": BASE_DIR / ".env.development",
+    "production": BASE_DIR / ".env.production",
+}
+
+env_file = env_file_map.get(DJANGO_ENV)
+
+if env_file and env_file.exists():
+    environ.Env.read_env(env_file)
+    # For local dev, this will read .env.development
+    # For prod, you can either use .env.production or skip the file and set real env vars
+# If no file exists, it will just read from OS env
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2w(xi=#5enzm@285458tcx@@jk78-tcv&47penrxwonmewumip'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -91,11 +107,11 @@ SIMPLE_JWT = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'TA-Admin',
-        'USER': 'postgres',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',  # or '127.0.0.1'
-        'PORT': '5432',
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),  # or '127.0.0.1'
+        'PORT': env('DB_PORT'),  # default PostgreSQL port is 5432
     }
 }
 
@@ -112,13 +128,14 @@ REST_FRAMEWORK = {
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
       'DEFAULT_PERMISSION_CLASSES': [
+        
         'rest_framework.permissions.IsAuthenticated']
 }
 
 AZURE_AD_CONFIG = {
-    "TENANT_ID": "2fc647ee-9496-4a1d-8d87-105bca14b7ef",
-    "CLIENT_ID": "67bceed3-96c0-418c-b9c7-9464342aa28b",              # Django API app registration
-    "AUDIENCE": "67bceed3-96c0-418c-b9c7-9464342aa28b",         # Application ID URI from Expose an API
+    "TENANT_ID": env('AZURE_AD_TENANT_ID'),                             # Directory (tenant) ID
+    "CLIENT_ID": env('AZURE_AD_CLIENT_ID'),              # Django API app registration
+    "AUDIENCE": env('AZURE_AD_AUDIENCE'),         # Application ID URI from Expose an API
 }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -161,9 +178,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-]
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS')
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]

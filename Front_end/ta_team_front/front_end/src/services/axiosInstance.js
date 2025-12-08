@@ -2,7 +2,7 @@ import axios from 'axios';
 import { msalInstance } from "./utilities/msalInstance";
 import { loginRequest } from "./utilities/authConfig";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+const baseURL = import.meta.env.VITE_API_BASE_URL
 
 const axiosInstance = axios.create({
   baseURL: baseURL,

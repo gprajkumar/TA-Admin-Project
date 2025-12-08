@@ -1,11 +1,11 @@
-import { useState,useEffect } from "react";
+import { useState}  from "react";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import "./Header.css";
-import { NavLink, useNavigate } from "react-router-dom";
-import { getToken } from "../services/axiosInstance";
+import { NavLink } from "react-router-dom";
+
 import { useSelector } from "react-redux";
 
 const Header = ({ userdetails, onSignOut, onLogin }) => {
@@ -238,7 +238,7 @@ const Header = ({ userdetails, onSignOut, onLogin }) => {
                 </NavDropdown>
             {/* Sign In or Welcome */}
             <Nav className="auth-section">
-              {!userdetails ? (
+              {!userdetails || !employee_id? (
                 <Nav.Link
                   as={NavLink}
                   // to="/login"

@@ -5,7 +5,16 @@ django-cors-headers  # Enable CORS for frontend communication
 gunicorn  # Production WSGI server
 whitenoise  # Serves static files
 django-environ  # Manage environment variables
+django-azure-auth
 
+django-entra-auth
+msal
+PyJWT
+cryptography
+django-filter
+requests
+django-admin-interface # Enhanced Django admin interface
+python-dotenv
 # Database
 psycopg2-binary  # PostgreSQL adapter (if using PostgreSQL)
 

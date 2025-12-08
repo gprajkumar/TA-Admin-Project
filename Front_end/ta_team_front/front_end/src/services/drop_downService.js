@@ -2,13 +2,13 @@ import axiosInstance from "./axiosInstance";
 const baseurl = import.meta.env.VITE_API_BASE_URL;
 
 const fetchDropdownData = async (endpoint) => {
-  const response = await axiosInstance.get(`/ta_team/${endpoint}`);
+  const response = await axiosInstance.get(`/ta_team/${endpoint}/`);
   const data= response.data;
   console.log(data);
   return Array.isArray(data) ? data : data.results || [];
 };
 export const getPaginatedJobReqs = async() =>{
-  const response = await axiosInstance.get('/ta_team/requirements');
+  const response = await axiosInstance.get('/ta_team/requirements/');
   return response.data;
 }
 
@@ -43,7 +43,7 @@ export const getFilteredSubmissions = (filterParams) => fetchFilteredSubmissions
 export const getSubmissionsbyReqid =(reqid) => fetcchSubmissionsbyReq(reqid);
 export const getCurrentCandidateStatus = () => fetchDropdownasArray("candidate_status")
 const fetchDropdownasArray = async (endpoint) => {
-  const response = await axiosInstance.get(`/ta_team/${endpoint}`);
+  const response = await axiosInstance.get(`/ta_team/${endpoint}/`);
   const data = response.data;
 
   // Return `data.results` if paginated, otherwise return `data` directly
@@ -85,7 +85,7 @@ const FilteredfetchDropdownData = async (endpoint, filter) => {
   const query = Object.keys(filter)
     .map((key) => `${key}=${encodeURIComponent(filter[key])}`)
     .join("&");
-  const response = await axiosInstance.get(`/ta_team/${endpoint}/?${query}`);
+  const response = await axiosInstance.get(`/ta_team/${endpoint}/?${query}/`);
  const data=response.data;
   return Array.isArray(data)? data: data.results || [];
 };
