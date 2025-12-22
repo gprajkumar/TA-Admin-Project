@@ -216,7 +216,38 @@ const RequirementForm = ({ reqid, viewtype = false, externaldropdowndata }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+useEffect(() => {
+  if (
+    formData.job_code &&
+    formData.job_code.trim() !== ""
+  ) {
+    const fetchJobDetails = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `/ceipal/getjobposting/${formData.job_code}/`
+        );
 
+        const results = response.data?.results || [];
+        const job = results[0] || {};
+
+        setFormData((prevData) => ({
+          ...prevData,
+          job_title: job.position_title ?? prevData.job_title,
+          req_opened_date: job.job_start_date ?? prevData.req_opened_date,
+          client: job.client_id ?? prevData.client,
+          end_client: job.end_client_id ?? prevData.end_client,
+          account: job.account_id ?? prevData.account,
+          role_type: job.role_type_id ?? prevData.role_type,
+        }));
+        
+      } catch (error) {
+        console.error("Error fetching job details from Ceipal:", error);
+      }  
+    };
+    fetchJobDetails();
+  }
+} 
+, [formData.job_code]);
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {

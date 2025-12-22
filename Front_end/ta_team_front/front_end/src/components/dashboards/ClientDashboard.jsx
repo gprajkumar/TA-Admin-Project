@@ -6,7 +6,7 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 import { FaFilter } from "react-icons/fa";
 import AlertComponent from "../AlertComponent";
-import CustomBarchart from "../charts/CustomBarchart";
+import CustomBarchart from "../charts/CustomBarChart";
 import CustomPieChart from "../charts/CustomPieChart";
 import {
   getRoleTypeGroupbyData,

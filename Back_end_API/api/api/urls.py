@@ -26,8 +26,9 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
     path('ta_team/', include('ta_team.urls')),
+    path('ceipal/', include('ceipal.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-     path('api/login/', CurrentEmployeeView.as_view(), name='profile_details'),
+    path('api/login/', CurrentEmployeeView.as_view(), name='profile_details'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
 ]

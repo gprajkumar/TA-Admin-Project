@@ -29,17 +29,11 @@ env_file = env_file_map.get(DJANGO_ENV)
 
 if env_file and env_file.exists():
     environ.Env.read_env(env_file)
-    # For local dev, this will read .env.development
-    # For prod, you can either use .env.production or skip the file and set real env vars
-# If no file exists, it will just read from OS env
+   
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
@@ -60,7 +54,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_filters',
-    'ta_team.apps.TaTeamConfig'
+    'ta_team.apps.TaTeamConfig',
+    'ceipal'
 ]
 
 MIDDLEWARE = [
@@ -155,7 +150,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+CEIPAL_BASE_URL = os.getenv("CEIPAL_API_BASE_URL")
+CEIPAL_EMAIL = os.getenv("CEIPAL_API_USERNAME")
+CEIPAL_PASSWORD = os.getenv("CEIPAL_API_PASSWORD")
+CEIPAL_API_KEY = os.getenv("CEIPAL_API_KEY")
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 

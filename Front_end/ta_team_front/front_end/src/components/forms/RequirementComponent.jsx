@@ -17,6 +17,12 @@ const RequirementComponent = ({
   OnhandleSelect,
   resetform,
 }) => {
+  const today = new Date();
+const localToday = new Date(
+  today.getTime() - today.getTimezoneOffset() * 60000
+)
+  .toISOString()
+  .split("T")[0];
   return (
          <Form onSubmit={handleSubmit} className="requirement-form container">
         <h2 className="mb-4">
@@ -79,7 +85,7 @@ const RequirementComponent = ({
                 name="req_opened_date"
                 disabled={viewtype}
                 min="2024-01-01" // 👈 Earliest allowed date
-                max={new Date().toISOString().split("T")[0]} // 👈 Today’s date
+                max={localToday} // 👈 Today’s date
                 value={formData.req_opened_date}
                 onChange={handleChange}
                 isInvalid={!!errors.req_opened_date}
