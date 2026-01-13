@@ -1,4 +1,4 @@
-import { useState,useEffect } from 'react'
+import { useState,useEffect, useRef } from 'react'
 import Header from './components/Header'
 import './index.css'
 import {Routes,Route} from 'react-router-dom'
@@ -21,7 +21,7 @@ import ComingSoon from './components/ComingSoon.jsx';
 import { setEmployee,clearEmployee } from './redux/slices/authSlice';
 import {fetchCurrentEmployee, getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers} from './services/drop_downService.js';
 import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers} from './redux/slices/dropdownSlice';
-
+import { useIsAuthenticated } from "@azure/msal-react";
 import {
   useMsal
 } from "@azure/msal-react";
@@ -30,22 +30,61 @@ import { loginRequest } from "./services/utilities/authConfig.js";
 function App() {
   const dispatch = useDispatch();
 const navigate = useNavigate(); 
-const { instance, accounts } = useMsal();
+const {inProgress, instance, accounts } = useMsal();
 const [userDetails, setUserDetails] = useState(null);
  
-
-  useEffect(() => {
-    const account = accounts[0];
-    if (account) {
-      setUserDetails({ empName: account.username });
-      
-      fetchDropdowns();
+const isAuthenticated = useIsAuthenticated();
+  // Prevent dropdown fetch from running multiple times
+  const dropdownsLoadedRef = useRef(false);
+  // useEffect(() => {
+  //   const account = accounts[0];
+  //   if (account) {
+  //     setUserDetails({ empName: account.username });
+  //     instance.setActiveAccount(account);
+  //     fetchDropdowns();
     
-    } else {
-      setUserDetails(null);
-    }
-  }, [accounts]); 
+  //   } else {
+  //     setUserDetails(null);
+  //   }
+  // }, [accounts]); 
+  useEffect(() => {
+    const init = async () => {
+      // Wait for MSAL startup/redirect to complete
+      if (inProgress !== "none") return;
 
+      // If not authenticated, reset UI state
+      if (!isAuthenticated) {
+        setUserDetails(null);
+        dropdownsLoadedRef.current = false;
+        return;
+      }
+
+      // Pick account safely
+      const account = instance.getActiveAccount() || accounts?.[0];
+      if (!account) {
+        setUserDetails(null);
+        return;
+      }
+
+      // Ensure active account is set (important after refresh)
+      instance.setActiveAccount(account);
+      setUserDetails({ empName: account.username });
+
+      // Ensure token exists before any API calls
+      await instance.acquireTokenSilent({
+        ...loginRequest,
+        account,
+      });
+
+      // Fetch dropdowns only once
+      // if (!dropdownsLoadedRef.current) {
+      //   dropdownsLoadedRef.current = true;
+      //   await fetchDropdowns();
+      // }
+    };
+
+    init().catch((e) => console.error("MSAL init error:", e));
+  }, [inProgress, isAuthenticated, accounts, instance]);
 
 const handleLogin = async () => {
   try {
@@ -93,7 +132,9 @@ const handleLogin = async () => {
     // Valid employee
     dispatch(setEmployee(profile));
     setUserDetails({ empName: profile.user });
+    await fetchDropdowns();
     navigate("/allsubmissions");
+  
 
   } catch (err) {
     console.error("Login / employee fetch error:", err);
@@ -146,7 +187,7 @@ const fetchDropdowns = async () => {
   return (
     <>
    
- <Header userdetails={userDetails} onSignOut={handleLogout} onLogin={handleLogin}/>
+ <Header userdetails={userDetails} onSignOut={handleLogout} onLogin={handleLogin} isAuthenticated={isAuthenticated}/>
 <Routes>
   <Route path='/' element={<TAHomePage/>}/>
   <Route path='/addrequirements' element={<AuthCheck><RequirementForm/></AuthCheck>}/>

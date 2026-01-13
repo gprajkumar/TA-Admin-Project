@@ -26,3 +26,6 @@ seaborn  # Advanced visualization (heatmaps, correlation plots)
 plotly  # Interactive charts (useful for dashboards)
 dash  # Build interactive web-based dashboards with Plotly
 django-plotly-dash  # Integrates Dash with Django
+
+django-admin-interface==0.31.0
+django-colorfield==0.14.0

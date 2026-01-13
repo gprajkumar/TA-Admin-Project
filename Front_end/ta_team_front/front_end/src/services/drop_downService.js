@@ -1,5 +1,5 @@
 import axiosInstance from "./axiosInstance";
-const baseurl = import.meta.env.VITE_API_BASE_URL;
+
 
 const fetchDropdownData = async (endpoint) => {
   const response = await axiosInstance.get(`/ta_team/${endpoint}/`);
@@ -9,6 +9,15 @@ const fetchDropdownData = async (endpoint) => {
 };
 export const getPaginatedJobReqs = async() =>{
   const response = await axiosInstance.get('/ta_team/requirements/');
+  return response.data;
+}
+export const tatCount = async (submission_date,opened_date) => {
+  const response = await axiosInstance.get('/ta_team/tatcount/', {
+    params: {
+      submission_date: submission_date, 
+      opened_date: opened_date
+    }
+  });
   return response.data;
 }
 
@@ -85,7 +94,7 @@ const FilteredfetchDropdownData = async (endpoint, filter) => {
   const query = Object.keys(filter)
     .map((key) => `${key}=${encodeURIComponent(filter[key])}`)
     .join("&");
-  const response = await axiosInstance.get(`/ta_team/${endpoint}/?${query}/`);
+  const response = await axiosInstance.get(`/ta_team/${endpoint}/?${query}`);
  const data=response.data;
   return Array.isArray(data)? data: data.results || [];
 };

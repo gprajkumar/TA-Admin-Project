@@ -8,14 +8,16 @@ import { NavLink } from "react-router-dom";
 
 import { useSelector } from "react-redux";
 
-const Header = ({ userdetails, onSignOut, onLogin }) => {
+const Header = ({ userdetails, onSignOut, onLogin, isAuthenticated }) => {
   const employee_id = useSelector(
     (state) => state.employee.employee_details?.employee_id
   );
   const [activeSection, setActiveSection] = useState(null);
  
-
-
+const isAuthorizedEmployee = isAuthenticated && employee_id;
+console.log("isAuthorizedEmployee",isAuthorizedEmployee);
+console.log("employee_id",employee_id);
+console.log("isAuthenticated",isAuthenticated);
 
   const handleMainLinkClick = (section) => {
     setActiveSection(section);
@@ -51,7 +53,7 @@ const Header = ({ userdetails, onSignOut, onLogin }) => {
             </Nav.Link>
 
             {/* Requirement Dropdown */}
-            {employee_id && (
+            {isAuthorizedEmployee && (
               <>
                 {" "}
                 <NavDropdown
@@ -238,7 +240,7 @@ const Header = ({ userdetails, onSignOut, onLogin }) => {
                 </NavDropdown>
             {/* Sign In or Welcome */}
             <Nav className="auth-section">
-              {!userdetails || !employee_id? (
+              {!isAuthenticated? (
                 <Nav.Link
                   as={NavLink}
                   // to="/login"
@@ -251,7 +253,7 @@ const Header = ({ userdetails, onSignOut, onLogin }) => {
                 </Nav.Link>
               ) : (
                 <NavDropdown
-                  title={`Welcome: ${userdetails.empName}`}
+                  title={`Welcome: ${userdetails?.empName ?? "User"}`}
                   id="signin-nav-dropdown"
                   active={activeSection === "signout"}
                   className="welcome-dropdown"

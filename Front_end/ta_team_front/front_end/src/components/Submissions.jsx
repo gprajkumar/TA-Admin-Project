@@ -155,6 +155,7 @@ useEffect(() => {
   }
 }, [tat]);
    const renderSelect = (name, label, options) => {
+    console.log("options",options);
   const selectOptions = (options || []).map((opt) => ({
     value: opt.id,
     label: opt.name,
