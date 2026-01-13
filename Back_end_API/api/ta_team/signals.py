@@ -23,8 +23,13 @@ def create_user_for_employee(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def create_employee_for_user(sender, instance, created, **kwargs):
+    if instance.is_superuser or instance.is_staff:
+        return
+    designation = getattr(instance, "_designation", None)
+    department = getattr(instance, "_department", None)
     if created:
         existing_employee = Employee.objects.filter(email_id=instance.email).first()
+        
         if existing_employee:
             if not existing_employee.user:
                 existing_employee.user = instance
@@ -35,6 +40,7 @@ def create_employee_for_user(sender, instance, created, **kwargs):
                 emp_lName=instance.last_name,
                 email_id=instance.email,
                 is_active=True,
-                designation=9,
+                designation=designation,
+                department=department,
                 user=instance
             )

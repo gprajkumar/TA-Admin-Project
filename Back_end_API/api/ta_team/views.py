@@ -3,7 +3,7 @@ from rest_framework import status
 from .models.models import (
     Client, EndClient, Account, AccountManager, HiringManager,
     AccountHead, AccountCoordinator, Feedback, JobStatus,
-     Role_Type, Source, Tech_Screener, Screening_Status, Employee, DashboardJobData
+     Role_Type, Source, Tech_Screener, Screening_Status, Employee, DashboardJobData, RolePermission, Holiday
 )
 from django.http import JsonResponse
 from django.views import View
@@ -14,7 +14,7 @@ from .models.requirement import Requirements
 from .models.submission import Placement,Submissions
 from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientSerializer, AccountSerializer,
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
-    AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,
+    AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,RolePermissionSerializer,
      RoleTypeSerializer, EmployeeSerializer,
     SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer,DashboardDataSerializer)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -26,8 +26,9 @@ from django.db.models import Count, Sum, Avg
 from django.db.models.functions import TruncMonth
 import traceback
 from django.db.models import Q
-from datetime import datetime
+from datetime import datetime, timedelta
 from .filters.pagination import RequirementPagination
+from django.contrib.auth.models import User
 from rest_framework.permissions import AllowAny
 # Create your views here.
 from rest_framework.decorators import api_view, permission_classes
@@ -68,6 +69,15 @@ class ClientViewSet(ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
     
+class RolePermissionViewSet(APIView):
+    def get(self, request):
+        desingation_id = request.query_params.get("id", "")
+        queryset = RolePermission.objects.filter(
+           Q(designation_id=desingation_id)
+        )
+        serializer = RolePermissionSerializer(queryset, many=True)
+        return Response(serializer.data)
+
 class RequirementSearchDropdownAPI(APIView):
     def get(self, request):
         q = request.query_params.get("q", "")
@@ -174,23 +184,9 @@ class CurrentEmployeeView(APIView):
        
         username = request.user.username
         try:
-            user = Employee.objects.get(email_id=username)
-            emp_detail = EmployeeSerializer(user).data
-            
-            return Response(
-                {
-                    "user": username,
-                    "emp_details": emp_detail,
-                    "is_active": user.is_active,
-                },
-                status=status.HTTP_200_OK,
-            )
-            
-           
-
-        except Employee.DoesNotExist:
-            # User is valid in Azure AD but not in your TA system
-            return Response(
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+              return Response(
                 {
                     "user": username,
                     "emp_details": None,
@@ -198,7 +194,40 @@ class CurrentEmployeeView(APIView):
                     "detail": "User is authenticated via Azure AD but not registered in TA system.",
                 },
                 status=status.HTTP_200_OK,
+                )
+
+        if (not user.is_active):
+                return Response(
+                    {
+                        "user": username,
+                        "emp_details": None,
+                        "is_active": False,
+                        "detail": "User is inactive in TA system.",
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        try:
+            employee = Employee.objects.get(email_id=username)
+        except Employee.DoesNotExist:
+                return Response(
+                {
+                    "user": username,
+                    "emp_details": None,
+                    "is_active": None,
+                    "detail": "Employee record not found in TA system.  Please contact admin.",
+                },
+                status=status.HTTP_200_OK,
             )
+        emp_detail = EmployeeSerializer(employee).data
+        return Response(
+                    {
+                        "user": username,
+                        "emp_details": emp_detail,
+                        "is_active": user.is_active,
+                    },
+                    status=status.HTTP_200_OK,
+         )
+        
                
         
 class RefreshClientDashboardView(View):
@@ -410,3 +439,41 @@ class ClientDashboardView(ReadOnlyModelViewSet):
          print(traceback.format_exc())
         return Response({"error": str(e)}, status=500)
   
+class TATCountAPIView(APIView):
+    def get(self, request):
+        submission_date = request.query_params.get("submission_date")
+        opened_date = request.query_params.get("opened_date")
+        print("opened_date:", opened_date)
+        print("submission_date:", submission_date)
+        if not submission_date or not opened_date:
+            return Response(
+                {"error": "start_date and end_date are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            opened_date = datetime.strptime(opened_date, "%Y-%m-%d").date()
+            submission_date = datetime.strptime(submission_date, "%Y-%m-%d").date()
+        except ValueError:
+            return Response(
+                {"error": "Invalid date format. Use YYYY-MM-DD"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        working_days = 0
+        current_date = opened_date
+        while current_date <= submission_date:  # 5 = Saturday, 6 = Sunday
+            if current_date.weekday() < 5:
+                working_days += 1
+            current_date += timedelta(days=1)
+        holiday_count = Holiday.objects.filter(
+            holiday_date__range=(opened_date, submission_date)
+        ).count()
+    
+        tat = max(working_days - holiday_count, 0)
+        return Response({
+            "opened_date": opened_date,
+            "submission_date": submission_date,
+            "working_days": working_days,
+            "holiday_count": holiday_count,
+            "tat": tat
+        })

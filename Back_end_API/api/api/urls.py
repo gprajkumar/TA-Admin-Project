@@ -35,6 +35,6 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-admin.site.site_header = "Talent Acquistion Admin"
+admin.site.site_header = "Talent Acquisition Admin"
 admin.site.site_title = "TA Admin Portal"
 admin.site.index_title = "Welcome to TA Management Portal"

@@ -252,3 +252,32 @@ class DashboardJobData(models.Model):
     class Meta:
         managed = False  # Don't let Django manage the DB schema
         db_table = 'req_submissions' #materialized view name
+
+
+#enterprise level role permission models
+class PermissionType(models.Model):
+    permission_type_id = models.AutoField(primary_key=True)
+    permission_type_name = models.CharField(max_length=100, verbose_name="Permission Type Name")
+    
+    def __str__(self):
+        return self.permission_type_name
+
+class Module(models.Model):
+    module_id = models.AutoField(primary_key=True)
+    module_name = models.CharField(max_length=100, verbose_name="Module Name")
+    
+    def __str__(self):
+        return self.module_name
+    
+class RolePermission(models.Model):
+    role_permission_id = models.AutoField(primary_key=True)
+    designation = models.ForeignKey(Designation, on_delete=models.CASCADE, verbose_name="Designation")
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, verbose_name="Module")
+    permission_type = models.ForeignKey(PermissionType, on_delete=models.CASCADE, verbose_name="Permission Type")
+    
+    class Meta:
+          # Prevent duplicate permission entries for the same role and module
+        unique_together = ('designation', 'module', 'permission_type')
+
+    def __str__(self):
+        return f"{self.designation.designation_name} - {self.module.module_name} - {self.permission_type.permission_type_name}"
