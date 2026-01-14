@@ -117,7 +117,6 @@ const handleLogin = async () => {
     // Step 3: Now API call will include Authorization header
     // Fetch employee details from Django
     const profile = await fetchCurrentEmployee();
-   console.log("Profile: " + JSON.stringify(profile));  
 
     if (!profile.emp_details || !profile.is_active) {
     
@@ -183,7 +182,6 @@ const fetchDropdowns = async () => {
     dispatch(setEmployees(employeeData));
     dispatch(setAccountManagers(accountManagersData));
     dispatch(setHiringManagers(HiringManagersData));
-    console.log("Dropdowns fetched successfully");
   } catch (err) {
     console.error('Dropdown fetch failed:', err.message);
   }

@@ -22,9 +22,8 @@ export const tatCount = async (submission_date,opened_date) => {
 }
 
 export const fetchCurrentEmployee = async () => {
-   console.log("fetchCurrentEmployee called");
+
   const res = await axiosInstance.get("/api/login/");
-  console.log("fetchCurrentEmployee response:", res.data);
 
   return res.data;
 };
@@ -72,7 +71,7 @@ const fetcchSubmissionsbyReq = async (reqid) =>
   }
   const fetchFilteredJobs = async(filterParams) =>
   {
-    console.log("filteredParams",filterParams);
+
     const response = await axiosInstance.get(`/ta_team/requirements/`,{
       params: {
         from_date: filterParams.from_date,
@@ -107,7 +106,6 @@ export const getfilteredEmployees = (filter) =>
 
   const fetchFilteredSubmissions = async(filterParams) =>
   {
-    console.log("Submission filteredParams",filterParams);
     const response = await axiosInstance.get(`/ta_team/submissions/`, {
     params: { 
        Job: filterParams.Job,

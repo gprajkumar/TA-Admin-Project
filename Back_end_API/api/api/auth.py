@@ -85,7 +85,7 @@ class AzureADJWTAuthentication(BaseAuthentication):
         )
 
         email = claims.get("email") or claims.get("preferred_username") or username
-        print("Authenticated username:", username)
+    
 
         #  # Get or create the user in the local database
         # user, created = User.objects.get_or_create(

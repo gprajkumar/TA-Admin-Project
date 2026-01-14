@@ -242,7 +242,6 @@ class RefreshClientDashboardView(View):
             return JsonResponse({'status':'success', 'message':'Data refreshed Succesfully'})
         except Exception as e:
             import traceback
-            print("Error while refreshing client dashboard:")
             traceback.print_exc()
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
@@ -286,10 +285,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
     def filter_dashboard(self, request):
         try:
             filter_type = request.data.get('filter_type')
-            print(request.data)
-            print("Filter type:", filter_type)
             filters = self.build_filters(request.data)
-            print("Filters applied:", filters)
             queryset = DashboardJobData.objects.filter(**filters)
 
             overall_calculations = queryset.aggregate(
@@ -351,7 +347,6 @@ class ClientDashboardView(ReadOnlyModelViewSet):
            for item in grouped_data:
                 item['month'] = item['month'].strftime("%b %Y")
                 
-           print("month aggregation", grouped_data)
 
            return Response({
                 "grouped_data": list(grouped_data),
@@ -374,7 +369,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             ).order_by('role_type_id')
            
            
-            print("type aggregation", grouped_data)
+   
 
             return Response({
                 "grouped_data": list(grouped_data),
@@ -398,7 +393,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             ).order_by('job_status_id')
            
            
-            print("type aggregation", grouped_data)
+
 
             return Response({
                 "grouped_data": list(grouped_data),
@@ -434,7 +429,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             for item in grouped_data:
                 item['month'] = item['month'].strftime("%b %Y")
 
-            print("month aggregation", grouped_data)
+
 
             return Response({
                 "grouped_data": list(grouped_data),
@@ -447,8 +442,7 @@ class TATCountAPIView(APIView):
     def get(self, request):
         submission_date = request.query_params.get("submission_date")
         opened_date = request.query_params.get("opened_date")
-        print("opened_date:", opened_date)
-        print("submission_date:", submission_date)
+
         if not submission_date or not opened_date:
             return Response(
                 {"error": "start_date and end_date are required"},

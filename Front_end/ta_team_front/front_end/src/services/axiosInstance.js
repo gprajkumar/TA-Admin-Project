@@ -14,7 +14,7 @@ const axiosInstance = axios.create({
 export const getToken = async () => {
   try {
     const accounts = msalInstance.getAllAccounts();
-    console.log("[axiosInstance] MSAL accounts:", accounts);
+   
 
     if (!accounts || accounts.length === 0) {
       // Not logged in -> no token
@@ -27,7 +27,7 @@ export const getToken = async () => {
     };
 
     const response = await msalInstance.acquireTokenSilent(request);
-    console.log("[axiosInstance] Got token (exp):", response.expiresOn);
+  
     return response.accessToken;
   } catch (e) {
     console.error("[axiosInstance] acquireTokenSilent error:", e);
