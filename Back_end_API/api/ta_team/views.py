@@ -183,29 +183,32 @@ class CurrentEmployeeView(APIView):
     def get(self, request):
        
         username = request.user.username
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-              return Response(
-                {
-                    "user": username,
-                    "emp_details": None,
-                    "is_active": None,
-                    "detail": "User is authenticated via Azure AD but not registered in TA system.",
-                },
-                status=status.HTTP_200_OK,
-                )
-
-        if (not user.is_active):
-                return Response(
-                    {
-                        "user": username,
-                        "emp_details": None,
-                        "is_active": False,
-                        "detail": "User is inactive in TA system.",
-                    },
-                    status=status.HTTP_200_OK,
-                )
+        # try:
+        #     user = User.objects.get(username=username)
+        #     print("User found:", user.username)
+        # except User.DoesNotExist:
+        #       return Response(
+        #         {
+        #             "user": username,
+        #             "emp_details": None,
+        #             "is_active": None,
+        #             "detail": "User is authenticated via Azure AD but not registered in TA system.",
+        #         },
+        #         status=status.HTTP_200_OK,
+        #         )
+        # except Exception as e:
+        #     print("Error retrieving user:", str(e))
+         
+        # if (not user.is_active):
+        #         return Response(
+        #             {
+        #                 "user": username,
+        #                 "emp_details": None,
+        #                 "is_active": False,
+        #                 "detail": "User is inactive in TA system.",
+        #             },
+        #             status=status.HTTP_200_OK,
+        #         )
         try:
             employee = Employee.objects.get(email_id=username)
         except Employee.DoesNotExist:
@@ -219,11 +222,12 @@ class CurrentEmployeeView(APIView):
                 status=status.HTTP_200_OK,
             )
         emp_detail = EmployeeSerializer(employee).data
+        print(emp_detail, "emp_detail")
         return Response(
                     {
                         "user": username,
                         "emp_details": emp_detail,
-                        "is_active": user.is_active,
+                        "is_active": emp_detail.get("is_active"),
                     },
                     status=status.HTTP_200_OK,
          )

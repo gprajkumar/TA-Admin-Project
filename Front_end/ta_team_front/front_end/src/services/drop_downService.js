@@ -22,7 +22,10 @@ export const tatCount = async (submission_date,opened_date) => {
 }
 
 export const fetchCurrentEmployee = async () => {
+   console.log("fetchCurrentEmployee called");
   const res = await axiosInstance.get("/api/login/");
+  console.log("fetchCurrentEmployee response:", res.data);
+
   return res.data;
 };
 

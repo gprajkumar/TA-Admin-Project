@@ -122,7 +122,7 @@ const handleLogin = async () => {
     if (!profile.emp_details || !profile.is_active) {
     
 
-      alert(`Hi ${profile.user}, you're authenticated in Entra but not registered in the TA System.Please Contact admin.`);
+      alert(`Hi ${profile.user}, you're Employee details not found`);
 
 
       handleLogout()
@@ -137,7 +137,11 @@ const handleLogin = async () => {
   
 
   } catch (err) {
+
     console.error("Login / employee fetch error:", err);
+     alert(`you're authenticated in Entra but not registered in the TA System.Please Contact admin.`);
+
+      return;
   }
 };
 const handleLogout = async () => {

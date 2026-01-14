@@ -87,11 +87,18 @@ class AzureADJWTAuthentication(BaseAuthentication):
         email = claims.get("email") or claims.get("preferred_username") or username
         print("Authenticated username:", username)
 
-         # Get or create the user in the local database
-        user, created = User.objects.get_or_create(
-            username=username,
-            defaults={"email": email},
-        )
-
+        #  # Get or create the user in the local database
+        # user, created = User.objects.get_or_create(
+        #     username=username,
+        #     defaults={"email": email},
+        # )
+        # Get existing user ONLY — do NOT create
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise exceptions.AuthenticationFailed(
+                "Your Microsoft account is not registered in the TA system. Please contact HR or the administrator."
+            )   
+    
 
         return user, claims
