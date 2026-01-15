@@ -117,11 +117,12 @@ const handleLogin = async () => {
     // Step 3: Now API call will include Authorization header
     // Fetch employee details from Django
     const profile = await fetchCurrentEmployee();
+   
 
     if (!profile.emp_details || !profile.is_active) {
     
 
-      alert(`Hi ${profile.user}, you're Employee details not found`);
+      alert(`Hi ${profile.user}, you're Employee details not found or not active in our system. Please contact Admin.`);
 
 
       handleLogout()
@@ -138,10 +139,27 @@ const handleLogin = async () => {
   } catch (err) {
 
     console.error("Login / employee fetch error:", err);
-     alert(`you're authenticated in Entra but not registered in the TA System.Please Contact admin.`);
 
-      return;
+  // Axios error shape
+  const status = err?.response?.status;
+
+  // Your backend custom handler returns: { ok:false, code:"AUTH_FAILED", message:"..." }
+  const backendMessage =
+    err?.response?.data?.message ||
+    err?.response?.data?.detail ||   // DRF default field
+    err?.message;
+
+  // Show ONLY the backend message when user is not registered / auth failed
+  if (status === 401 || status === 403) {
+    alert(backendMessage || "Unauthorized. Please contact admin.");
+    handleLogout?.();
+    return;
   }
+
+  // For other errors (network, server issues)
+  alert("Something went wrong. Please try again.");
+}
+  
 };
 const handleLogout = async () => {
   try {
@@ -182,6 +200,7 @@ const fetchDropdowns = async () => {
     dispatch(setEmployees(employeeData));
     dispatch(setAccountManagers(accountManagersData));
     dispatch(setHiringManagers(HiringManagersData));
+    console.log("Dropdowns fetched successfully");
   } catch (err) {
     console.error('Dropdown fetch failed:', err.message);
   }

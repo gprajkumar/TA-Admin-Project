@@ -54,8 +54,6 @@ const OnhandleSelect = useCallback(
     if(!formData.Job)  newError.job = "Please Select Job";
     if(!formData.submission_date)  newError.submission_date = "Please Select submission_date";
     if(!formData.candidate_name)  newError.candidate_name = "Please Select candidate_name";
-    if(!formData.payrate)  newError.payrate = "Please Enter payrate";
-    if(!formData.w2_C2C)  newError.w2_C2C = "Please Select w2_C2C";
     if(!formData.recruiter)  newError.recruiter = "Please Select recruiter";
       if(!formData.sourcer)  newError.sourcer = "Please Select sourcer";
     if(!formData.source)  newError.source = "Please Select source";
@@ -80,8 +78,8 @@ const resetform = () =>
         const [recruitersRes, sourcersRes, sourceres] =
           await Promise.all([
            
-            getfilteredEmployees({ can_recruit: true, department: 2 }),
-            getfilteredEmployees({ can_source: true, department: 1 }),
+            getfilteredEmployees({ can_recruit: true }),
+            getfilteredEmployees({ can_source: true }),
             getSources(),
           ]);
 
@@ -154,8 +152,9 @@ useEffect(() => {
     }));
   }
 }, [tat]);
+console.log("TAT:", tat);
    const renderSelect = (name, label, options) => {
-    console.log("options",options);
+  
   const selectOptions = (options || []).map((opt) => ({
     value: opt.id,
     label: opt.name,
@@ -168,7 +167,7 @@ useEffect(() => {
 
   return (
     <Form.Group className="mb-3">
-      <Form.Label className="fs-6">{label}<span style={{ color: "red" }}>*</span>:</Form.Label>
+      <Form.Label className="fs-6">{label}{name != "w2_C2C" && <span style={{ color: "red" }}>*</span>}:</Form.Label>
       <Select
         classNamePrefix="my-select"
         options={selectOptions}
@@ -228,7 +227,7 @@ else
       <Row>
         <Col md={12}>
            <Form.Group className="mb-3 " controlId="job">
-                    <Form.Label className="fs-6">Job:</Form.Label>
+                    <Form.Label className="fs-6">Job<span style={{ color: "red" }}>*</span>:</Form.Label>
        <CustomAsyncSelect placeholder={"Search job by title or ID"} loadOptions={loadOptions} name="Job" onChange={handleChange} error={errors.job}/>
           
 
@@ -238,7 +237,7 @@ else
       <Row>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="submission_date">
-            <Form.Label className="fs-6">Submission Date:</Form.Label>
+            <Form.Label className="fs-6">Submission Date<span style={{ color: "red" }}>*</span>:</Form.Label>
             <Form.Control
              isInvalid={!!errors.submission_date}
               type="Date"
@@ -254,7 +253,7 @@ else
         </Col>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="candidate_name">
-            <Form.Label className="fs-6">Candidate Name:</Form.Label>
+            <Form.Label className="fs-6">Candidate Name<span style={{ color: "red" }}>*</span>:</Form.Label>
             <Form.Control
               type="input"
                isInvalid={!!errors.candidate_name}
@@ -274,14 +273,11 @@ else
             <Form.Label className="fs-6">Payrate in $:</Form.Label>
             <Form.Control
               type="input"
-               isInvalid={!!errors.payrate}
               name="payrate"
               value={formData.payrate}
               onChange={handleChange}
             />
-              <Form.Control.Feedback type = 'invalid'>
-              {errors.payrate}
-            </Form.Control.Feedback>
+             
           </Form.Group>
         </Col>
         <Col md={3}>

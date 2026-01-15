@@ -179,10 +179,13 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer    
 
 class CurrentEmployeeView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = []
+    # permission_classes = []
     def get(self, request):
-       
+        
         username = request.user.username
+   
         # try:
         #     user = User.objects.get(username=username)
         #     print("User found:", user.username)

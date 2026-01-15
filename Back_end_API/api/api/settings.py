@@ -124,7 +124,8 @@ REST_FRAMEWORK = {
     ),
       'DEFAULT_PERMISSION_CLASSES': [
         
-        'rest_framework.permissions.IsAuthenticated']
+        'rest_framework.permissions.IsAuthenticated'],
+        "EXCEPTION_HANDLER": "api.exceptions.custom_exception_handler",
 }
 
 AZURE_AD_CONFIG = {

@@ -1,19 +1,26 @@
+import time
 import requests
 import jwt
 from jwt import PyJWKClient
 from django.conf import settings
+from django.core.cache import cache
 from rest_framework.authentication import BaseAuthentication
 from rest_framework import exceptions
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class AzureADJWTAuthentication(BaseAuthentication):
+    OPENID_CACHE_KEY = "azuread_openid_config"
+    JWKS_CLIENT_CACHE_KEY = "azuread_jwks_client"
+    CACHE_TTL_SECONDS = 60 * 60  # 1 hour
 
     def authenticate(self, request):
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
+
         if not auth_header.startswith("Bearer "):
-            return None  # no/malformed auth -> DRF treats as unauthenticated
+            return None
 
         token = auth_header.split(" ", 1)[1].strip()
         if not token:
@@ -22,83 +29,112 @@ class AzureADJWTAuthentication(BaseAuthentication):
         user, claims = self._validate_token(token)
         return (user, claims)
 
+    # --------------------------------------------------
+
+    def _get_openid_config(self, tenant_id):
+        cached = cache.get(self.OPENID_CACHE_KEY)
+        if cached:
+            return cached
+
+        url = f"https://login.microsoftonline.com/{tenant_id}/v2.0/.well-known/openid-configuration"
+
+        try:
+            resp = requests.get(url, timeout=5)
+            resp.raise_for_status()
+            data = resp.json()
+            cache.set(self.OPENID_CACHE_KEY, data, timeout=self.CACHE_TTL_SECONDS)
+            return data
+        except Exception:
+            raise exceptions.AuthenticationFailed("OpenID config fetch failed")
+
+    # --------------------------------------------------
+
+    def _get_jwk_client(self, jwks_uri):
+        client = cache.get(self.JWKS_CLIENT_CACHE_KEY)
+        if client:
+            return client
+
+        client = PyJWKClient(jwks_uri)
+        try:
+            cache.set(self.JWKS_CLIENT_CACHE_KEY, client, timeout=self.CACHE_TTL_SECONDS)
+        except Exception:
+            pass
+
+        return client
+
+    # --------------------------------------------------
+
     def _validate_token(self, token):
         config = settings.AZURE_AD_CONFIG
         tenant_id = config["TENANT_ID"]
         audience = config["AUDIENCE"]
-     
-        # 1. Fetch OpenID configuration
-        openid_config_url = (
-            f"https://login.microsoftonline.com/{tenant_id}/v2.0/.well-known/openid-configuration"
-        )
+
+        # Decode unverified claims (used implicitly for validation flow)
+        unverified = jwt.decode(token, options={"verify_signature": False})
+
+        openid = self._get_openid_config(tenant_id)
+        jwks_uri = openid["jwks_uri"]
+
+        # Resolve signing key
         try:
-            openid_config = requests.get(openid_config_url).json()
-     
-        except Exception as e:
-            raise exceptions.AuthenticationFailed(
-                f"Failed to fetch OpenID configuration: {e}"
-            )
-
-        jwks_uri = openid_config["jwks_uri"]
-
-        # 2. Get signing key from JWKS
-        try:
-            jwk_client = PyJWKClient(jwks_uri)
-
+            jwk_client = self._get_jwk_client(jwks_uri)
             signing_key = jwk_client.get_signing_key_from_jwt(token)
-        except Exception as e:
-            raise exceptions.AuthenticationFailed(f"Invalid token (key error): {e}")
+        except Exception:
+            raise exceptions.AuthenticationFailed("Invalid token signing key")
 
-        # 3. Decode and verify JWT  (NO issuer check)
+        # Decode token (audience verified, issuer checked manually)
         try:
             claims = jwt.decode(
                 token,
                 signing_key.key,
                 algorithms=["RS256"],
                 audience=audience,
-                # issuer=issuer,  # <-- REMOVE THIS LINE
+                options={
+                    "require": ["exp", "iat"],
+                    "verify_iss": False,
+                },
             )
         except jwt.ExpiredSignatureError:
-            raise exceptions.AuthenticationFailed("Token has expired")
+            raise exceptions.AuthenticationFailed("Token expired")
+        except jwt.InvalidAudienceError:
+            raise exceptions.AuthenticationFailed("Invalid audience")
         except jwt.InvalidTokenError as e:
             raise exceptions.AuthenticationFailed(f"Invalid token: {e}")
 
-        # 4. Check scope
-        scopes = claims.get("scp", "")
-        if isinstance(scopes, str):
-            scopes_list = scopes.split()
-        else:
-            scopes_list = scopes or []
+        # --------------------------------------------------
+        # Manual issuer validation (Azure v1 + v2)
+        token_iss = (claims.get("iss") or "").rstrip("/")
+        expected_v2 = f"https://login.microsoftonline.com/{tenant_id}/v2.0".rstrip("/")
+        expected_v1 = f"https://sts.windows.net/{tenant_id}".rstrip("/")
 
-        required_scopes = {"access_as_user"}
-        if not required_scopes.intersection(scopes_list):
+        if token_iss not in {expected_v1, expected_v2}:
             raise exceptions.AuthenticationFailed(
-                f"Required scope not present. Got scopes: {scopes_list}"
+                f"Invalid token issuer: {token_iss}"
             )
 
-        # 5. Build a simple user object
+        # --------------------------------------------------
+        # Scope check
+        scopes = claims.get("scp", "")
+        scopes_list = scopes.split() if isinstance(scopes, str) else []
+
+        if "access_as_user" not in scopes_list:
+            raise exceptions.AuthenticationFailed(
+                "Missing required scope: access_as_user"
+            )
+
+        # --------------------------------------------------
+        # User lookup (NO creation)
         username = (
             claims.get("preferred_username")
             or claims.get("upn")
             or claims.get("oid")
-            or "azure_user"
         )
 
-        email = claims.get("email") or claims.get("preferred_username") or username
-    
-
-        #  # Get or create the user in the local database
-        # user, created = User.objects.get_or_create(
-        #     username=username,
-        #     defaults={"email": email},
-        # )
-        # Get existing user ONLY — do NOT create
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
             raise exceptions.AuthenticationFailed(
-                "Your Microsoft account is not registered in the TA system. Please contact HR or the administrator."
-            )   
-    
+                "Your Account not registered in the TA Team System. Please contact Admin."
+            )
 
         return user, claims
