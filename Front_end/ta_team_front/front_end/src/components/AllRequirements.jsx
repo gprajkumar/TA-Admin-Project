@@ -78,7 +78,7 @@ setviewtype(false)
   if (window.confirm("Are you sure you want to delete this requirement?")) {
     try {
     
-  const response = await axios.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
+  const response = await axiosInstance.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
   console.log('Deleted successfully', response.data);
       await handleSearch();
     } catch (error) {

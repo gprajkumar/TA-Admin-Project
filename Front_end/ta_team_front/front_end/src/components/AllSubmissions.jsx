@@ -105,7 +105,7 @@ console.log("searchData",res.data);
   const handleDelete = async (subId) => {
     if (window.confirm("Are you sure you want to delete this Candidate?")) {
       try {
-        const response = await axios.delete(
+        const response = await axiosInstance.delete(
           `${baseurl}/ta_team/submissions/${subId}/`
         );
         console.log("Deleted successfully", response.data);
