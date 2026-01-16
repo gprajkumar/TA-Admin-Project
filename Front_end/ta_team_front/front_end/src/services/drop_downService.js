@@ -63,7 +63,8 @@ const fetchDropdownasArray = async (endpoint) => {
 const fetcchSubmissionsbyReq = async (reqid) =>
   {
     const response = await axiosInstance.get(`/ta_team/submissions/`, {
-    params: { Job: reqid}
+    params: { Job: reqid,page_size:1000  // to get all submissions for the reqid
+    }
   });
     console.log(response.data);
     const data = response.data

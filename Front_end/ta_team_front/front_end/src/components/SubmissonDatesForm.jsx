@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
 import {
   getJobreqs,
   getSubmissionsbyReqid,
@@ -14,6 +15,7 @@ const SubmissionDatesForm = ({
 }) => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [errors, setErrors] = useState({});
+  const[fetchedJobs,setFetchedJobs] = useState([]);
   const [FormData, setFormData] = useState({
     client_sub_date: "",
     client_interview_date: "",
@@ -24,6 +26,17 @@ const SubmissionDatesForm = ({
     tech_screen_date: "",
     am_screen_date: "",
   });
+  const loadOptions = async (inputValue) => {
+   const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
+     params: { q: inputValue }
+   });
+ console.log("searchData",res.data);
+ setFetchedJobs(res.data);
+   return res.data.map(job => ({
+     label: `${job.job_code}-${job.job_title} `,
+     value: job.requirement_id
+   }));
+ };  
   const [JobData, setJobData] = useState([]);
   const [CandidateData, setCandidateData] = useState([]);
   const [DropdownData, setDropdownData] = useState({
@@ -69,6 +82,7 @@ const SubmissionDatesForm = ({
   };
 
   const fetchCandidateData = async () => {
+    if (!FormData.requirement_id) return;
     const candidateData = await getSubmissionsbyReqid(FormData.requirement_id);
     setCandidateData(candidateData);
     setDropdownData((prev) => ({
@@ -83,6 +97,35 @@ const SubmissionDatesForm = ({
   useEffect(() => {
     fetchCandidateData();
   }, [FormData.requirement_id]);
+
+useEffect(() => {
+  const fetchSubmissionByCandidate = async () => {
+      if (!FormData.requirement_id || !FormData.submission_id) return;
+
+    try {
+      const res = await axiosInstance.get(
+        `/ta_team/submissions/${FormData.submission_id}/`
+      );
+
+      const formValues = res.data;
+console.log("candidate data", res.data);
+      setFormData((prev) => ({
+        ...prev,
+        client_sub_date: formValues.client_sub_date || "",
+        client_interview_date: formValues.client_interview_date || "",
+        offer_date: formValues.offer_date || "",
+        start_date: formValues.start_date || "",
+        tech_screen_date: formValues.tech_screen_date || "",
+        am_screen_date: formValues.am_screen_date || "",
+      }));
+    } catch (err) {
+      console.error("Failed to fetch submission data", err);
+    }
+  };
+
+  fetchSubmissionByCandidate();
+}, [FormData.submission_id]);
+
 const jobdataready = DropdownData.jobdropdown.length > 0;
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -208,7 +251,11 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
       <Form onSubmit={handleSubmit} className="requirement-form container">
         <Row>
           <Col md={6}>
-            {renderSelect("requirement_id", "Job", DropdownData.jobdropdown)}
+            {/* {renderSelect("requirement_id", "Job", DropdownData.jobdropdown)} */}
+                 <Form.Group className="mb-3 " controlId="job">
+                    <Form.Label className="fs-6">Job<span style={{ color: "red" }}>*</span>:</Form.Label>
+       <CustomAsyncSelect placeholder={"Search job by title or ID"} loadOptions={loadOptions} name="requirement_id" onChange={handleChange} error={errors.job}/>
+                  </Form.Group>
           </Col>
           <Col md={6}>
             {renderSelect(

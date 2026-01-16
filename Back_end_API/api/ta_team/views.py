@@ -53,7 +53,7 @@ class RequirementsViewSet(ModelViewSet):
             'client', 'end_client', 'account', 'job_status', 
             'assigned_recruiter', 'assigned_sourcer',
             'accountManager', 'hiringManager', 'role_type'
-        ).all()
+        ).all().order_by('-req_opened_date')
 
         empcode = self.request.query_params.get("empcode")
         print("Empcode:", empcode)
@@ -145,10 +145,9 @@ class SubmisionViewSet(ModelViewSet):
     def get_queryset(self):
         queryset = Submissions.objects.select_related(
             'Job', 'recruiter', 'sourcer', 'source'
-        ).all()
+        ).all().order_by('-submission_date')
 
         empcode = self.request.query_params.get("empcode")
-        
     
 
         if empcode:
@@ -156,7 +155,7 @@ class SubmisionViewSet(ModelViewSet):
                 Q(recruiter_id=empcode) | Q(sourcer_id=empcode)
             )
        
-       
+     
 
         return queryset
 class PlacementViewSet(ModelViewSet):
