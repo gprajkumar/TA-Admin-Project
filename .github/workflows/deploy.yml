@@ -1,0 +1,44 @@
+name: Deploy to EC2 on master push
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
+
+            echo "➡️ Go to app directory"
+            cd "${{ secrets.EC2_APP_PATH }}"
+
+            echo "➡️ Pull latest code"
+            git pull origin master
+
+            echo "✅ Backend"
+            source Back_end_API/venv/bin/activate
+            pip install -r Back_end_API/requirements.txt
+            python Back_end_API/api/manage.py migrate
+            python Back_end_API/api/manage.py collectstatic --noinput
+
+            echo "✅ Frontend (Vite)"
+            cd Front_end/ta_team_front/front_end
+            npm run build
+            cd "${{ secrets.EC2_APP_PATH }}"
+
+            echo "✅ Restart services"
+            sudo systemctl restart gunicorn
+            sudo systemctl restart nginx
+
+            echo "🎉 Deploy finished"
+          EOF
