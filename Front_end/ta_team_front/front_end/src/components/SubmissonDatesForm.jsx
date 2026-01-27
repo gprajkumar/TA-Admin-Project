@@ -272,7 +272,7 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
               <Form.Control
                 type="date"
                 min="2024-01-01"
-                max={new Date().toISOString().split("T")[0]}
+                
                 placeholder="AM Screen Date"
                 name="am_screen_date"
                 value={FormData.am_screen_date}
@@ -286,7 +286,7 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
               <Form.Control
                 type="date"
                 min="2024-01-01"
-                max={new Date().toISOString().split("T")[0]}
+                
                 placeholder="Tech Screen Date"
                 name="tech_screen_date"
                 value={FormData.tech_screen_date}
@@ -302,7 +302,7 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
               <Form.Control
                 type="date"
                 min="2024-01-01"
-                max={new Date().toISOString().split("T")[0]}
+               
                 placeholder="Client Submission Date"
                 name="client_sub_date"
                 value={FormData.client_sub_date}
@@ -316,7 +316,7 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
               <Form.Control
                 type="date"
                 min="2024-01-01"
-                max={new Date().toISOString().split("T")[0]}
+               
                 placeholder="Client Interview Date:"
                 name="client_interview_date"
                 value={FormData.client_interview_date}
@@ -332,7 +332,7 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
               <Form.Control
                 type="date"
                 min="2024-01-01"
-                max={new Date().toISOString().split("T")[0]}
+             
                 placeholder="Enter Job Open Date"
                 name="offer_date"
                 value={FormData.offer_date}
@@ -346,7 +346,7 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
               <Form.Control
                 type="date"
                 min="2024-01-01"
-                max={new Date().toISOString().split("T")[0]}
+                
                 placeholder="Enter Job Open Date"
                 name="start_date"
                 value={FormData.start_date}
