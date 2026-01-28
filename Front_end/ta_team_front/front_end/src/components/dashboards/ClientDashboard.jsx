@@ -370,7 +370,7 @@ useEffect(() => {
   return (
     <div>
       <div className="update_container">
-        <label>Last updated data:{updatedDate}</label>
+        <label>Last updated date:{updatedDate}</label>
         <Button onClick={handleRefresh}>Refresh Data</Button>
       </div>
       {dateAlert && (
