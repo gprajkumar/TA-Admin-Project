@@ -51,8 +51,6 @@ const ClientDashboard = () => {
   }
 
     if (denominator === 0) return "0%";
-    console.log("denominator", denominator);
-    console.log("numerator", numerator);
     return ((numerator / denominator) * 100).toFixed(2) + "%";
   };
   // // Custom Tooltip formatter

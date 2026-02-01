@@ -119,6 +119,7 @@ const resetform = () =>
     try {
       if(!submission_id)
       {
+        console.log("inside submit",formData)
       await axiosInstance.post(`/ta_team/submissions/`, formData);
       alert("Submitted successfully");
      <CustomAlert message={"Submitted successfully"} type="success" />

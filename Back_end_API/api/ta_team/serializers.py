@@ -145,6 +145,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'offer_date',
             'start_date',
             'current_status',
+            'turn_around_time',
             'created_by'
         ]
 
