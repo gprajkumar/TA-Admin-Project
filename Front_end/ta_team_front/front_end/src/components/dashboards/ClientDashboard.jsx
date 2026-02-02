@@ -452,17 +452,32 @@ useEffect(() => {
       <div className="dashboard_area">
         <div className="dashboard">
           <div className="submissions-scorecard-layout">
-           <ScoreCard title="AM Submissions" score={barChartData.overall_data.amsubs} />
-           <ScoreCard title="Client Submissions" score={barChartData.overall_data.csubs} />
-           <ScoreCard title="Interviews" score={barChartData.overall_data.interviews} />
-           <ScoreCard title="Starts" score={barChartData.overall_data.starts} />
-           <ScoreCard title="Reqs to Hire" score={req_to_hire} />
-           <ScoreCard title="AM to Client Submissions" score={am_to_client_subs} />
-           <ScoreCard title="CSubs to interviews" score={client_to_interviews} />
-            <ScoreCard title="Interviews to Offers" score={interviews_to_offers} />
-            <ScoreCard title="Offers to Starts" score={offers_to_starts} />
-           
-          </div>
+  
+  <div className="scorecard-row row-1">
+    <ScoreCard title="AM Submissions" score={barChartData.overall_data.amsubs} />
+    <ScoreCard title="Client Submissions" score={barChartData.overall_data.csubs} />
+    <ScoreCard title="Interviews" score={barChartData.overall_data.interviews} />
+    <ScoreCard title="Offers" score={barChartData.overall_data.offers} />
+    <ScoreCard title="Starts" score={barChartData.overall_data.starts} />
+  </div>
+
+  <div className="scorecard-row row-2">
+    <ScoreCard title="AM to Client Submissions" score={am_to_client_subs} />
+    <ScoreCard title="CSubs to interviews" score={client_to_interviews} />
+    <ScoreCard title="Interviews to Offers" score={interviews_to_offers} />
+    <ScoreCard title="Offers to Starts" score={offers_to_starts} />
+  </div>
+
+  <div className="scorecard-row row-3">
+    <ScoreCard title="Reqs to Hire" score={req_to_hire} />
+    <ScoreCard title="TA Team's TAT" score={barChartData.overall_data.avg_turnaround_time} />
+    <ScoreCard title="CSM'S TAT" score={barChartData.overall_data.avg_days_am_to_csub} />
+    <ScoreCard title="Time to Fill" score={barChartData.overall_data.avg_days_time_to_fill} />
+    <ScoreCard title="Time to Hire" score={barChartData.overall_data.avg_days_time_to_hire} />
+  </div>
+
+</div>
+
           <div className="chart-box-primary">
             <CustomBarchart data={barChartData.grouped_data} xaxis={ activeFilter === "account" ? "account_name" : "end_client_name"} datakeys={["roles_opened","amsubs", "csubs", "interviews", "offers", "starts"]} />
             

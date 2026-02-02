@@ -30,58 +30,97 @@
   
 }
 .submissions-scorecard-layout {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
   padding: 24px;
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: 12px;
-  margin-bottom: 20px;
   width: 100%;
-  box-sizing: border-box;
+}
+.scorecard-row {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 20px;
 }
 
-.submissions-scorecard-layout .scorecard {
+/* 5 columns */
+.row-1,
+.row-3 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+
+/* 4 columns */
+.row-2 {
+  grid-template-columns: repeat(4, 1fr);
+  justify-content: center;
+}
+.row-1 .scorecard {
   background-color: #ffffff;
-  /* Force six columns: subtract total gaps (5 * 24px = 120px) then divide by 6 */
-  flex: 0 0 calc((100% - 120px) / 6);
-  max-width: calc((100% - 120px) / 6);
-  min-width: 120px;
-  border-radius: 4px;
+}
+
+.row-2 .scorecard {
+  background-color: #f0f9ff;
+}
+
+.row-3 .scorecard {
+  background-color: #fff7ed;
+}
+
+/* Optional: title color per row */
+.row-1 .title {
+  background-color: #06664e;
+}
+
+.row-2 .title {
+  background-color: #1e40af;
+}
+
+.row-3 .title {
+  background-color: #9a3412;
+}
+.scorecard {
+
+  font-size: 1.1rem;
+  border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  align-items: stretch;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.submissions-scorecard-layout .scorecard:hover {
+.scorecard > p {
+  display: flex;
+  padding: 10px;
+  justify-content: center;
+  font-family: Arial,  sans-serif; /* temporary test */
+  align-items: center;
+  flex: 1;          /* fills remaining space */
+  text-align: center;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #222;
+}
+.scorecard .title {
+  width: 100%;
+  display: flex;              /* 👈 use flex */
+  justify-content: center;    /* horizontal centering */
+  align-items: center;        /* vertical centering */
+  text-align: center;
+
+  padding: 10px;
+  margin: 0;
+  color: #ffffff;
+  font-weight: 500;
+  border-radius: 4px 4px 0 0;
+}
+
+
+.scorecard:hover {
   transform: translateY(-4px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
-.scorecard .title {
-  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  padding: clamp(4px, 1.5vw, 8px);
-  background-color: #06664e;
-  font-weight: 500;
-  color: #ffffff;
-  text-align: center;
-  width: 100%;
- 
-  margin-bottom: 12px;
-}
-.scorecard > p {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #222;
-  text-align: center;
-  margin: 0;
-}
 .filter_Container .fs-6 {
   color: white;
 }

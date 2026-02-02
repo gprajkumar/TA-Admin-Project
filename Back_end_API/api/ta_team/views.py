@@ -297,18 +297,24 @@ class ClientDashboardView(ReadOnlyModelViewSet):
                 interviews=Sum('interviews'),
                 offers=Sum('offers'),
                 starts=Sum('starts'),
-                avg_turnaround_time=Avg('avg_turnaround_time') 
+                avg_turnaround_time=Avg('avg_turnaround_time'),
+                avg_days_am_to_csub=Avg('avg_days_am_to_csub'),
+                avg_days_time_to_fill=Avg('avg_days_time_to_fill'),  
+                avg_days_time_to_hire=Avg('avg_days_time_to_hire')
             )
 
             if filter_type == "endclient":
                 grouped_data = queryset.values('end_client_id', 'end_client_name').annotate(
-                    roles_opened=Count('job_code'),
-                    amsubs=Sum('amsubs'),
-                    csubs=Sum('csubs'),
-                    interviews=Sum('interviews'),
-                    offers=Sum('offers'),
-                    starts=Sum('starts'),
-                    avg_turnaround_time=Avg('avg_turnaround_time') 
+                roles_opened=Count('job_code'),
+                amsubs=Sum('amsubs'),
+                csubs=Sum('csubs'),
+                interviews=Sum('interviews'),
+                offers=Sum('offers'),
+                starts=Sum('starts'),
+                avg_turnaround_time=Avg('avg_turnaround_time'),
+                avg_days_am_to_csub=Avg('avg_days_am_to_csub'),
+                avg_days_time_to_fill=Avg('avg_days_time_to_fill'),  
+                avg_days_time_to_hire=Avg('avg_days_time_to_hire') 
                 ).order_by('end_client_id')
             else:
                 grouped_data = queryset.values('account_id', 'account_name').annotate(
@@ -318,11 +324,23 @@ class ClientDashboardView(ReadOnlyModelViewSet):
                     interviews=Sum('interviews'),
                     offers=Sum('offers'),
                     starts=Sum('starts'),
-                    avg_turnaround_time=Avg('avg_turnaround_time')
-                ).order_by('account_name')
+                    avg_turnaround_time=Avg('avg_turnaround_time'),
+                    avg_days_am_to_csub=Avg('avg_days_am_to_csub'),
+                    avg_days_time_to_fill=Avg('avg_days_time_to_fill'),  
+                    avg_days_time_to_hire=Avg('avg_days_time_to_hire')
+                    ).order_by('account_name')
+
 
             for item in grouped_data:
                 item['avg_turnaround_time'] = round(item['avg_turnaround_time'], 2) if item['avg_turnaround_time'] is not None else None
+                item['avg_days_am_to_csub'] = round(item['avg_days_am_to_csub'], 2) if item['avg_days_am_to_csub'] is not None else None
+                item['avg_days_time_to_fill'] = round(item['avg_days_time_to_fill'], 2) if item['avg_days_time_to_fill'] is not None else None
+                item['avg_days_time_to_hire'] = round(item['avg_days_time_to_hire'], 2) if item['avg_days_time_to_hire'] is not None else None
+            
+            overall_calculations['avg_turnaround_time'] = round(overall_calculations['avg_turnaround_time'], 2) if overall_calculations['avg_turnaround_time'] is not None else None
+            overall_calculations['avg_days_am_to_csub'] = round(overall_calculations['avg_days_am_to_csub'], 2) if overall_calculations['avg_days_am_to_csub'] is not None else None
+            overall_calculations['avg_days_time_to_fill'] = round(overall_calculations['avg_days_time_to_fill'], 2) if overall_calculations['avg_days_time_to_fill'] is not None else None
+            overall_calculations['avg_days_time_to_hire'] = round(overall_calculations['avg_days_time_to_hire'], 2) if overall_calculations['avg_days_time_to_hire'] is not None else None
             return Response({
                 "grouped_data": list(grouped_data),
                 "total_data": overall_calculations,
