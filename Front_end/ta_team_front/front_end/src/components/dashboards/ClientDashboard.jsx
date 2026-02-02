@@ -471,7 +471,7 @@ useEffect(() => {
   <div className="scorecard-row row-3">
     <ScoreCard title="Reqs to Hire" score={req_to_hire} />
     <ScoreCard title="TA Team's TAT" score={barChartData.overall_data.avg_turnaround_time} />
-    <ScoreCard title="CSM'S TAT" score={barChartData.overall_data.avg_days_am_to_csub} />
+    <ScoreCard title="Client TAT" score={barChartData.overall_data.avg_days_am_to_csub} />
     <ScoreCard title="Time to Fill" score={barChartData.overall_data.avg_days_time_to_fill} />
     <ScoreCard title="Time to Hire" score={barChartData.overall_data.avg_days_time_to_hire} />
   </div>
