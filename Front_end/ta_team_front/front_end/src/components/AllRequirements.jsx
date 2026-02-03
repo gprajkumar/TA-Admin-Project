@@ -18,7 +18,7 @@ import { useSelector } from "react-redux";
 import axiosInstance from "../services/axiosInstance";
 import CustomPagination from "./sharedComponents/CustomPagination";
 import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
-
+import { formatDateMMDDYYYY } from "../services/helper";
 const AllRequirements = () => {
   const {empcode} = useParams();
   console.log("empcode", empcode)
@@ -434,7 +434,7 @@ const  jobsRes = await getJobreqs();
       {filteredReqs.map((req) => (
         <Row key={req.requirement_id} className="data-row">
           <Col className="col-job">{`${req.job_code}- ${req.job_title}`}</Col>
-          <Col className="col-end-client">{new Date(req.req_opened_date).toLocaleDateString("en-US")}</Col>
+          <Col className="col-end-client">{formatDateMMDDYYYY(req.req_opened_date)}</Col>
           <Col className="col-client">{req.client_name}</Col>
           <Col className="col-recruiter">{req.assigned_recruiter_name}</Col>
           <Col className="col-sourcer">{req.assigned_sourcer_name}</Col>

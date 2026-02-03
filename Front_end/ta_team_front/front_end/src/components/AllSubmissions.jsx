@@ -1,6 +1,7 @@
 import React, { useState, useEffect,useMemo } from "react";
 import axios from "axios";
 import { FaEye, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import { formatDateMMDDYYYY } from "../services/helper";
 import Modal from "react-bootstrap/Modal";
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
@@ -78,11 +79,7 @@ const AllSubmissions = ({ dateform = false, empId }) => {
      
     }
   )
-  const formatDateMMDDYYYY = (dateStr) => {
-  if (!dateStr) return "";
-  const [year, month, day] = dateStr.split("-");
-  return `${month}/${day}/${year}`;
-};
+ =
 
   // const handleShow = () => {setShow(true);}
   const handleView = (subId, sendata) => {
