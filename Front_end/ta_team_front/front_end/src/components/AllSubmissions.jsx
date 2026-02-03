@@ -78,7 +78,12 @@ const AllSubmissions = ({ dateform = false, empId }) => {
      
     }
   )
-  
+  const formatDateMMDDYYYY = (dateStr) => {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-");
+  return `${month}/${day}/${year}`;
+};
+
   // const handleShow = () => {setShow(true);}
   const handleView = (subId, sendata) => {
     setcurrentSubid(subId);
@@ -532,26 +537,20 @@ const paginatedItemGenerate = () => {
         <Row key={sub.submission_id} className="data-row">
           <Col className="col-job">{`${sub.job_details.job_code}- ${sub.job_details.job_title}`}</Col>
           <Col className="col-end-client">
-            {new Date(sub.submission_date).toLocaleDateString("en-US",{
-  timeZone: "America/Los_Angeles"
-})}
+            {formatDateMMDDYYYY(sub.submission_date)}
           </Col>
           <Col className="col-client">{sub.candidate_name}</Col>
           <Col className="col-client">
             {dateform == true
               ? sub.am_screen_date
-                ? new Date(sub.am_screen_date).toLocaleDateString("en-US",{
-  timeZone: "America/Los_Angeles"
-})
+                ? formatDateMMDDYYYY(sub.am_screen_date)
                 : ""
               : sub.recruiter_name}
           </Col>
           <Col className="col-recruiter">
             {dateform
               ? sub.tech_screen_date
-                ? new Date(sub.tech_screen_date).toLocaleDateString("en-US",{
-  timeZone: "America/Los_Angeles"
-})
+                ? formatDateMMDDYYYY(sub.tech_screen_date)
                 : ""
               : sub.sourcer_name}
           </Col>
@@ -559,9 +558,7 @@ const paginatedItemGenerate = () => {
           <Col className="col-sourcer">
             {dateform
               ? sub.client_sub_date
-                ? new Date(sub.client_sub_date).toLocaleDateString("en-US",{
-  timeZone: "America/Los_Angeles"
-})
+                ? formatDateMMDDYYYY(sub.client_sub_date)
                 : ""
               : sub.source_name}
           </Col>
@@ -569,11 +566,7 @@ const paginatedItemGenerate = () => {
           <Col className="col-job-status">
             {dateform
               ? sub.client_interview_date
-                ? new Date(sub.client_interview_date).toLocaleDateString(
-                    "en-US",{
-  timeZone: "America/Los_Angeles"
-}
-                  )
+                ? formatDateMMDDYYYY(sub.client_interview_date)
                 : ""
               : sub.current_status}
           </Col>
@@ -583,9 +576,7 @@ const paginatedItemGenerate = () => {
             style={{ display: dateform ? "block" : "none" }}
           >
             {sub.offer_date
-              ? new Date(sub.offer_date).toLocaleDateString("en-US",{
-  timeZone: "America/Los_Angeles"
-})
+              ? formatDateMMDDYYYY(sub.offer_date)
               : ""}
           </Col>
 
@@ -594,9 +585,7 @@ const paginatedItemGenerate = () => {
             style={{ display: dateform ? "block" : "none" }}
           >
             {sub.start_date
-              ? new Date(sub.start_date).toLocaleDateString("en-US",{
-  timeZone: "America/Los_Angeles"
-})
+              ? formatDateMMDDYYYY(sub.start_date)
               : ""}
           </Col>
           <Col className="col-action">
