@@ -46,6 +46,7 @@
 .row-2,
 .row-3 {
   grid-template-columns: repeat(6, 1fr);
+  justify-content: center;
 }
 
 
