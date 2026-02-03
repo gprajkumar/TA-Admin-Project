@@ -160,11 +160,11 @@ CEIPAL_API_KEY = os.getenv("CEIPAL_API_KEY")
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Los_Angeles'
 
 USE_I18N = True
-
 USE_TZ = True
+
 
 
 # Static files (CSS, JavaScript, Images)
