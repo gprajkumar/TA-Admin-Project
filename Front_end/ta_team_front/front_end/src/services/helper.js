@@ -51,6 +51,11 @@ export const getJobStatusGroupbyData = async(filters) =>{
     return [];
   }
 };
+export const formatDateMMDDYYYY = (dateStr) => {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-");
+  return `${month}/${day}/${year}`;
+};
 export const getcarryforwardActiveData = async(filters) =>{
   try{
     const response = await axiosInstance.post('ta_team/accountdata/filter/carryforwardroles/',filters);
