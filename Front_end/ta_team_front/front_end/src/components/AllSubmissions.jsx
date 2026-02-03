@@ -1,11 +1,11 @@
 import React, { useState, useEffect,useMemo } from "react";
 import axios from "axios";
 import { FaEye, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
-import { formatDateMMDDYYYY } from "../services/helper";
 import Modal from "react-bootstrap/Modal";
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
 import { useParams } from "react-router-dom";
+import { formatDateMMDDYYYY } from "../services/helper";
 import ViewForm from "./ViewForm";
 import Pagination from 'react-bootstrap/Pagination';
 import CustomPagination from "./sharedComponents/CustomPagination";
@@ -79,7 +79,7 @@ const AllSubmissions = ({ dateform = false, empId }) => {
      
     }
   )
- =
+ 
 
   // const handleShow = () => {setShow(true);}
   const handleView = (subId, sendata) => {
