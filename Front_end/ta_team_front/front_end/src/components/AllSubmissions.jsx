@@ -532,20 +532,26 @@ const paginatedItemGenerate = () => {
         <Row key={sub.submission_id} className="data-row">
           <Col className="col-job">{`${sub.job_details.job_code}- ${sub.job_details.job_title}`}</Col>
           <Col className="col-end-client">
-            {new Date(sub.submission_date).toLocaleDateString("en-US")}
+            {new Date(sub.submission_date).toLocaleDateString("en-US",{
+  timeZone: "America/Los_Angeles"
+})}
           </Col>
           <Col className="col-client">{sub.candidate_name}</Col>
           <Col className="col-client">
             {dateform == true
               ? sub.am_screen_date
-                ? new Date(sub.am_screen_date).toLocaleDateString("en-US")
+                ? new Date(sub.am_screen_date).toLocaleDateString("en-US",{
+  timeZone: "America/Los_Angeles"
+})
                 : ""
               : sub.recruiter_name}
           </Col>
           <Col className="col-recruiter">
             {dateform
               ? sub.tech_screen_date
-                ? new Date(sub.tech_screen_date).toLocaleDateString("en-US")
+                ? new Date(sub.tech_screen_date).toLocaleDateString("en-US",{
+  timeZone: "America/Los_Angeles"
+})
                 : ""
               : sub.sourcer_name}
           </Col>
@@ -553,7 +559,9 @@ const paginatedItemGenerate = () => {
           <Col className="col-sourcer">
             {dateform
               ? sub.client_sub_date
-                ? new Date(sub.client_sub_date).toLocaleDateString("en-US")
+                ? new Date(sub.client_sub_date).toLocaleDateString("en-US",{
+  timeZone: "America/Los_Angeles"
+})
                 : ""
               : sub.source_name}
           </Col>
@@ -562,7 +570,9 @@ const paginatedItemGenerate = () => {
             {dateform
               ? sub.client_interview_date
                 ? new Date(sub.client_interview_date).toLocaleDateString(
-                    "en-US"
+                    "en-US",{
+  timeZone: "America/Los_Angeles"
+}
                   )
                 : ""
               : sub.current_status}
@@ -573,7 +583,9 @@ const paginatedItemGenerate = () => {
             style={{ display: dateform ? "block" : "none" }}
           >
             {sub.offer_date
-              ? new Date(sub.offer_date).toLocaleDateString("en-US")
+              ? new Date(sub.offer_date).toLocaleDateString("en-US",{
+  timeZone: "America/Los_Angeles"
+})
               : ""}
           </Col>
 
@@ -582,7 +594,9 @@ const paginatedItemGenerate = () => {
             style={{ display: dateform ? "block" : "none" }}
           >
             {sub.start_date
-              ? new Date(sub.start_date).toLocaleDateString("en-US")
+              ? new Date(sub.start_date).toLocaleDateString("en-US",{
+  timeZone: "America/Los_Angeles"
+})
               : ""}
           </Col>
           <Col className="col-action">
