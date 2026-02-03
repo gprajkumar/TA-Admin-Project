@@ -454,6 +454,7 @@ useEffect(() => {
           <div className="submissions-scorecard-layout">
   
   <div className="scorecard-row row-1">
+    <ScoreCard title="Roles Opened" score={barChartData.overall_data.roles_opened} />
     <ScoreCard title="AM Submissions" score={barChartData.overall_data.amsubs} />
     <ScoreCard title="Client Submissions" score={barChartData.overall_data.csubs} />
     <ScoreCard title="Interviews" score={barChartData.overall_data.interviews} />
@@ -466,10 +467,10 @@ useEffect(() => {
     <ScoreCard title="CSubs to interviews" score={client_to_interviews} />
     <ScoreCard title="Interviews to Offers" score={interviews_to_offers} />
     <ScoreCard title="Offers to Starts" score={offers_to_starts} />
+    <ScoreCard title="Conversion Ratio" score={req_to_hire} />
   </div>
 
   <div className="scorecard-row row-3">
-    <ScoreCard title="Reqs to Hire" score={req_to_hire} />
     <ScoreCard title="TA Team's TAT" score={barChartData.overall_data.avg_turnaround_time} />
     <ScoreCard title="Client TAT" score={barChartData.overall_data.avg_days_am_to_csub} />
     <ScoreCard title="Time to Fill" score={barChartData.overall_data.avg_days_time_to_fill} />
