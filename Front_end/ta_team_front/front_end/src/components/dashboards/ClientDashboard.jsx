@@ -39,7 +39,7 @@ const ClientDashboard = () => {
     filter_type: "account", // Default filter type
   });
 
-  let [req_to_hire, am_to_client_subs, client_to_interviews, interviews_to_offers, offers_to_starts] = [0, 0, 0, 0, 0];
+  let [req_to_hire, am_to_client_subs, client_to_interviews, interviews_to_offers, offers_to_starts,techscreen_to_csub] = [0, 0, 0, 0, 0,0];
   const toPercentage =(denominator, numerator) => {
      if (
     !barChartData.overall_data || 
@@ -64,6 +64,15 @@ return toPercentage(
                   barChartData.overall_data.starts
                 )
     }, [barChartData.overall_data.roles_opened, barChartData.overall_data.starts]);
+  techscreen_to_csub = useMemo(() => {  
+    if (!barChartData.overall_data) {
+        return 0;
+      } 
+return toPercentage(
+                  barChartData.overall_data.techscreens,
+                  barChartData.overall_data.techscreen_csubs
+                );
+    }, [barChartData.overall_data.csubs, barChartData.overall_data.techscreens]);  
 am_to_client_subs = useMemo(() => {
    if (!barChartData.overall_data) {
         return 0;
@@ -464,6 +473,7 @@ useEffect(() => {
 
   <div className="scorecard-row row-2">
     <ScoreCard title="AM to Client Submissions" score={am_to_client_subs} />
+    <ScoreCard title="Tech Screen to CSubs" score={techscreen_to_csub} />
     <ScoreCard title="CSubs to interviews" score={client_to_interviews} />
     <ScoreCard title="Interviews to Offers" score={interviews_to_offers} />
     <ScoreCard title="Offers to Starts" score={offers_to_starts} />
@@ -472,9 +482,13 @@ useEffect(() => {
 
   <div className="scorecard-row row-3">
     <ScoreCard title="TA Team's TAT" score={barChartData.overall_data.avg_turnaround_time} />
-    <ScoreCard title="Client TAT" score={barChartData.overall_data.avg_days_am_to_csub} />
+    <ScoreCard title="CSM TAT" score={barChartData.overall_data.avg_days_am_to_csub} />
+    <ScoreCard title="Client TAT" score={barChartData.overall_data.avg_days_csub_to_offer} />
+     <ScoreCard title="Time to Interview" score={barChartData.overall_data.avg_days_time_to_interview} />
     <ScoreCard title="Time to Fill" score={barChartData.overall_data.avg_days_time_to_fill} />
     <ScoreCard title="Time to Hire" score={barChartData.overall_data.avg_days_time_to_hire} />
+    
+   
   </div>
 
 </div>

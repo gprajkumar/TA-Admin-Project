@@ -247,10 +247,14 @@ class DashboardJobData(models.Model):
     interviews = models.IntegerField(null=True)
     offers = models.IntegerField(null=True)
     starts = models.IntegerField(null=True)
+    techscreens = models.IntegerField(null=True)
+    techscreen_csubs = models.IntegerField(null=True)
     avg_turnaround_time = models.FloatField(null=True)
     avg_days_am_to_csub = models.FloatField(null=True)
     avg_days_time_to_fill = models.FloatField(null=True)
     avg_days_time_to_hire = models.FloatField(null=True)
+    avg_days_time_to_interview = models.FloatField(null=True)   
+    avg_days_csub_to_offer = models.FloatField(null=True)
 
     class Meta:
         managed = False  # Don't let Django manage the DB schema

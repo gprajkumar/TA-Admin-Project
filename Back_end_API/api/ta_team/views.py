@@ -297,10 +297,14 @@ class ClientDashboardView(ReadOnlyModelViewSet):
                 interviews=Sum('interviews'),
                 offers=Sum('offers'),
                 starts=Sum('starts'),
+                techscreens=Sum('techscreens'),
+                techscreen_csubs=Sum('techscreen_csubs'),
                 avg_turnaround_time=Avg('avg_turnaround_time'),
                 avg_days_am_to_csub=Avg('avg_days_am_to_csub'),
                 avg_days_time_to_fill=Avg('avg_days_time_to_fill'),  
-                avg_days_time_to_hire=Avg('avg_days_time_to_hire')
+                avg_days_time_to_hire=Avg('avg_days_time_to_hire'),
+                avg_days_csub_to_offer=Avg('avg_days_csub_to_offer'),
+                avg_days_time_to_interview=Avg('avg_days_time_to_interview')    
             )
 
             if filter_type == "endclient":
@@ -311,10 +315,14 @@ class ClientDashboardView(ReadOnlyModelViewSet):
                 interviews=Sum('interviews'),
                 offers=Sum('offers'),
                 starts=Sum('starts'),
+                techscreens=Sum('techscreens'),
+                techscreen_csubs=Sum('techscreen_csubs'),
                 avg_turnaround_time=Avg('avg_turnaround_time'),
                 avg_days_am_to_csub=Avg('avg_days_am_to_csub'),
                 avg_days_time_to_fill=Avg('avg_days_time_to_fill'),  
-                avg_days_time_to_hire=Avg('avg_days_time_to_hire') 
+                avg_days_time_to_hire=Avg('avg_days_time_to_hire'),
+                avg_days_csub_to_offer=Avg('avg_days_csub_to_offer'),
+                avg_days_time_to_interview=Avg('avg_days_time_to_interview')
                 ).order_by('end_client_id')
             else:
                 grouped_data = queryset.values('account_id', 'account_name').annotate(
@@ -324,10 +332,14 @@ class ClientDashboardView(ReadOnlyModelViewSet):
                     interviews=Sum('interviews'),
                     offers=Sum('offers'),
                     starts=Sum('starts'),
+                    techscreens = Sum('techscreens'),
+                    techscreen_csubs = Sum('techscreen_csubs'),
                     avg_turnaround_time=Avg('avg_turnaround_time'),
                     avg_days_am_to_csub=Avg('avg_days_am_to_csub'),
                     avg_days_time_to_fill=Avg('avg_days_time_to_fill'),  
-                    avg_days_time_to_hire=Avg('avg_days_time_to_hire')
+                    avg_days_time_to_hire=Avg('avg_days_time_to_hire'),
+                    avg_days_csub_to_offer=Avg('avg_days_csub_to_offer'),
+                    avg_days_time_to_interview=Avg('avg_days_time_to_interview')
                     ).order_by('account_name')
 
 
@@ -336,11 +348,16 @@ class ClientDashboardView(ReadOnlyModelViewSet):
                 item['avg_days_am_to_csub'] = round(item['avg_days_am_to_csub'], 2) if item['avg_days_am_to_csub'] is not None else None
                 item['avg_days_time_to_fill'] = round(item['avg_days_time_to_fill'], 2) if item['avg_days_time_to_fill'] is not None else None
                 item['avg_days_time_to_hire'] = round(item['avg_days_time_to_hire'], 2) if item['avg_days_time_to_hire'] is not None else None
+                item['avg_days_csub_to_offer'] = round(item['avg_days_csub_to_offer'], 2) if item['avg_days_csub_to_offer'] is not None else None
+                item['avg_days_time_to_interview'] = round(item['avg_days_time_to_interview'], 2) if item['avg_days_time_to_interview'] is not None else None
             
             overall_calculations['avg_turnaround_time'] = round(overall_calculations['avg_turnaround_time'], 2) if overall_calculations['avg_turnaround_time'] is not None else None
             overall_calculations['avg_days_am_to_csub'] = round(overall_calculations['avg_days_am_to_csub'], 2) if overall_calculations['avg_days_am_to_csub'] is not None else None
             overall_calculations['avg_days_time_to_fill'] = round(overall_calculations['avg_days_time_to_fill'], 2) if overall_calculations['avg_days_time_to_fill'] is not None else None
             overall_calculations['avg_days_time_to_hire'] = round(overall_calculations['avg_days_time_to_hire'], 2) if overall_calculations['avg_days_time_to_hire'] is not None else None
+            overall_calculations['avg_days_csub_to_offer'] = round(overall_calculations['avg_days_csub_to_offer'], 2) if overall_calculations['avg_days_csub_to_offer'] is not None else None
+            overall_calculations['avg_days_time_to_interview'] = round(overall_calculations['avg_days_time_to_interview'], 2) if overall_calculations['avg_days_time_to_interview'] is not None else None
+            
             return Response({
                 "grouped_data": list(grouped_data),
                 "total_data": overall_calculations,
@@ -381,9 +398,6 @@ class ClientDashboardView(ReadOnlyModelViewSet):
         try:
             filters = self.build_filters(request.data)
             queryset = DashboardJobData.objects.filter(**filters)
-
-            
-
             grouped_data = queryset.values('role_type_id','role_type').annotate(
                 no_of_roles_opened=Count('job_code'),
             ).order_by('role_type_id')
