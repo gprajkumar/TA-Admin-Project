@@ -185,7 +185,7 @@ console.log("isAuthenticated",isAuthenticated);
                   </NavDropdown.Item>
                   <NavDropdown.Item
                    as={NavLink}
-                      to={'/comingsoon/recruiterdashboard'}
+                      to={'/recruiterdashboard'}
                     onClick={() =>
                       handleDropdownItemClick("analytics-recruiter")
                     }

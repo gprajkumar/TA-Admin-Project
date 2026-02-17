@@ -288,3 +288,5 @@ class RolePermission(models.Model):
 
     def __str__(self):
         return f"{self.designation.designation_name} - {self.module.module_name} - {self.permission_type.permission_type_name}"
+
+

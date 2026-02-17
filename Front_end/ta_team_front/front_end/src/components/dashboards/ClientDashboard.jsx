@@ -18,7 +18,7 @@ import {
   getdashboardUpdateData,
 } from "../../services/helper";
 import ScoreCard from "./ScoreCard.jsx";
-
+import MultiSelectComponent from "../sharedComponents/MultiSelectComponent.jsx";
 
 const ClientDashboard = () => {
     const [barChartData, setBarChartData] = useState({
@@ -72,7 +72,7 @@ return toPercentage(
                   barChartData.overall_data.techscreens,
                   barChartData.overall_data.techscreen_csubs
                 );
-    }, [barChartData.overall_data.csubs, barChartData.overall_data.techscreens]);  
+    }, [barChartData.overall_data.techscreen_csubs, barChartData.overall_data.techscreens]);  
 am_to_client_subs = useMemo(() => {
    if (!barChartData.overall_data) {
         return 0;
@@ -259,103 +259,9 @@ useEffect(() => {
     }
   };
 
-  const customSelectStyles = {
-    control: (base, state) => ({
-      ...base,
-      height: "38px",
-      minHeight: "38px",
-      borderColor: "#ced4da",
-      borderRadius: "0.375rem",
-      fontSize: "1rem",
-      boxShadow: state.isFocused
-        ? "0 0 0 0.2rem rgba(0, 123, 255, 0.25)"
-        : base.boxShadow,
-      "&:hover": {
-        borderColor: "#86b7fe",
-      },
-    }),
-    valueContainer: (base) => ({
-      ...base,
-      padding: "0 8px",
-    }),
-    input: (base) => ({
-      ...base,
-      margin: 0,
-      padding: 0,
-    }),
-    indicatorsContainer: (base) => ({
-      ...base,
-      height: "38px",
-    }),
-  };
+  
 
-  const renderSelect = (name, label, options) => {
-    const values = selectedData[name] || [];
-
-    const selectOptions = [
-      {
-        value: 0,
-        label: "Select All",
-        isDisabled: false,
-      },
-      ...(options || []).map((opt) => ({
-        value: opt.id,
-        label: opt.name,
-        isDisabled: values.includes(0), // disable others if Select All is active
-      })),
-    ];
-
-    const selectedOptions = values.includes(0)
-      ? [selectOptions.find((opt) => opt.value === 0)]
-      : values
-          .map((val) => selectOptions.find((opt) => opt.value === val))
-          .filter(Boolean);
-
-    const hasError = !!errors[name];
-
-    return (
-      <Form.Group className="mb-3">
-        <Form.Label className="fs-6">
-          {label}
-          <span style={{ color: "red" }}>*</span>:
-        </Form.Label>
-        <Select
-          classNamePrefix="my-select"
-          isMulti
-          options={selectOptions}
-          value={selectedOptions}
-          isDisabled={viewtype}
-          onChange={(selected) => {
-            const values = selected ? selected.map((opt) => opt.value) : [];
-            const newValues = values.includes(0)
-              ? [0]
-              : values.filter((v) => v !== 0);
-            handleChange({ target: { name, value: newValues } });
-          }}
-          placeholder={`Select ${label}`}
-          isClearable
-          styles={{
-            ...customSelectStyles,
-            control: (base, state) => ({
-              ...customSelectStyles.control(base, state),
-              borderColor: hasError
-                ? "#dc3545"
-                : customSelectStyles.control(base, state).borderColor,
-              boxShadow: hasError
-                ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
-                : customSelectStyles.control(base, state).boxShadow,
-            }),
-          }}
-        />
-        {hasError && (
-          <Form.Control.Feedback type="invalid" className="d-block">
-            {errors[name]}
-          </Form.Control.Feedback>
-        )}
-      </Form.Group>
-    );
-  };
-
+  
 
   useEffect(() => {
     if (dateAlert) {
@@ -364,7 +270,7 @@ useEffect(() => {
     }
   }, [dateAlert]);
   const handleRefresh = async () => {
-    const response = await axiosInstance.get(
+    await axiosInstance.get(
       "ta_team/refresh-client-dashboard/"
     );
     const updatedDateResponse = await getdashboardUpdateData();
@@ -439,7 +345,7 @@ useEffect(() => {
           </Form.Group>
         </Col>
 
-        <Col md={4}>
+        {/* <Col md={4}>
           {activeFilter === "account"
             ? renderSelect(
                 "accounts",
@@ -450,7 +356,12 @@ useEffect(() => {
                 "endclients",
                 "End Client",
                 filterdropdowndata.endclient_dropdown
-              )}
+              )} 
+        </Col>*/}
+             <Col md={4}>
+          {activeFilter === "account"
+            ? <MultiSelectComponent name={"accounts"} label={"Account"} options={filterdropdowndata.account_dropdown} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>
+            :<MultiSelectComponent name={"endclients"} label={"End Client"} options={filterdropdowndata.endclient_dropdown} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>}
         </Col>
          <Col md={2}>
           <button

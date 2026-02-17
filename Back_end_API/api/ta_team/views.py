@@ -509,3 +509,59 @@ class TATCountAPIView(APIView):
             "holiday_count": holiday_count,
             "tat": tat
         })
+    
+class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
+    @staticmethod
+    def setFilters(data):
+        filters = {}
+        end_clients = data.get('endclients', [])
+        accounts = data.get('accounts', [])
+        recruiters = data.get('recruiters',[])
+        start_date = data.get('from_date')
+        end_date = data.get('to_date')
+     
+        if end_clients and end_clients[0] != 0:
+                filters['end_client_id__in'] = end_clients
+        if accounts and accounts[0] != 0:
+                filters['account_id__in'] = accounts
+        if recruiters and recruiters[0] !=0:
+            filters['employee_id__in']=recruiters
+        if start_date:
+                filters['submission_date__gte'] = start_date
+        if end_date:
+                filters['submission_date__lte'] = end_date
+        return filters
+
+    @action(detail=False, methods=['post'], url_path='filter/recruiterdashboard')
+    def recruiterDashboard(self,request):
+        filter_type = request.data.get('filter_type')
+        filters = self.setFilters(request.data)
+        try:
+            overall_data = Submissions.objects.select_related(
+                'Job','recruiter').filter(**filters).aggregate(
+                    amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
+                    csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
+                    techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
+                    interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
+                    offers=Count('submission_id', filter=Q(client_sub_date__isnull=False)),
+                    starts=Count('submission_id', filter=Q(client_sub_date__isnull=False))
+                )
+            recruiter_group_data = Submissions.objects.select_related(
+                'Job','recruiter').filter(**filters).values('recruiter','emp_fName').annotate(
+                    amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
+                    csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
+                    techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
+                    interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
+                    offers=Count('submission_id', filter=Q(client_sub_date__isnull=False)),
+                    starts=Count('submission_id', filter=Q(client_sub_date__isnull=False))
+                    )
+            return Response({
+              "grouped_data": list(recruiter_group_data),
+              "overall_data":   overall_data
+            }
+            )
+        except Exception as e:
+            print(traceback.format_exc())
+            return Response({"error": str(e)}, status=500)
+        
+
