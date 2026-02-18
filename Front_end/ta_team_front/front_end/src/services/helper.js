@@ -23,8 +23,9 @@ export const getMonthlySubsData = async(filters) =>{
 };
 export const getRecruiterSubmissions = async(filters) =>{
   try{
-const response = await axiosInstance.post('ta_team/accountdata/filter/',filters);
-    return response.data;
+     console.log("filters passing",filters);
+const response = await axiosInstance.post('ta_team/recruitersdata/filter/recruiterdashboard/',filters);
+return response.data;
   }
   catch(error)
   {
@@ -54,6 +55,7 @@ export const getRoleTypeGroupbyData = async(filters) =>{
 
 export const getJobStatusGroupbyData = async(filters) =>{
   try{
+   
     const response = await axiosInstance.post('ta_team/accountdata/filter/jobstatuses/',filters);
     return response.data;
   }

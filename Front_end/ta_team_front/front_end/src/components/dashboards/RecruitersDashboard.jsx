@@ -2,8 +2,10 @@ import React, { useEffect, useMemo,useState } from 'react'
 import { Row, Col, Button, Form, Alert } from "react-bootstrap";
 import { FaFilter } from "react-icons/fa";
 import { useSelector } from 'react-redux';
+import axiosInstance from '../../services/axiosInstance.js';
 import {
-  getdashboardUpdateData
+  getdashboardUpdateData,
+  getRecruiterSubmissions
 } from "../../services/helper";
 import "./Dashboard.css";
 import MultiSelectComponent from "../sharedComponents/MultiSelectComponent.jsx";
@@ -37,7 +39,7 @@ const [activeFilter, setActiveFilter] = useState("account");
     to_date: new Date().toISOString().split("T")[0],
     filter_type: "account", // Default filter type
   });
-
+const [recruiterSubmissionDetails,setrecruiterSubmissionDetails] = useState([]);
   const handleRefresh = async () => {
     await axiosInstance.get(
       "ta_team/refresh-client-dashboard/"
@@ -48,9 +50,40 @@ const [activeFilter, setActiveFilter] = useState("account");
     setDateAlert(true);
     handleFilterSearch();
   };
-   const handleFilterSearch = () => {
-  
+   
+const recruitersSubmissions = async(selectedData)=>{
+  try{
+  const submissionresponse = await getRecruiterSubmissions(selectedData);
+  console.log("submission response",submissionresponse)
+  setrecruiterSubmissionDetails(submissionresponse.grouped_data)
+  }
+  catch(error)
+  {
+    console.error("error fetching recruitersubmissions", error)
+
+  }
 }
+const getTopRecruiters = useMemo(()=>{
+  if(recruiterSubmissionDetails.length > 0){
+   const topRecruiters = recruiterSubmissionDetails.sort((a, b) => b.amsubs - a.amsubs).slice(0, 5);
+   return topRecruiters;
+  }
+  return [];
+},[recruiterSubmissionDetails])
+const getTopRecruiterbyOffers = useMemo(()=>{
+  if(recruiterSubmissionDetails.length > 0){
+   const topRecruiters = recruiterSubmissionDetails.sort((a, b) => b.offers - a.offers).slice(0, 5);
+   return topRecruiters;
+  }
+  return [];
+},[recruiterSubmissionDetails])
+const handleFilterSearch = () => {
+
+  recruitersSubmissions(selectedData);
+}
+useEffect(()=>{
+  handleFilterSearch()
+},[])
   const handleChange = ({ target }) => {
     const { name, value } = target;
 
@@ -72,10 +105,10 @@ const [activeFilter, setActiveFilter] = useState("account");
   };
   return (
    <div>
-      <div className="update_container">
+      {/* <div className="update_container">
         <label>Last updated Date: {updatedDate}</label>
         <Button onClick={handleRefresh}>Refresh Data</Button>
-      </div>
+      </div> */}
       {dateAlert && (
         <AlertComponent
           state={dateAlert}
@@ -167,7 +200,111 @@ const [activeFilter, setActiveFilter] = useState("account");
         <MultiSelectComponent name ={"recruiters"} label={"Recruiters"} options={filterdropdowndata.Recruiters} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>
         </Col>
       </Row>
+   <div>
+ </div>
    
+
+
+
+<div className="dashboard-container">
+  <div className="tables-layout">
+        {/* LEFT (500px) */}
+        <div className="metrics-table-wrapper table-left">
+          <table className="metrics-table">
+            <thead>
+              <tr>
+                <th>Recruiter</th>
+                <th>AM Subs</th>
+                <th>Client Subs</th>
+                <th>Client Interviews</th>
+                <th>Offers</th>
+                <th>Starts</th>
+                <th>TAT</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {recruiterSubmissionDetails.map((sub) => (
+                <tr key={sub.recruiter}>
+                  <td>{sub.recruiter__emp_fName}</td>
+                  <td>{sub.amsubs}</td>
+                  <td>{sub.csubs}</td>
+                  <td>{sub.interviews}</td>
+                  <td>{sub.offers}</td>
+                  <td>{sub.starts}</td>
+                  <td>{sub.tat}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* RIGHT (250 + 250) */}
+        <div className="tables-right">
+          <div className="metrics-table-wrapper table-right">
+            <h5>Top Recruiters by Offers</h5>
+            <table className="metrics-table">
+              <thead>
+                <tr>
+                  <th>Recruiter</th>
+                  <th>AM Subs</th>
+                  <th>Client Subs</th>
+                  <th>Client Interviews</th>
+                  <th>Offers</th>
+                  <th>Starts</th>
+                  <th>TAT</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {getTopRecruiterbyOffers.map((sub) => (
+                  <tr key={sub.recruiter}>
+                    <td>{sub.recruiter__emp_fName}</td>
+                    <td>{sub.amsubs}</td>
+                    <td>{sub.csubs}</td>
+                    <td>{sub.interviews}</td>
+                    <td>{sub.offers}</td>
+                    <td>{sub.starts}</td>
+                    <td>{sub.tat}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="metrics-table-wrapper table-right">
+            <h5>Top Recruiters by AM Submissions</h5>
+            <table className="metrics-table">
+              <thead>
+                <tr>
+                  <th>Recruiter</th>
+                  <th>AM Subs</th>
+                  <th>Client Subs</th>
+                  <th>Client Interviews</th>
+                  <th>Offers</th>
+                  <th>Starts</th>
+                  <th>TAT</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {getTopRecruiters.map((sub) => (
+                  <tr key={sub.recruiter}>
+                    <td>{sub.recruiter__emp_fName}</td>
+                    <td>{sub.amsubs}</td>
+                    <td>{sub.csubs}</td>
+                    <td>{sub.interviews}</td>
+                    <td>{sub.offers}</td>
+                    <td>{sub.starts}</td>
+                    <td>{sub.tat}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      </div> 
 </div>
      
           )

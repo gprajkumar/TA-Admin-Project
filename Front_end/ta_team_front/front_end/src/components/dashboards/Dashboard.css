@@ -199,6 +199,10 @@
   gap: 20px;                  /* Space between charts */
   justify-content: space-between; /* Spread charts evenly */
 }
+.dashboard-container {
+  width: 90%;
+  margin: 0 auto;
+}
 .chart-box {
   background-color: white;
   border-radius: 8px;
@@ -216,4 +220,110 @@
  min-width: 100%;
  min-height: 400px;
   box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+
+
+/* TOTAL WIDTH 90% */
+.dashboard-container {
+
+  width: 90%;
+  margin: 10px auto 0 auto;
+}
+
+/* 2-column layout */
+.tables-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* RIGHT column stacked */
+.tables-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* shared wrapper look */
+.metrics-table-wrapper {
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* Heights */
+.table-left {
+  flex: 1;
+  height: 520px;
+}
+
+.table-right {
+  height: 250px;
+}
+
+/* ---- your table styles kept intact ---- */
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 11px;
+}
+
+/* sticky header */
+.metrics-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(90deg, #0f172a, #1e293b);
+  color: white;
+}
+
+.metrics-table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.metrics-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.metrics-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.metrics-table tbody tr:hover {
+  background: #eef2ff;
+  transition: 0.15s ease-in-out;
+}
+
+.metrics-table td:first-child {
+  font-weight: 600;
+}
+
+/* Align numeric columns */
+.metrics-table td:not(:first-child),
+.metrics-table th:not(:first-child) {
+  text-align: center;
+}
+
+/* Optional: responsive (stack on small screens) */
+@media (max-width: 900px) {
+  .tables-layout {
+    flex-direction: column;
+  }
+  .table-left,
+  .table-right {
+    height: 250px;
+  }
 }

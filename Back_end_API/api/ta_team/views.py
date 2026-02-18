@@ -521,11 +521,11 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
         end_date = data.get('to_date')
      
         if end_clients and end_clients[0] != 0:
-                filters['end_client_id__in'] = end_clients
+                filters['Job__end_client_id__in'] = end_clients
         if accounts and accounts[0] != 0:
-                filters['account_id__in'] = accounts
+                filters['Job__account_id__in'] = accounts
         if recruiters and recruiters[0] !=0:
-            filters['employee_id__in']=recruiters
+            filters['recruiter__in']=recruiters
         if start_date:
                 filters['submission_date__gte'] = start_date
         if end_date:
@@ -535,6 +535,7 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
     @action(detail=False, methods=['post'], url_path='filter/recruiterdashboard')
     def recruiterDashboard(self,request):
         filter_type = request.data.get('filter_type')
+        print(f"data we are getting is {request.data}")
         filters = self.setFilters(request.data)
         try:
             overall_data = Submissions.objects.select_related(
@@ -543,18 +544,24 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
                     csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
                     techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
                     interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
-                    offers=Count('submission_id', filter=Q(client_sub_date__isnull=False)),
-                    starts=Count('submission_id', filter=Q(client_sub_date__isnull=False))
+                    offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
+                    starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    tat=Avg('turn_around_time')
                 )
             recruiter_group_data = Submissions.objects.select_related(
-                'Job','recruiter').filter(**filters).values('recruiter','emp_fName').annotate(
+                'Job','recruiter').filter(**filters).values('recruiter','recruiter__emp_fName').annotate(
                     amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
                     csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
                     techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
                     interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
-                    offers=Count('submission_id', filter=Q(client_sub_date__isnull=False)),
-                    starts=Count('submission_id', filter=Q(client_sub_date__isnull=False))
+                    offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
+                    starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    tat=Avg('turn_around_time')
                     )
+            
+            for item in recruiter_group_data:
+                item['tat'] = round(item['tat'], 2) if item['tat'] is not None else None
+
             return Response({
               "grouped_data": list(recruiter_group_data),
               "overall_data":   overall_data
