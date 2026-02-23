@@ -63,14 +63,14 @@ const recruitersSubmissions = async(selectedData)=>{
 
   }
 }
-const target_acheived= (submissions, target, fromdate) => {
+const target_acheived= (submissions, target, fromdate,typeofSub) => {
    const from = new Date(`${fromdate}T00:00:00`);   // force local date
   const to = new Date(); // fallback to today
   console.log("submissions, target", submissions, target);
   // If years are different → return 0
   console.log("from, to", from, to);
   if (from.getFullYear() !== to.getFullYear()) {
-    return "N/A";
+    return "selected last year date";
   }
 
   // Prevent division by zero
@@ -82,10 +82,25 @@ const target_acheived= (submissions, target, fromdate) => {
   if (submissions >= target) {
     return 100;
   }
+  if(typeofSub === "Am Subs" || typeofSub === "Client Subs"){
+    const currentMonth = to.getMonth()+1; 
+    const monthsInYear = 12;
+    const targetPerMonth = target / monthsInYear;
+    const targetperday = targetPerMonth / 30; 
+    const daysPassed = Math.max(0, Math.min(currentMonth * 30 + to.getDate(), 365)); // cap at 365
+    const expectedtargetByNow = daysPassed * targetperday;
+
 
   // Otherwise calculate %
-  return Math.round((submissions / target) * 100);
-};
+  return Math.round((submissions / expectedtargetByNow) * 100) + " %";
+}else if(typeofSub === "Offers"){
+  const to = new Date(); // fallback to today
+ const targetperMonth = target / 12;
+ const expectedtargetByNow = targetperMonth * (to.getMonth()+1); // month is 1-based
+ return Math.round((submissions / expectedtargetByNow) * 100) + " %";
+
+}
+}
 const getTopRecruiters = useMemo(()=>{
   if(recruiterSubmissionDetails.length > 0){
    const topRecruiters = recruiterSubmissionDetails.sort((a, b) => b.amsubs - a.amsubs).slice(0, 5);
@@ -254,12 +269,12 @@ useEffect(()=>{
                 <tr key={sub.recruiter}>
                   <td>{sub.recruiter__emp_fName}</td>
                       <td>{sub.amsubs}</td>
-                      <td>{sub.target_am_submissions ==0 ? "N/A" : target_acheived(sub.amsubs, sub.target_am_submissions,selectedData.from_date)+" %"}</td>
+                      <td>{sub.target_am_submissions ==0 ? "N/A" : target_acheived(sub.amsubs, sub.target_am_submissions,selectedData.from_date,"Am Subs")}</td>
                   <td>{sub.csubs}</td>
-                  <td>{sub.target_c_submissions ==0 ? "N/A" : target_acheived(sub.csubs, sub.target_c_submissions,selectedData.from_date)+" %"}</td>
+                  <td>{sub.target_c_submissions ==0 ? "N/A" : target_acheived(sub.csubs, sub.target_c_submissions,selectedData.from_date,"Client Subs")}</td>
                   <td>{sub.interviews}</td>
                   <td>{sub.offers}</td>
-                  <td>{sub.target_offers ==0 ? "N/A" : target_acheived(sub.offers, sub.target_offers,selectedData.from_date)+" %"}</td>  
+                  <td>{sub.target_offers ==0 ? "N/A" : target_acheived(sub.offers, sub.target_offers,selectedData.from_date,"Offers")}</td>  
                   <td>{sub.starts}</td>
                   <td>{sub.tat}</td>
                 </tr>
