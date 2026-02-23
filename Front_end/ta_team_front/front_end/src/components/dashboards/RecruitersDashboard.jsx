@@ -64,7 +64,7 @@ const recruitersSubmissions = async(selectedData)=>{
   }
 }
 const target_acheived= (submissions, target, fromdate) => {
-  const from = new Date(fromdate);
+   const from = new Date(`${fromdate}T00:00:00`);   // force local date
   const to = new Date(); // fallback to today
   console.log("submissions, target", submissions, target);
   // If years are different → return 0
