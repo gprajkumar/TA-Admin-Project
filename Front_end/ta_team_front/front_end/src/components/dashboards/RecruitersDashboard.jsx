@@ -83,7 +83,7 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
     return 100;
   }
   if(typeofSub === "Am Subs" || typeofSub === "Client Subs"){
-    const currentMonth = to.getMonth()+1; 
+    const currentMonth = to.getMonth(); 
     const monthsInYear = 12;
     const targetPerMonth = target / monthsInYear;
     const targetperday = targetPerMonth / 30; 
@@ -97,7 +97,7 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
 }else if(typeofSub === "Offers"){
   const to = new Date(); // fallback to today
  const targetperMonth = target / 12;
- const expectedtargetByNow = targetperMonth * (to.getMonth()+1); // month is 1-based
+ const expectedtargetByNow = targetperMonth * (to.getMonth()); // month is 1-based
  console.log("targetperMonth, expectedtargetByNow", targetperMonth, expectedtargetByNow);
  return Math.round((submissions / expectedtargetByNow) * 100) + " %";
 
