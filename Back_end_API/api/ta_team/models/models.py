@@ -288,5 +288,19 @@ class RolePermission(models.Model):
 
     def __str__(self):
         return f"{self.designation.designation_name} - {self.module.module_name} - {self.permission_type.permission_type_name}"
+    
+class TargetforTeam(models.Model):
+    target_id = models.AutoField(primary_key=True)
+    year = models.IntegerField(verbose_name="Year")
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name="Employee")
+    target_am_submissions = models.IntegerField(verbose_name="Target Submissions")
+    target_c_submissions = models.IntegerField(verbose_name="Target C Submissions")
+    target_offers = models.IntegerField(verbose_name="Target Offers")
+    
+    class Meta:
+        unique_together = ('employee', 'year')  # Ensure unique target for each employee and year combination
+
+    def __str__(self):
+        return f"{self.employee.emp_fName} - {self.year} - Target: {self.target_offers} offers"
 
 

@@ -16,6 +16,7 @@ import {
   getJobStatusGroupbyData,
   getcarryforwardActiveData,
   getdashboardUpdateData,
+  getPipelineorCancelledData
 } from "../../services/helper";
 import ScoreCard from "./ScoreCard.jsx";
 import MultiSelectComponent from "../sharedComponents/MultiSelectComponent.jsx";
@@ -24,6 +25,7 @@ const ClientDashboard = () => {
     const [barChartData, setBarChartData] = useState({
     overall_data: {},
     grouped_data: [],
+    pipeline_cancelled_data: {}
   });
   const accountRes = useSelector((state) => state.master_dropdown.accounts);
   const endClientRes = useSelector((state) => state.master_dropdown.endClients);
@@ -57,13 +59,15 @@ const ClientDashboard = () => {
 
     req_to_hire = useMemo(() => {
       if (!barChartData.overall_data) {
+        
         return 0;
       }
+      console.log("Calculating req_to_hire with roles_opened:", barChartData.overall_data.roles_opened, "starts:", barChartData.overall_data.starts, "pipelineorCancelCount:", barChartData.pipeline_cancelled_data.pipelineorCancelCount);
 return toPercentage(
-                  barChartData.overall_data.roles_opened,
+                  barChartData.overall_data.roles_opened - barChartData.pipeline_cancelled_data.pipelineorCancelCount,
                   barChartData.overall_data.starts
                 )
-    }, [barChartData.overall_data.roles_opened, barChartData.overall_data.starts]);
+    }, [barChartData.overall_data.roles_opened, barChartData.overall_data.starts, barChartData.pipeline_cancelled_data.pipelineorCancelCount]);
   techscreen_to_csub = useMemo(() => {  
     if (!barChartData.overall_data) {
         return 0;
@@ -134,22 +138,17 @@ return toPercentage(
     
     const barChart = async () => {
       try{
-      const updatedDateResponse = await getdashboardUpdateData();
-console.log("updatedDateResponse", updatedDateResponse);
-      setUpdatedDate(updatedDateResponse.last_updated || "No data available");
-      let response;
-      console.log("selected Data", selectedData)
-      
-      if (activeFilter === "account") {
-        response =await getCompleteAccountData(selectedData);
-      } else {
-        response =await getCompleteEndClientData(selectedData);
-      }
-      console.log(response);
+      const mainRequest = activeFilter === "account" ? getCompleteAccountData(selectedData) : getCompleteEndClientData(selectedData);
+      const[updaedDateResponse,mainResponse,pipeline_cancelled_response] = await Promise.all([getdashboardUpdateData(), mainRequest, getPipelineorCancelledData(selectedData)]);
+      setUpdatedDate(updaedDateResponse.last_updated || "No data available");
+  
+     
       setBarChartData((prev) => ({
         ...prev,
-        overall_data: response.total_data,
-        grouped_data: response.grouped_data,
+        pipeline_cancelled_data: pipeline_cancelled_response.pipelineCancelCount || {},
+        overall_data: mainResponse.total_data,
+        grouped_data: mainResponse.grouped_data
+        
       }));
     }
     catch (error) {

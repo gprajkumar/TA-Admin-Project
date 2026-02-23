@@ -1,9 +1,11 @@
+from urllib import request
+
 from django.shortcuts import render
 from rest_framework import status
 from .models.models import (
     Client, EndClient, Account, AccountManager, HiringManager,
     AccountHead, AccountCoordinator, Feedback, JobStatus,
-     Role_Type, Source, Tech_Screener, Screening_Status, Employee, DashboardJobData, RolePermission, Holiday
+     Role_Type, Source, Tech_Screener, Screening_Status, Employee, DashboardJobData, RolePermission, Holiday,TargetforTeam
 )
 from django.http import JsonResponse
 from django.views import View
@@ -22,11 +24,11 @@ from rest_framework.response import Response
 from .filters.requirement_filter import RequirementFilter,SubmissionFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
-from django.db.models import Count, Sum, Avg
-from django.db.models.functions import TruncMonth
+from django.db.models import Count, IntegerField, OuterRef, Subquery, Sum, Avg, Value
+from django.db.models.functions import Coalesce, TruncMonth
 import traceback
 from django.db.models import Q
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from .filters.pagination import RequirementPagination
 from django.contrib.auth.models import User
 from rest_framework.permissions import AllowAny
@@ -471,6 +473,31 @@ class ClientDashboardView(ReadOnlyModelViewSet):
         except Exception as e:
          print(traceback.format_exc())
         return Response({"error": str(e)}, status=500)
+    
+    @action(detail=False,methods=['post'], url_path='filter/pipelineAndCancelledCount')
+    def get_Pipeline_CancelledCount(self,request):
+        try:
+            filters = self.build_filters(request.data)
+            queryset = DashboardJobData.objects.filter(**filters)
+            pipelineCancelCount = queryset.aggregate(
+            # pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=8) | Q(role_type_id=2)),
+            # cancelCount=Count('job_code', filter=Q(job_status_id=8)),
+            # pipelinecount=Count('job_code', filter=Q(role_type_id=2)) #server data
+
+            pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=4) | Q(role_type_id=6)),
+            cancelCount=Count('job_code', filter=Q(job_status_id=4)),
+            pipelinecount=Count('job_code', filter=Q(role_type_id=6)) #local data
+
+            )
+
+            return Response(
+            {
+                "pipelineCancelCount": pipelineCancelCount
+            }
+            )
+        except Exception as e:
+            print(traceback.format_exc())
+            return Response({"error": str(e)}, status=500)
   
 class TATCountAPIView(APIView):
     def get(self, request):
@@ -537,6 +564,8 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
         filter_type = request.data.get('filter_type')
         print(f"data we are getting is {request.data}")
         filters = self.setFilters(request.data)
+        current_year = datetime.now().year
+        target_qs = TargetforTeam.objects.filter(employee_id=OuterRef('recruiter'),year=current_year)
         try:
             overall_data = Submissions.objects.select_related(
                 'Job','recruiter').filter(**filters).aggregate(
@@ -556,7 +585,23 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
                     interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
                     offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
                     starts=Count('submission_id', filter=Q(start_date__isnull=False)),
-                    tat=Avg('turn_around_time')
+                    tat=Avg('turn_around_time'),
+                      # ✅ targets
+                    target_am_submissions=Coalesce(
+            Subquery(target_qs.values('target_am_submissions')[:1]),
+            Value(0),
+            output_field=IntegerField()
+        ),
+                    target_c_submissions=Coalesce(
+            Subquery(target_qs.values('target_c_submissions')[:1]),
+            Value(0),
+            output_field=IntegerField()
+        ),
+                    target_offers=Coalesce(
+            Subquery(target_qs.values('target_offers')[:1]),
+            Value(0),
+            output_field=IntegerField()
+        )
                     )
             
             for item in recruiter_group_data:

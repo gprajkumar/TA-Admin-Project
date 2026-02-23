@@ -52,6 +52,16 @@ export const getRoleTypeGroupbyData = async(filters) =>{
     return [];
   }
 };
+export const getPipelineorCancelledData = async(filters) =>{
+  try{
+    const response = await axiosInstance.post('ta_team/accountdata/filter/pipelineAndCancelledCount/',filters);
+    return response.data;
+  }
+  catch(error){
+    console.error('Error fetching dashboard data:', error);
+    return [];
+  }
+};
 
 export const getJobStatusGroupbyData = async(filters) =>{
   try{

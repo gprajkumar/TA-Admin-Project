@@ -63,6 +63,28 @@ const recruitersSubmissions = async(selectedData)=>{
 
   }
 }
+const target_acheived= (submissions, target, fromdate) => {
+  const from = new Date(fromdate);
+  const to = new Date(); // fallback to today
+
+  // If years are different → return 0
+  if (from.getFullYear() !== to.getFullYear()) {
+    return "N/A";
+  }
+
+  // Prevent division by zero
+  if (!target || target === 0) {
+    return 0;
+  }
+
+  // If target already achieved
+  if (submissions >= target) {
+    return 100;
+  }
+
+  // Otherwise calculate %
+  return Math.round((submissions / target) * 100);
+};
 const getTopRecruiters = useMemo(()=>{
   if(recruiterSubmissionDetails.length > 0){
    const topRecruiters = recruiterSubmissionDetails.sort((a, b) => b.amsubs - a.amsubs).slice(0, 5);
@@ -215,9 +237,12 @@ useEffect(()=>{
               <tr>
                 <th>Recruiter</th>
                 <th>AM Subs</th>
+                <th>AM Target Acheived</th>
                 <th>Client Subs</th>
+                <th>CSubs Target Acheived</th>
                 <th>Client Interviews</th>
                 <th>Offers</th>
+                <th>Offers Target Acheived</th>
                 <th>Starts</th>
                 <th>TAT</th>
               </tr>
@@ -227,10 +252,13 @@ useEffect(()=>{
               {recruiterSubmissionDetails.map((sub) => (
                 <tr key={sub.recruiter}>
                   <td>{sub.recruiter__emp_fName}</td>
-                  <td>{sub.amsubs}</td>
+                      <td>{sub.amsubs}</td>
+                      <td>{sub.target_am_submissions ==0 ? "N/A" : target_acheived(sub.amsubs, sub.target_am_submissions,selectedData.from_date)}</td>
                   <td>{sub.csubs}</td>
+                  <td>{sub.target_c_submissions ==0 ? "N/A" : target_acheived(sub.csubs, sub.target_c_submissions,selectedData.from_date)}</td>
                   <td>{sub.interviews}</td>
                   <td>{sub.offers}</td>
+                  <td>{sub.target_offers ==0 ? "N/A" : target_acheived(sub.offers, sub.target_offers,selectedData.from_date)}</td>  
                   <td>{sub.starts}</td>
                   <td>{sub.tat}</td>
                 </tr>
@@ -240,11 +268,11 @@ useEffect(()=>{
         </div>
 
         {/* RIGHT (250 + 250) */}
-        <div className="tables-right">
+        <div className="tables-right" >
           <div className="metrics-table-wrapper table-right">
             <h5>Top Recruiters by Offers</h5>
             <table className="metrics-table">
-              <thead>
+              <thead style={{background:"#00dd94", color:"white"}}>
                 <tr>
                   <th>Recruiter</th>
                   <th>AM Subs</th>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models.models import ReasonForLeaving,Account, AccountManager, AccountHead, AccountCoordinator, EndClient, Client, JobStatus, Screening_Status, Feedback, Holiday, Source, Role_Type, Tech_Screener, HiringManager, Designation, Department, Employee, RolePermission, Module, PermissionType # This imports everything from models.py and requirement.py
+from .models.models import ReasonForLeaving,Account, AccountManager, AccountHead, AccountCoordinator, EndClient, Client, JobStatus, Screening_Status, Feedback, Holiday, Source, Role_Type, Tech_Screener, HiringManager, Designation, Department, Employee, RolePermission, Module, PermissionType,TargetforTeam # This imports everything from models.py and requirement.py
 from django.contrib.auth.models import User
 from .admin_form import CustomUserCreationForm
 from django.contrib.auth.admin import UserAdmin
@@ -50,7 +50,7 @@ admin.site.register(JobStatus)
 admin.site.register(Screening_Status)
 admin.site.register(Feedback)
 admin.site.register(Holiday)
-
+admin.site.register(TargetforTeam)
 admin.site.register(Source)
 admin.site.register(Role_Type)
 
