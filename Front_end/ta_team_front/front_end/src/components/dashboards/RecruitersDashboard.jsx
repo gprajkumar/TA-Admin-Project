@@ -84,13 +84,14 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
   }
   if(typeofSub === "Am Subs" || typeofSub === "Client Subs"){
     const currentMonth = to.getMonth(); 
+    
     const monthsInYear = 12;
     const targetPerMonth = target / monthsInYear;
     const targetperday = targetPerMonth / 30; 
     const daysPassed = Math.max(0, Math.min(currentMonth * 30 + to.getDate(), 365)); // cap at 365
     console.log("targetperday, daysPassed", targetperday, daysPassed);
     const expectedtargetByNow = daysPassed * targetperday;
-
+console.log("currentMonth", currentMonth)
 
   // Otherwise calculate %
   return Math.round((submissions / expectedtargetByNow) * 100) + " %";
