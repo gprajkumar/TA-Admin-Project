@@ -480,13 +480,13 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             filters = self.build_filters(request.data)
             queryset = DashboardJobData.objects.filter(**filters)
             pipelineCancelCount = queryset.aggregate(
-            # pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=8) | Q(role_type_id=2)),
-            # cancelCount=Count('job_code', filter=Q(job_status_id=8)),
-            # pipelinecount=Count('job_code', filter=Q(role_type_id=2)) #server data
+            pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=8) | Q(role_type_id=2)),
+            cancelCount=Count('job_code', filter=Q(job_status_id=8)),
+            pipelinecount=Count('job_code', filter=Q(role_type_id=2)) #server data
 
-            pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=4) | Q(role_type_id=6)),
-            cancelCount=Count('job_code', filter=Q(job_status_id=4)),
-            pipelinecount=Count('job_code', filter=Q(role_type_id=6)) #local data
+            # pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=4) | Q(role_type_id=6)),
+            # cancelCount=Count('job_code', filter=Q(job_status_id=4)),
+            # pipelinecount=Count('job_code', filter=Q(role_type_id=6)) #local data
 
             )
 
