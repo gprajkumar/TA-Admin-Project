@@ -54,7 +54,6 @@ const [recruiterSubmissionDetails,setrecruiterSubmissionDetails] = useState([]);
 const recruitersSubmissions = async(selectedData)=>{
   try{
   const submissionresponse = await getRecruiterSubmissions(selectedData);
-  console.log("submission response",submissionresponse)
   setrecruiterSubmissionDetails(submissionresponse.grouped_data)
   }
   catch(error)
@@ -66,7 +65,6 @@ const recruitersSubmissions = async(selectedData)=>{
 const target_acheived= (submissions, target, fromdate,typeofSub) => {
    const from = new Date(`${fromdate}T00:00:00`);   // force local date
   const to = new Date(); // fallback to today
-  console.log("submissions, target", submissions, target);
   // If years are different → return 0
   console.log("from, to", from, to);
   if (from.getFullYear() !== to.getFullYear()) {
@@ -89,17 +87,16 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
     const targetPerMonth = target / monthsInYear;
     const targetperday = targetPerMonth / 30; 
     const daysPassed = Math.max(0, Math.min(currentMonth * 30 + to.getDate(), 365)); // cap at 365
-    console.log("targetperday, daysPassed", targetperday, daysPassed);
+
     const expectedtargetByNow = daysPassed * targetperday;
-console.log("currentMonth", currentMonth)
+
 
   // Otherwise calculate %
   return Math.round((submissions / expectedtargetByNow) * 100) + " %";
 }else if(typeofSub === "Offers"){
   const to = new Date(); // fallback to today
  const targetperMonth = target / 12;
- const expectedtargetByNow = targetperMonth * (to.getMonth()); // month is 1-based
- console.log("targetperMonth, expectedtargetByNow", targetperMonth, expectedtargetByNow);
+ const expectedtargetByNow = targetperMonth * (to.getMonth()+1); // month is 1-based
  return Math.round((submissions / expectedtargetByNow) * 100) + " %";
 
 }
