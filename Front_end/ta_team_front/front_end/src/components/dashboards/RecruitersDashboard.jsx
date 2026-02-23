@@ -68,6 +68,7 @@ const target_acheived= (submissions, target, fromdate) => {
   const to = new Date(); // fallback to today
   console.log("submissions, target", submissions, target);
   // If years are different → return 0
+  console.log("from, to", from, to);
   if (from.getFullYear() !== to.getFullYear()) {
     return "N/A";
   }
