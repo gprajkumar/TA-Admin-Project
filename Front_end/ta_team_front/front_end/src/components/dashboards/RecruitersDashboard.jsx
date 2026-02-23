@@ -254,12 +254,12 @@ useEffect(()=>{
                 <tr key={sub.recruiter}>
                   <td>{sub.recruiter__emp_fName}</td>
                       <td>{sub.amsubs}</td>
-                      <td>{sub.target_am_submissions ==0 ? "N/A" : target_acheived(sub.amsubs, sub.target_am_submissions,selectedData.from_date)} %</td>
+                      <td>{sub.target_am_submissions ==0 ? "N/A" : target_acheived(sub.amsubs, sub.target_am_submissions,selectedData.from_date)+" %"}</td>
                   <td>{sub.csubs}</td>
-                  <td>{sub.target_c_submissions ==0 ? "N/A" : target_acheived(sub.csubs, sub.target_c_submissions,selectedData.from_date)} %</td>
+                  <td>{sub.target_c_submissions ==0 ? "N/A" : target_acheived(sub.csubs, sub.target_c_submissions,selectedData.from_date)+" %"}</td>
                   <td>{sub.interviews}</td>
                   <td>{sub.offers}</td>
-                  <td>{sub.target_offers ==0 ? "N/A" : target_acheived(sub.offers, sub.target_offers,selectedData.from_date)} %</td>  
+                  <td>{sub.target_offers ==0 ? "N/A" : target_acheived(sub.offers, sub.target_offers,selectedData.from_date)+" %"}</td>  
                   <td>{sub.starts}</td>
                   <td>{sub.tat}</td>
                 </tr>
