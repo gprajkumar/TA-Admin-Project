@@ -88,6 +88,7 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
     const targetPerMonth = target / monthsInYear;
     const targetperday = targetPerMonth / 30; 
     const daysPassed = Math.max(0, Math.min(currentMonth * 30 + to.getDate(), 365)); // cap at 365
+    console.log("targetperday, daysPassed", targetperday, daysPassed);
     const expectedtargetByNow = daysPassed * targetperday;
 
 
@@ -97,6 +98,7 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
   const to = new Date(); // fallback to today
  const targetperMonth = target / 12;
  const expectedtargetByNow = targetperMonth * (to.getMonth()+1); // month is 1-based
+ console.log("targetperMonth, expectedtargetByNow", targetperMonth, expectedtargetByNow);
  return Math.round((submissions / expectedtargetByNow) * 100) + " %";
 
 }
