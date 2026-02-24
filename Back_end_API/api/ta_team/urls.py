@@ -22,7 +22,7 @@ router.register(r'employees',EmployeeViewSet)
 router.register(r'accountdata',ClientDashboardView)
 router.register(r'placements',PlacementViewSet)
 router.register(r'recruitersdata',RecruiterDashboardAPIView, basename='recruitersdata')
-
+router.register(r'sourcersdata',SourcerDashboardView, basename='sourcersdata')
 router.register(r'candidate_status',UniqueCandidate_Status_ViewSet,basename='candidate_status')
 urlpatterns = [
     path('', include(router.urls)),

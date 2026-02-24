@@ -480,13 +480,13 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             filters = self.build_filters(request.data)
             queryset = DashboardJobData.objects.filter(**filters)
             pipelineCancelCount = queryset.aggregate(
-            pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=8) | Q(role_type_id=2)),
-            cancelCount=Count('job_code', filter=Q(job_status_id=8)),
-            pipelinecount=Count('job_code', filter=Q(role_type_id=2)) #server data
+            # pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=8) | Q(role_type_id=2)),
+            # cancelCount=Count('job_code', filter=Q(job_status_id=8)),
+            # pipelinecount=Count('job_code', filter=Q(role_type_id=2)) #server data
 
-            # pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=4) | Q(role_type_id=6)),
-            # cancelCount=Count('job_code', filter=Q(job_status_id=4)),
-            # pipelinecount=Count('job_code', filter=Q(role_type_id=6)) #local data
+            pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=4) | Q(role_type_id=6)),
+            cancelCount=Count('job_code', filter=Q(job_status_id=4)),
+            pipelinecount=Count('job_code', filter=Q(role_type_id=6)) #local data
 
             )
 
@@ -586,7 +586,7 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
                     offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
                     starts=Count('submission_id', filter=Q(start_date__isnull=False)),
                     tat=Avg('turn_around_time'),
-                      # ✅ targets
+                     
                     target_am_submissions=Coalesce(
             Subquery(target_qs.values('target_am_submissions')[:1]),
             Value(0),
@@ -602,7 +602,7 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
             Value(0),
             output_field=IntegerField()
         )
-                    )
+                    ).order_by('-amsubs') 
             
             for item in recruiter_group_data:
                 item['tat'] = round(item['tat'], 2) if item['tat'] is not None else None
@@ -617,3 +617,85 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
             return Response({"error": str(e)}, status=500)
         
 
+class SourcerDashboardView(ReadOnlyModelViewSet):
+    @staticmethod
+    def setFilters(data):
+        filters = {}
+        end_clients = data.get('endclients', [])
+        accounts = data.get('accounts', [])
+        sourcers = data.get('recruiters',[])
+        start_date = data.get('from_date')
+        end_date = data.get('to_date')
+        
+     
+        if end_clients and end_clients[0] != 0:
+                filters['Job__end_client_id__in'] = end_clients
+        if accounts and accounts[0] != 0:
+                filters['Job__account_id__in'] = accounts
+        if sourcers and sourcers[0] !=0:
+            filters['sourcer__in']=sourcers
+        if start_date:
+                filters['submission_date__gte'] = start_date
+        if end_date:
+                filters['submission_date__lte'] = end_date
+        filters['sourcer__department'] = 1
+        return filters
+
+    @action(detail=False, methods=['post'], url_path='filter/sourcerdashboard')
+    def sourcerdashboard(self,request):
+        filter_type = request.data.get('filter_type')
+        print(f"data we are getting is {request.data}")
+        filters = self.setFilters(request.data)
+        current_year = datetime.now().year
+        target_qs = TargetforTeam.objects.filter(employee_id=OuterRef('sourcer'),year=current_year)
+        try:
+            overall_data = Submissions.objects.select_related(
+                'Job','sourcer').filter(**filters).aggregate(
+                    amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
+                    csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
+                    techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
+                    interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
+                    offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
+                    starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    tat=Avg('turn_around_time')
+                )
+            recruiter_group_data = Submissions.objects.select_related(
+                'Job','sourcer').filter(**filters).values('sourcer','sourcer__emp_fName').annotate(
+                    amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
+                    csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
+                    techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
+                    interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
+                    offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
+                    starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    tat=Avg('turn_around_time'),
+                     
+                    target_am_submissions=Coalesce(
+            Subquery(target_qs.values('target_am_submissions')[:1]),
+            Value(0),
+            output_field=IntegerField()
+        ),
+                    target_c_submissions=Coalesce(
+            Subquery(target_qs.values('target_c_submissions')[:1]),
+            Value(0),
+            output_field=IntegerField()
+        ),
+                    target_offers=Coalesce(
+            Subquery(target_qs.values('target_offers')[:1]),
+            Value(0),
+            output_field=IntegerField()
+        )
+                    ).order_by().order_by('-amsubs')
+            print(recruiter_group_data.query)            
+            for item in recruiter_group_data:
+                item['tat'] = round(item['tat'], 2) if item['tat'] is not None else None
+            data = list(recruiter_group_data)
+            print([d["amsubs"] for d in data])
+            return Response({
+              "grouped_data": list(recruiter_group_data),
+              "overall_data":   overall_data
+            }
+            )
+        
+        except Exception as e:
+            print(traceback.format_exc())
+            return Response({"error": str(e)}, status=500)

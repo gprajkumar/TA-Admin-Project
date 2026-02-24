@@ -195,7 +195,7 @@ console.log("isAuthenticated",isAuthenticated);
                   </NavDropdown.Item>
                   <NavDropdown.Item
                    as={NavLink}
-                     to={'/comingsoon/sourcerdashboard'}
+                     to={'/sourcerdashboard'}
                     onClick={() => handleDropdownItemClick("analytics-sourcer")}
                     active={activeSection === "analytics-sourcer"}
                   >

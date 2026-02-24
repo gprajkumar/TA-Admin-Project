@@ -4,6 +4,7 @@ import './index.css'
 import {Routes,Route} from 'react-router-dom'
 import Submission from './components/Submissions'
 import RecruitersDashboard from './components/dashboards/RecruitersDashboard.jsx'
+import SourcerDashboard from './components/dashboards/SourcerDashboard.jsx'
 import AllRequirements from './components/AllRequirements'
 import OfferForm from './components/OfferForm'
 import AllSubmissions from './components/AllSubmissions'
@@ -224,8 +225,8 @@ const fetchDropdowns = async () => {
    <Route path='/login' element={<Login onLogin={handleLogin}/>}/>
    <Route path="/allreqs/:empcode?" element={<AuthCheck><AllRequirements /></AuthCheck>} />
    <Route path="/allsubmissions/:empcode?" element={<AuthCheck><AllSubmissions /></AuthCheck>}/>
-   <Route path='/recruiterdashboard' element={<AuthCheck><RecruitersDashboard/></AuthCheck>}
-   
+   <Route path='/recruiterdashboard' element={<AuthCheck><RecruitersDashboard/></AuthCheck>}/>
+   <Route path='/sourcerdashboard' element={<AuthCheck><SourcerDashboard/></AuthCheck>}
    />
    <Route path="/comingsoon/:feature" element={<AuthCheck><ComingSoon/></AuthCheck>}/>
 </Routes>

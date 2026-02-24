@@ -5,11 +5,13 @@ import { useSelector } from 'react-redux';
 import axiosInstance from '../../services/axiosInstance.js';
 import {
   getdashboardUpdateData,
-  getRecruiterSubmissions
+  getRecruiterSubmissions,
+  getSourcerSubmissions
 } from "../../services/helper";
 import "./Dashboard.css";
 import MultiSelectComponent from "../sharedComponents/MultiSelectComponent.jsx";
-const RecruitersDashboard = () => {
+const RecruitersDashboard = ({team="Recruiter"}) => {
+  console.log("team", team)
    const AccountData = useSelector((state) => state.master_dropdown.accounts);
     const endClientData = useSelector((state) => state.master_dropdown.endClients);
     const RecruitersData = useSelector((state) => state.master_dropdown.employees);
@@ -22,11 +24,18 @@ const RecruitersDashboard = () => {
     AccountData:normalizeData(AccountData,"account_id", "account_name"),
     endClientData:normalizeData(endClientData, "end_client_id", "end_client_name"),
     Recruiters:normalizeData(RecruitersData.filter(
-          (employees) =>
-            employees.can_recruit === true && employees.department === 2
+          (employees) =>{
+            if(team === "Recruiter"){
+            return employees.can_recruit === true && employees.department === 2
+            }
+            else if(team === "Sourcer"){
+              return employees.can_source === true && employees.department === 1
+            }
+            return false;
+          }
         ),"employee_id","emp_fName")
   }
- },[AccountData,endClientData,RecruitersData])
+ },[AccountData,endClientData,RecruitersData, team])
 const [activeFilter, setActiveFilter] = useState("account");
   const [updatedDate, setUpdatedDate] = useState("");
   const [dateAlert, setDateAlert] = useState(false);
@@ -53,8 +62,9 @@ const [recruiterSubmissionDetails,setrecruiterSubmissionDetails] = useState([]);
    
 const recruitersSubmissions = async(selectedData)=>{
   try{
-  const submissionresponse = await getRecruiterSubmissions(selectedData);
+  const submissionresponse = team === "Recruiter" ? await getRecruiterSubmissions(selectedData) : await getSourcerSubmissions(selectedData);
   setrecruiterSubmissionDetails(submissionresponse.grouped_data)
+  console.log("submissionresponse", submissionresponse.grouped_data)
   }
   catch(error)
   {
@@ -101,13 +111,6 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
 
 }
 }
-const getTopRecruiters = useMemo(()=>{
-  if(recruiterSubmissionDetails.length > 0){
-   const topRecruiters = recruiterSubmissionDetails.sort((a, b) => b.amsubs - a.amsubs).slice(0, 5);
-   return topRecruiters;
-  }
-  return [];
-},[recruiterSubmissionDetails])
 const getTopRecruiterbyOffers = useMemo(()=>{
   if(recruiterSubmissionDetails.length > 0){
    const topRecruiters = recruiterSubmissionDetails.sort((a, b) => b.offers - a.offers).slice(0, 5);
@@ -115,6 +118,14 @@ const getTopRecruiterbyOffers = useMemo(()=>{
   }
   return [];
 },[recruiterSubmissionDetails])
+const getTopRecruiters = useMemo(()=>{
+  if(recruiterSubmissionDetails.length > 0){
+   const topRecruiters = recruiterSubmissionDetails.sort((a, b) => b.amsubs - a.amsubs).slice(0, 5);
+   return topRecruiters;
+  }
+  return [];
+},[recruiterSubmissionDetails])
+
 const handleFilterSearch = () => {
 
   recruitersSubmissions(selectedData);
@@ -251,7 +262,7 @@ useEffect(()=>{
           <table className="metrics-table">
             <thead>
               <tr>
-                <th>Recruiter</th>
+                <th>{team === "Recruiter" ? "Recruiter" : "Sourcer"}</th>
                 <th>AM Subs</th>
                 <th>AM Target Acheived</th>
                 <th>Client Subs</th>
@@ -266,8 +277,8 @@ useEffect(()=>{
 
             <tbody>
               {recruiterSubmissionDetails.map((sub) => (
-                <tr key={sub.recruiter}>
-                  <td>{sub.recruiter__emp_fName}</td>
+                <tr key={team === "Recruiter" ? sub.recruiter : sub.sourcer}>
+                  <td>{sub.recruiter__emp_fName || sub.sourcer__emp_fName}</td>
                       <td>{sub.amsubs}</td>
                       <td>{sub.target_am_submissions ==0 ? "N/A" : target_acheived(sub.amsubs, sub.target_am_submissions,selectedData.from_date,"Am Subs")}</td>
                   <td>{sub.csubs}</td>
@@ -286,11 +297,11 @@ useEffect(()=>{
         {/* RIGHT (250 + 250) */}
         <div className="tables-right" >
           <div className="metrics-table-wrapper table-right">
-            <h5>Top Recruiters by Offers</h5>
+            <h5>Top {team === "Recruiter" ? "Recruiter" : "Sourcer"} by Offers</h5>
             <table className="metrics-table">
               <thead style={{background:"#00dd94", color:"white"}}>
                 <tr>
-                  <th>Recruiter</th>
+                  <th>{team === "Recruiter" ? "Recruiter" : "Sourcer"}</th>
                   <th>AM Subs</th>
                   <th>Client Subs</th>
                   <th>Client Interviews</th>
@@ -302,8 +313,8 @@ useEffect(()=>{
 
               <tbody>
                 {getTopRecruiterbyOffers.map((sub) => (
-                  <tr key={sub.recruiter}>
-                    <td>{sub.recruiter__emp_fName}</td>
+                  <tr key={team === "Recruiter" ? sub.recruiter : sub.sourcer}>
+                    <td> {sub.recruiter__emp_fName || sub.sourcer__emp_fName}</td>
                     <td>{sub.amsubs}</td>
                     <td>{sub.csubs}</td>
                     <td>{sub.interviews}</td>
@@ -317,11 +328,11 @@ useEffect(()=>{
           </div>
 
           <div className="metrics-table-wrapper table-right">
-            <h5>Top Recruiters by AM Submissions</h5>
+            <h5>Top {team === "Recruiter" ? "Recruiter" : "Sourcer"} by AM Submissions</h5>
             <table className="metrics-table">
               <thead>
                 <tr>
-                  <th>Recruiter</th>
+                  <th>{team === "Recruiter" ? "Recruiter" : "Sourcer"}</th>
                   <th>AM Subs</th>
                   <th>Client Subs</th>
                   <th>Client Interviews</th>
@@ -333,8 +344,8 @@ useEffect(()=>{
 
               <tbody>
                 {getTopRecruiters.map((sub) => (
-                  <tr key={sub.recruiter}>
-                    <td>{sub.recruiter__emp_fName}</td>
+                  <tr key={team === "Recruiter" ? sub.recruiter : sub.sourcer}>
+                    <td>{sub.recruiter__emp_fName || sub.sourcer__emp_fName}</td>
                     <td>{sub.amsubs}</td>
                     <td>{sub.csubs}</td>
                     <td>{sub.interviews}</td>

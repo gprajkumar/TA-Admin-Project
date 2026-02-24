@@ -33,6 +33,18 @@ return response.data;
     return [];
   }
 };
+export const getSourcerSubmissions = async(filters) =>{
+  try{
+     console.log("filters passing",filters);
+const response = await axiosInstance.post('ta_team/sourcersdata/filter/sourcerdashboard/',filters);
+return response.data;
+  }
+  catch(error)
+  {
+  console.error('Error fetching dashboard data:', error);
+    return [];
+  }
+};
   export const getCompleteEndClientData = async (filters) => {
   try {
     const response = await axiosInstance.post('ta_team/accountdata/filter/',filters);
