@@ -247,6 +247,7 @@ useEffect(()=>{
   <div className="tables-layout">
         {/* LEFT (500px) */}
         <div className="metrics-table-wrapper table-left">
+          <div className="metrics-table-scroll">
           <table className="metrics-table">
             <thead>
               <tr>
@@ -278,6 +279,7 @@ useEffect(()=>{
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* RIGHT (250 + 250) */}

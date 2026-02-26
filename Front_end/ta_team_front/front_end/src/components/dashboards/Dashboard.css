@@ -24,10 +24,13 @@
   justify-content:center;
   align-items: center;
   padding-top: 10px;
-  
 
   background-color:rgb(6, 102, 78);
   
+}
+.metrics-table-scroll {
+  overflow: auto;
+  height: 400px;       /* for left table; adjust for right table separately if needed */
 }
 .secondrow{
   width: 90%;
@@ -133,6 +136,7 @@
 
 .filter_Container .fs-6 {
   color: white;
+ 
 }
 
 .date-filter-input {
@@ -248,15 +252,17 @@
   gap: 20px;
   width: 100%;
 }
-
+.my-select__menu-portal {
+  z-index: 999999 !important;
+}
 /* shared wrapper look */
 .metrics-table-wrapper {
   position: relative;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   background: #fff;
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow: visible;   /* IMPORTANT */
+  position: relative;
 }
 
 /* Heights / widths */

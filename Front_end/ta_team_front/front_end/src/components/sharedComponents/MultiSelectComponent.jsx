@@ -54,32 +54,33 @@ const MultiSelectComponent = ({
       </Form.Label>
 
       <Select
-        classNamePrefix="my-select"
-        isMulti
-        options={selectOptions}
-        value={selectedOptions}
-        isDisabled={viewtype}
-        onChange={(selected) => {
-          const picked = selected ? selected.map((opt) => opt.value) : [];
-          const newValues = picked.includes(0) ? [0] : picked.filter((v) => v !== 0);
-          handleChange({ target: { name, value: newValues } });
-        }}
-        placeholder={`Select ${label}`}
-        isClearable
-        styles={{
-          ...customSelectStyles,
-          control: (base, state) => {
-            const ctrl = customSelectStyles.control(base, state);
-            return {
-              ...ctrl,
-              borderColor: hasError ? "#dc3545" : ctrl.borderColor,
-              boxShadow: hasError
-                ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
-                : ctrl.boxShadow,
-            };
-          },
-        }}
-      />
+  classNamePrefix="my-select"
+  isMulti
+  options={selectOptions}
+  value={selectedOptions}
+  isDisabled={viewtype}
+  onChange={(selected) => {
+    const picked = selected ? selected.map((opt) => opt.value) : [];
+    const newValues = picked.includes(0) ? [0] : picked.filter((v) => v !== 0);
+    handleChange({ target: { name, value: newValues } });
+  }}
+  placeholder={`Select ${label}`}
+  isClearable
+
+  // ✅ KEY: render menu outside your app DOM tree
+  menuPortalTarget={document.body}
+  menuPosition="fixed"
+
+  styles={{
+    ...customSelectStyles,
+
+    // ✅ this is the one that actually matters for z-index
+    menuPortal: (base) => ({ ...base, zIndex: 999999 }),
+
+    // optional extra safety
+    menu: (base) => ({ ...base, zIndex: 999999 }),
+  }}
+/>
 
       {hasError && (
         <Form.Control.Feedback type="invalid" className="d-block">
