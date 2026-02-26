@@ -648,10 +648,6 @@ class SourcerDashboardView(ReadOnlyModelViewSet):
                 filters['Job__account_id__in'] = accounts
         if sourcers and sourcers[0] !=0:
             filters['sourcer__in']=sourcers
-        if start_date:
-                filters['submission_date__gte'] = start_date
-        if end_date:
-                filters['submission_date__lte'] = end_date
         filters['sourcer__department'] = 1
         return filters
 

@@ -251,6 +251,7 @@
 
 /* shared wrapper look */
 .metrics-table-wrapper {
+  position: relative;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   background: #fff;
@@ -284,6 +285,17 @@
   top: 0;
   background: linear-gradient(90deg, #0f172a, #1e293b);
   color: white;
+}
+.metrics-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+/* keep body content below */
+.metrics-table tbody td {
+  position: relative;
+  z-index: 1;
 }
 
 .metrics-table th {

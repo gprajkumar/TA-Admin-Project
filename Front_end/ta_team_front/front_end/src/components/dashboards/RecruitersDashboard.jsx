@@ -10,6 +10,7 @@ import {
 } from "../../services/helper";
 import "./Dashboard.css";
 import MultiSelectComponent from "../sharedComponents/MultiSelectComponent.jsx";
+import { TargetIconComponent } from '../sharedComponents/TargetIconComponent.jsx';
 const RecruitersDashboard = ({team="Recruiter"}) => {
   console.log("team", team)
    const AccountData = useSelector((state) => state.master_dropdown.accounts);
@@ -78,7 +79,7 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
   // If years are different → return 0
   console.log("from, to", from, to);
   if (from.getFullYear() !== to.getFullYear()) {
-    return "selected last year date";
+    return "selected previous year date";
   }
 
   // Prevent division by zero
@@ -86,10 +87,7 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
     return 0;
   }
 
-  // If target already achieved
-  if (submissions >= target) {
-    return 100;
-  }
+ 
   if(typeofSub === "Am Subs" || typeofSub === "Client Subs"){
     const currentMonth = to.getMonth(); 
     
@@ -100,13 +98,19 @@ const target_acheived= (submissions, target, fromdate,typeofSub) => {
 
     const expectedtargetByNow = daysPassed * targetperday;
 
-
+ // If target already achieved
+  if (submissions >= expectedtargetByNow) {
+    return 100;
+  }
   // Otherwise calculate %
   return Math.round((submissions / expectedtargetByNow) * 100) + " %";
 }else if(typeofSub === "Offers"){
   const to = new Date(); // fallback to today
  const targetperMonth = target / 12;
  const expectedtargetByNow = targetperMonth * (to.getMonth()+1); // month is 1-based
+ if (submissions >= expectedtargetByNow) {
+    return 100;
+  }
  return Math.round((submissions / expectedtargetByNow) * 100) + " %";
 
 }
@@ -154,10 +158,7 @@ useEffect(()=>{
   };
   return (
    <div>
-      {/* <div className="update_container">
-        <label>Last updated Date: {updatedDate}</label>
-        <Button onClick={handleRefresh}>Refresh Data</Button>
-      </div> */}
+     
       {dateAlert && (
         <AlertComponent
           state={dateAlert}
@@ -218,19 +219,6 @@ useEffect(()=>{
           </Form.Group>
         </Col>
 
-        {/* <Col md={4}>
-          {activeFilter === "account"
-            ? renderSelect(
-                "accounts",
-                "Account",
-                filterdropdowndata.account_dropdown
-              )
-            : renderSelect(
-                "endclients",
-                "End Client",
-                filterdropdowndata.endclient_dropdown
-              )} 
-        </Col>*/}
              <Col md={4} >
           {activeFilter === "account"
             ? <MultiSelectComponent name={"accounts"} label={"Account"} options={filterdropdowndata.AccountData} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>
@@ -271,7 +259,6 @@ useEffect(()=>{
                 <th>Offers</th>
                 <th>Offers Target Acheived</th>
                 <th>Starts</th>
-                <th>TAT</th>
               </tr>
             </thead>
 
@@ -280,14 +267,13 @@ useEffect(()=>{
                 <tr key={team === "Recruiter" ? sub.recruiter : sub.sourcer}>
                   <td>{sub.recruiter__emp_fName || sub.sourcer__emp_fName}</td>
                       <td>{sub.amsubs}</td>
-                      <td>{sub.target_am_submissions ==0 ? "N/A" : target_acheived(sub.amsubs, sub.target_am_submissions,selectedData.from_date,"Am Subs")}</td>
+                      <td>{sub.target_am_submissions ==0 ? "N/A" : <TargetIconComponent targetAchieved={target_acheived(sub.amsubs, sub.target_am_submissions,selectedData.from_date,"Am Subs")}/>}</td>
                   <td>{sub.csubs}</td>
-                  <td>{sub.target_c_submissions ==0 ? "N/A" : target_acheived(sub.csubs, sub.target_c_submissions,selectedData.from_date,"Client Subs")}</td>
-                  <td>{sub.interviews}</td>
+                  <td>{sub.target_c_submissions ==0 ? "N/A" : <TargetIconComponent targetAchieved={target_acheived(sub.csubs, sub.target_c_submissions,selectedData.from_date,"Client Subs")}/>}</td>
+                  <td>{sub.interviews} </td>
                   <td>{sub.offers}</td>
-                  <td>{sub.target_offers ==0 ? "N/A" : target_acheived(sub.offers, sub.target_offers,selectedData.from_date,"Offers")}</td>  
-                  <td>{sub.starts}</td>
-                  <td>{sub.tat}</td>
+                  <td>{sub.target_offers ==0 ? "N/A" : <TargetIconComponent targetAchieved={target_acheived(sub.offers, sub.target_offers,selectedData.from_date,"Offers")}/>}</td>
+                <td>{sub.starts}</td>
                 </tr>
               ))}
             </tbody>
