@@ -544,8 +544,8 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
         end_clients = data.get('endclients', [])
         accounts = data.get('accounts', [])
         recruiters = data.get('recruiters',[])
-        start_date = data.get('from_date')
-        end_date = data.get('to_date')
+        # start_date = data.get('from_date')
+        # end_date = data.get('to_date')
      
         if end_clients and end_clients[0] != 0:
                 filters['Job__end_client_id__in'] = end_clients
@@ -553,38 +553,52 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
                 filters['Job__account_id__in'] = accounts
         if recruiters and recruiters[0] !=0:
             filters['recruiter__in']=recruiters
-        if start_date:
-                filters['submission_date__gte'] = start_date
-        if end_date:
-                filters['submission_date__lte'] = end_date
+        # if start_date:
+        #         filters['submission_date__gte'] = start_date
+        # if end_date:
+        #         filters['submission_date__lte'] = end_date
         return filters
 
     @action(detail=False, methods=['post'], url_path='filter/recruiterdashboard')
     def recruiterDashboard(self,request):
         filter_type = request.data.get('filter_type')
         print(f"data we are getting is {request.data}")
+        start_date = request.data.get('from_date')
+        end_date = request.data.get('to_date')
         filters = self.setFilters(request.data)
         current_year = datetime.now().year
         target_qs = TargetforTeam.objects.filter(employee_id=OuterRef('recruiter'),year=current_year)
         try:
             overall_data = Submissions.objects.select_related(
                 'Job','recruiter').filter(**filters).aggregate(
-                    amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
-                    csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
-                    techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
-                    interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
-                    offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
-                    starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    # amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False )),
+                    # csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
+                    # techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
+                    # interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
+                    # offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
+                    # starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    amsubs = Count('submission_id', filter=Q(am_sub_date__range=(start_date, end_date))),
+                    csubs = Count('submission_id', filter=Q(client_sub_date__range=(start_date, end_date))),
+                    techscreens = Count('submission_id', filter=Q(tech_screen_date__range=(start_date, end_date))),
+                    interviews = Count('submission_id', filter=Q(client_interview_date__range=(start_date, end_date))),
+                    offers = Count('submission_id', filter=Q(offer_date__range=(start_date, end_date))),
+                    starts = Count('submission_id', filter=Q(start_date__range=(start_date, end_date))),
                     tat=Avg('turn_around_time')
                 )
             recruiter_group_data = Submissions.objects.select_related(
                 'Job','recruiter').filter(**filters).values('recruiter','recruiter__emp_fName').annotate(
-                    amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
-                    csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
-                    techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
-                    interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
-                    offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
-                    starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    # amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
+                    # csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
+                    # techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
+                    # interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
+                    # offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
+                    # starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    amsubs = Count('submission_id', filter=Q(am_sub_date__range=(start_date, end_date))),
+                    csubs = Count('submission_id', filter=Q(client_sub_date__range=(start_date, end_date))),
+                    techscreens = Count('submission_id', filter=Q(tech_screen_date__range=(start_date, end_date))),
+                    interviews = Count('submission_id', filter=Q(client_interview_date__range=(start_date, end_date))),
+                    offers = Count('submission_id', filter=Q(offer_date__range=(start_date, end_date))),
+                    starts = Count('submission_id', filter=Q(start_date__range=(start_date, end_date))),
                     tat=Avg('turn_around_time'),
                      
                     target_am_submissions=Coalesce(
@@ -624,8 +638,8 @@ class SourcerDashboardView(ReadOnlyModelViewSet):
         end_clients = data.get('endclients', [])
         accounts = data.get('accounts', [])
         sourcers = data.get('recruiters',[])
-        start_date = data.get('from_date')
-        end_date = data.get('to_date')
+        # start_date = data.get('from_date')
+        # end_date = data.get('to_date')
         
      
         if end_clients and end_clients[0] != 0:
@@ -646,27 +660,29 @@ class SourcerDashboardView(ReadOnlyModelViewSet):
         filter_type = request.data.get('filter_type')
         print(f"data we are getting is {request.data}")
         filters = self.setFilters(request.data)
+        start_date = request.data.get('from_date')
+        end_date = request.data.get('to_date')
         current_year = datetime.now().year
         target_qs = TargetforTeam.objects.filter(employee_id=OuterRef('sourcer'),year=current_year)
         try:
             overall_data = Submissions.objects.select_related(
                 'Job','sourcer').filter(**filters).aggregate(
-                    amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
-                    csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
-                    techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
-                    interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
-                    offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
-                    starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    amsubs = Count('submission_id', filter=Q(am_sub_date__range=(start_date, end_date))),
+                    csubs = Count('submission_id', filter=Q(client_sub_date__range=(start_date, end_date))),
+                    techscreens=Count('submission_id', filter=Q(tech_screen_date__range=(start_date, end_date))),
+                    interviews=Count('submission_id', filter=Q(client_interview_date__range=(start_date, end_date))),
+                    offers=Count('submission_id', filter=Q(offer_date__range=(start_date, end_date))),
+                    starts=Count('submission_id', filter=Q(start_date__range=(start_date, end_date))),
                     tat=Avg('turn_around_time')
                 )
             recruiter_group_data = Submissions.objects.select_related(
                 'Job','sourcer').filter(**filters).values('sourcer','sourcer__emp_fName').annotate(
-                    amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
-                    csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
-                    techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
-                    interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
-                    offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
-                    starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                    amsubs = Count('submission_id', filter=Q(am_sub_date__range=(start_date, end_date))),
+                    csubs = Count('submission_id', filter=Q(client_sub_date__range=(start_date, end_date))),
+                    techscreens=Count('submission_id', filter=Q(tech_screen_date__range=(start_date, end_date))),
+                    interviews=Count('submission_id', filter=Q(client_interview_date__range=(start_date, end_date))),
+                    offers=Count('submission_id', filter=Q(offer_date__range=(start_date, end_date))),
+                    starts=Count('submission_id', filter=Q(start_date__range=(start_date, end_date))),
                     tat=Avg('turn_around_time'),
                      
                     target_am_submissions=Coalesce(
