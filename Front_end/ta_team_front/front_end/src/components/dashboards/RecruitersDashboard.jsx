@@ -234,7 +234,7 @@ useEffect(()=>{
         <Col md={2}></Col>
         <Col md={2}></Col>
          <Col md={4}>
-        <MultiSelectComponent name ={"recruiters"} label={"Recruiters"} options={filterdropdowndata.Recruiters} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>
+        <MultiSelectComponent name ={"recruiters"} label={team === "Recruiter" ? "Recruiters" : "Sourcers"} options={filterdropdowndata.Recruiters} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>
         </Col>
       </Row>
    <div>
