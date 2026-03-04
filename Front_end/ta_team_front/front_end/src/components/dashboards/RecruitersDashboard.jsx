@@ -366,7 +366,7 @@ useEffect(()=>{
             <thead>
               <tr>
                 <th>{team === "Recruiter" ? "Recruiter" : "Sourcer"}</th>
-                <th>Roles Assigened</th>
+                <th>Roles Assigned</th>
                 <th>Active Roles</th>
                 <th>Assigned TAT</th>
               </tr>

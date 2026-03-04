@@ -93,7 +93,7 @@ z-index: 1;
   background: #dae0f8;
   border-color: #b5b2ff;
 }
-.target-badge.warning .icon { background: #f57c00; }
+.target-badge.warning .icon { background: #2a00e6; }
 
 /* Danger */
 .target-badge.danger {
