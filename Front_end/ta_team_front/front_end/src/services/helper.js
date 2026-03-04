@@ -23,8 +23,29 @@ export const getMonthlySubsData = async(filters) =>{
 };
 export const getRecruiterSubmissions = async(filters) =>{
   try{
-     console.log("filters passing",filters);
 const response = await axiosInstance.post('ta_team/recruitersdata/filter/recruiterdashboard/',filters);
+return response.data;
+  }
+  catch(error)
+  {
+  console.error('Error fetching dashboard data:', error);
+    return [];
+  }
+};
+export const getRecruitertatAssigned = async(filters) =>{
+  try{
+const response = await axiosInstance.post('ta_team/recruitersdata/filter/recruiter_assigned_tat/',filters);
+return response.data;
+  }
+  catch(error)
+  {
+  console.error('Error fetching dashboard data:', error);
+    return [];
+  }
+};
+export const getSourcertatAssigned = async(filters) =>{
+  try{
+const response = await axiosInstance.post('ta_team/sourcersdata/filter/sourcer_assigned_tat/',filters);
 return response.data;
   }
   catch(error)
@@ -35,7 +56,6 @@ return response.data;
 };
 export const getSourcerSubmissions = async(filters) =>{
   try{
-     console.log("filters passing",filters);
 const response = await axiosInstance.post('ta_team/sourcersdata/filter/sourcerdashboard/',filters);
 return response.data;
   }

@@ -15,9 +15,6 @@ const Header = ({ userdetails, onSignOut, onLogin, isAuthenticated }) => {
   const [activeSection, setActiveSection] = useState(null);
  
 const isAuthorizedEmployee = isAuthenticated && employee_id;
-console.log("isAuthorizedEmployee",isAuthorizedEmployee);
-console.log("employee_id",employee_id);
-console.log("isAuthenticated",isAuthenticated);
 
   const handleMainLinkClick = (section) => {
     setActiveSection(section);

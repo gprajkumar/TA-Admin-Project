@@ -43,7 +43,6 @@ const AllSubmissions = ({ dateform = false, empId }) => {
   } = useMasterDropdowns();
  
   
-   console.log(empcode);
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
@@ -98,7 +97,6 @@ const AllSubmissions = ({ dateform = false, empId }) => {
   const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
     params: { q: inputValue }
   });
-console.log("searchData",res.data);
   return res.data.map(job => ({
     label: `${job.job_code}-${job.job_title} `,
     value: job.requirement_id
@@ -110,7 +108,6 @@ console.log("searchData",res.data);
         const response = await axiosInstance.delete(
           `${baseurl}/ta_team/submissions/${subId}/`
         );
-        console.log("Deleted successfully", response.data);
         handleSearch(); // Refresh the list after deletion
       } catch (error) {
         console.error("Failed to delete requirement:", error);

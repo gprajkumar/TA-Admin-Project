@@ -30,7 +30,6 @@ const SubmissionDatesForm = ({
    const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
      params: { q: inputValue }
    });
- console.log("searchData",res.data);
  setFetchedJobs(res.data);
    return res.data.map(job => ({
      label: `${job.job_code}-${job.job_title} `,
@@ -108,7 +107,6 @@ useEffect(() => {
       );
 
       const formValues = res.data;
-console.log("candidate data", res.data);
       setFormData((prev) => ({
         ...prev,
         client_sub_date: formValues.client_sub_date || "",
@@ -135,7 +133,6 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
             `/ta_team/submissions/${submission_id}/`
           );
          const formValues = res.data;
-          console.log("check", res.data);
           setFormData({ client_sub_date: formValues.client_sub_date || "",
           client_interview_date: formValues.client_interview_date || "",
           offer_date: formValues.offer_date || "",
@@ -158,7 +155,6 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
     }
 
     try {
-      console.log(FormData);
       const cleanDate = (dateStr) =>
         dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? dateStr : null;
 

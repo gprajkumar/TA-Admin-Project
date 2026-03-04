@@ -34,7 +34,6 @@ const OfferForm = () => {
       if(!formData.requirement_id) newErrors.requirement_id = "Please Select Job";
       if(!formData.no_of_positions_filled || formData.no_of_positions_filled < 1 ) newErrors.no_of_positions_filled = "Please Enter No of roles filled";
       if(submissions.filter(Boolean).length !== count ) newErrors.subcount = "Please Select Candidates";
-      console.log(`${submissions.length} && ${count}`)
       if(!formData.filled_date) newErrors.filled_date = "Please Enter Filled Date"
       setError(newErrors)
       return Object.keys(newErrors) === 0;
@@ -139,7 +138,6 @@ useEffect(()=>{
   const fetchCandidates = async () =>
   {
     const candidates = await getSubmissionsbyReqid(formData.requirement_id);
-    console.log(formData.requirement_id)
     setcandidateDropdown(
       candidates.map((item) => ({ id:item.submission_id,name:item.candidate_name}))
     );
@@ -166,8 +164,6 @@ const handleSubmit = async (e) => {
     try {
       
       await axios.patch(`${baseurl}/ta_team/requirements/${formData.requirement_id}/`, formData);
-      console.log(formData)
-      console.log(submissions)
        for (const subdata of submissions) {
       const placment_data = { submission: subdata, Job: formData.requirement_id };
       await axios.post(`${baseurl}/ta_team/placements/`, placment_data);

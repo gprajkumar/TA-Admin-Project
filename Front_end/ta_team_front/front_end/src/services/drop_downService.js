@@ -4,7 +4,6 @@ import axiosInstance from "./axiosInstance";
 const fetchDropdownData = async (endpoint) => {
   const response = await axiosInstance.get(`/ta_team/${endpoint}/`);
   const data= response.data;
-  console.log(data);
   return Array.isArray(data) ? data : data.results || [];
 };
 export const getPaginatedJobReqs = async() =>{
@@ -66,7 +65,6 @@ const fetcchSubmissionsbyReq = async (reqid) =>
     params: { Job: reqid,page_size:1000  // to get all submissions for the reqid
     }
   });
-    console.log(response.data);
     const data = response.data
   return Array.isArray(data)? data: data.results || [];
   }
@@ -88,7 +86,6 @@ const fetcchSubmissionsbyReq = async (reqid) =>
         page: filterParams.page || 1  // if using pagination
       }
   });
-    console.log(response.data);
  const data = response.data
   //return Array.isArray(data)? data: data.results || [];
   return data;

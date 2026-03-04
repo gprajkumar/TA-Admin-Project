@@ -30,7 +30,6 @@ const MyProfile = () => {
         params: { id: emp_details?.designation?.designation_id || "" }
       });
       const permissions = response.data;
-      console.log("Role Permissions:", permissions);
       setRolePermission(permissions);
     }
     catch (error) {

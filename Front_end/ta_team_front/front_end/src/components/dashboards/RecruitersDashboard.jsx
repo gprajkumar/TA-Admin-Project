@@ -6,13 +6,14 @@ import axiosInstance from '../../services/axiosInstance.js';
 import {
   getdashboardUpdateData,
   getRecruiterSubmissions,
-  getSourcerSubmissions
+  getSourcerSubmissions,
+  getRecruitertatAssigned,
+  getSourcertatAssigned
 } from "../../services/helper";
 import "./Dashboard.css";
 import MultiSelectComponent from "../sharedComponents/MultiSelectComponent.jsx";
 import { TargetIconComponent } from '../sharedComponents/TargetIconComponent.jsx';
 const RecruitersDashboard = ({team="Recruiter"}) => {
-  console.log("team", team)
    const AccountData = useSelector((state) => state.master_dropdown.accounts);
     const endClientData = useSelector((state) => state.master_dropdown.endClients);
     const RecruitersData = useSelector((state) => state.master_dropdown.employees);
@@ -65,7 +66,6 @@ const recruitersSubmissions = async(selectedData)=>{
   try{
   const submissionresponse = team === "Recruiter" ? await getRecruiterSubmissions(selectedData) : await getSourcerSubmissions(selectedData);
   setrecruiterSubmissionDetails(submissionresponse.grouped_data)
-  console.log("submissionresponse", submissionresponse.grouped_data)
   }
   catch(error)
   {
@@ -73,11 +73,23 @@ const recruitersSubmissions = async(selectedData)=>{
 
   }
 }
+const [ActiveRolesData, setActiveRolesData] = useState([]);
+const recruiterAssignedtat = async(selectedData)=>{
+  try{
+    const recruiterAssignedtatresponse = team === "Recruiter" ? await getRecruitertatAssigned(selectedData) : await getSourcertatAssigned(selectedData);
+    console.log("recruiterAssignedtatresponse", recruiterAssignedtatresponse)
+    setActiveRolesData(recruiterAssignedtatresponse.overall_roles_tat_details || []);
+  }
+  catch(error)
+  {
+    console.error("error fetching recruiterAssignedtat", error)
+
+  }
+}
 const target_acheived= (submissions, target, fromdate,typeofSub) => {
    const from = new Date(`${fromdate}T00:00:00`);   // force local date
   const to = new Date(); // fallback to today
   // If years are different → return 0
-  console.log("from, to", from, to);
   if (from.getFullYear() !== to.getFullYear()) {
     return "selected previous year date";
   }
@@ -133,9 +145,11 @@ const getTopRecruiters = useMemo(()=>{
 const handleFilterSearch = () => {
 
   recruitersSubmissions(selectedData);
+  recruiterAssignedtat(selectedData);
 }
 useEffect(()=>{
   handleFilterSearch()
+
 },[])
   const handleChange = ({ target }) => {
     const { name, value } = target;
@@ -154,7 +168,6 @@ useEffect(()=>{
         }
       });
     }
-    console.log(selectedData);
   };
   return (
    <div>
@@ -345,7 +358,34 @@ useEffect(()=>{
               </tbody>
             </table>
           </div>
+          
         </div>
+          <div>
+          <div >
+          <table className="metrics-table">
+            <thead>
+              <tr>
+                <th>{team === "Recruiter" ? "Recruiter" : "Sourcer"}</th>
+                <th>Roles Assigened</th>
+                <th>Active Roles</th>
+                <th>Assigned TAT</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {ActiveRolesData.map((sub) => (
+                <tr key={team === "Recruiter" ? sub.assigned_recruiter_id : sub.assigned_sourcer_id}>
+                  <td>{sub.assigned_recruiter__emp_fName || sub.assigned_sourcer__emp_fName}</td>
+                      <td>{sub.roles_assigned}</td>
+                      <td>{sub.active_roles}</td>
+                  <td>{sub.avg_tat} </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+        </div>
+
       </div>
       </div> 
 </div>

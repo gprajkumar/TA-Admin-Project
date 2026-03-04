@@ -89,9 +89,9 @@ z-index: 1;
 
 /* Warning */
 .target-badge.warning {
-  color: #e65100;
-  background: #fff3e0;
-  border-color: #ffe0b2;
+  color: #2a00e6;
+  background: #dae0f8;
+  border-color: #b5b2ff;
 }
 .target-badge.warning .icon { background: #f57c00; }
 

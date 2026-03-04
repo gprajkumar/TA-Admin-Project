@@ -21,7 +21,6 @@ import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
 import { formatDateMMDDYYYY } from "../services/helper";
 const AllRequirements = () => {
   const {empcode} = useParams();
-  console.log("empcode", empcode)
  const {
   endClients: drop_down_endClients,
   clients: drop_down_clients,
@@ -68,7 +67,6 @@ setviewtype(false)
    const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
      params: { q: inputValue }
    });
- console.log("searchData",res.data);
    return res.data.map(job => ({
      label: `${job.job_code}-${job.job_title} `,
      value: job.requirement_id
@@ -79,7 +77,6 @@ setviewtype(false)
     try {
     
   const response = await axiosInstance.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
-  console.log('Deleted successfully', response.data);
       await handleSearch();
     } catch (error) {
       console.error("Failed to delete requirement:", error);

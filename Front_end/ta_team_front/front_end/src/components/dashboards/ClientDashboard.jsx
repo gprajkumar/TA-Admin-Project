@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Row, Col, Button, Form, Alert } from "react-bootstrap";
+import React, { useEffect, useMemo, useState } from "react";
+import { Row, Col, Button, Form } from "react-bootstrap";
 import "./Dashboard.css";
 import axiosInstance from "../../services/axiosInstance";
-import Select from "react-select";
 import { useSelector } from "react-redux";
 import { FaFilter } from "react-icons/fa";
 import AlertComponent from "../AlertComponent";
@@ -55,14 +54,12 @@ const ClientDashboard = () => {
     if (denominator === 0) return "0%";
     return ((numerator / denominator) * 100).toFixed(2) + "%";
   };
-  // // Custom Tooltip formatter
 
     req_to_hire = useMemo(() => {
       if (!barChartData.overall_data) {
         
         return 0;
       }
-      console.log("Calculating req_to_hire with roles_opened:", barChartData.overall_data.roles_opened, "starts:", barChartData.overall_data.starts, "pipelineorCancelCount:", barChartData.pipeline_cancelled_data.pipelineorCancelCount);
 return toPercentage(
                   barChartData.overall_data.roles_opened - barChartData.pipeline_cancelled_data.pipelineorCancelCount,
                   barChartData.overall_data.starts
@@ -114,14 +111,6 @@ return toPercentage(
                 );
     }, [barChartData.overall_data.offers, barChartData.overall_data.starts]);
   
-  const formatTooltip = (value, name) => {
-    return [value, displayNames[name] || name];
-  };
-
-  // Custom Legend formatter
-  const formatLegend = (value) => {
-    return displayNames[value] || value;
-  };
 
   const [filterdropdowndata, setfilterdropdowndata] = useState({
     account_dropdown: [],
@@ -344,19 +333,6 @@ useEffect(() => {
           </Form.Group>
         </Col>
 
-        {/* <Col md={4}>
-          {activeFilter === "account"
-            ? renderSelect(
-                "accounts",
-                "Account",
-                filterdropdowndata.account_dropdown
-              )
-            : renderSelect(
-                "endclients",
-                "End Client",
-                filterdropdowndata.endclient_dropdown
-              )} 
-        </Col>*/}
              <Col md={4}>
           {activeFilter === "account"
             ? <MultiSelectComponent name={"accounts"} label={"Account"} options={filterdropdowndata.account_dropdown} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>

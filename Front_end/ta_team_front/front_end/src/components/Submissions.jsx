@@ -37,7 +37,6 @@ const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
    const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
      params: { q: inputValue }
    });
- console.log("searchData",res.data);
  setFetchedJobs(res.data);
    return res.data.map(job => ({
      label: `${job.job_code}-${job.job_title} `,
@@ -92,7 +91,6 @@ const resetform = () =>
           sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
           sources: normalizeData(sourceres,"source_id","source"),
         });
-        console.log(submission_id)
            if (submission_id) {
         const res = await axiosInstance.get(`/ta_team/submissions/${submission_id}/`);
         setFormData(res.data);
@@ -107,7 +105,6 @@ const resetform = () =>
   }, [submission_id]);
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("formData",formData.Job);
     
     if(!validationform())
     {
@@ -115,11 +112,9 @@ const resetform = () =>
       return
     }
 
-    console.log(formData);
     try {
       if(!submission_id)
       {
-        console.log("inside submit",formData)
       await axiosInstance.post(`/ta_team/submissions/`, formData);
       alert("Submitted successfully");
      <CustomAlert message={"Submitted successfully"} type="success" />
@@ -153,7 +148,6 @@ useEffect(() => {
     }));
   }
 }, [tat]);
-console.log("TAT:", tat);
    const renderSelect = (name, label, options) => {
   
   const selectOptions = (options || []).map((opt) => ({

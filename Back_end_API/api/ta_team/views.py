@@ -24,8 +24,8 @@ from rest_framework.response import Response
 from .filters.requirement_filter import RequirementFilter,SubmissionFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
-from django.db.models import Count, IntegerField, OuterRef, Subquery, Sum, Avg, Value
-from django.db.models.functions import Coalesce, TruncMonth
+from django.db.models import F, Count, IntegerField, OuterRef, Subquery, Sum, Avg, Value, Window
+from django.db.models.functions import Coalesce, RowNumber, TruncMonth
 import traceback
 from django.db.models import Q
 from datetime import datetime, timedelta, timezone
@@ -36,12 +36,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def debug_auth(request):
     claims = request.auth or {}
-    print("AUTH OK. user:", request.user.username)
-    print("claims scp:", claims.get("scp"))
+    logger.debug("AUTH OK. user: %s", request.user.username)
+    logger.debug("claims scp: %s", claims.get("scp"))
     return Response({"user": request.user.username, "scp": claims.get("scp")})
 
 class RequirementsViewSet(ModelViewSet):
@@ -58,7 +62,7 @@ class RequirementsViewSet(ModelViewSet):
         ).all().order_by('-req_opened_date')
 
         empcode = self.request.query_params.get("empcode")
-        print("Empcode:", empcode)
+        logger.debug("Empcode: %s", empcode)
         if empcode:
             queryset = queryset.filter(
                 Q(assigned_recruiter_id=empcode) | 
@@ -226,7 +230,7 @@ class CurrentEmployeeView(APIView):
                 status=status.HTTP_200_OK,
             )
         emp_detail = EmployeeSerializer(employee).data
-        print(emp_detail, "emp_detail")
+        logger.debug("emp_detail %s", emp_detail)
         return Response(
                     {
                         "user": username,
@@ -261,7 +265,7 @@ class get_client_update_date(APIView):
                 else:
                     return JsonResponse({'last_updated': 'No data available'})
         except Exception as e:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return JsonResponse({'error': str(e)}, status=500)
         
 class ClientDashboardView(ReadOnlyModelViewSet):
@@ -366,7 +370,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             })
 
         except Exception as e:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return Response({"error": str(e)}, status=500)
     
     @action(detail=False, methods=['post'], url_path='filter/monthdata')
@@ -392,7 +396,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             })
 
         except Exception as e:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return Response({"error": str(e)}, status=500)
 
     @action(detail=False, methods=['post'], url_path='filter/jobroletypes')
@@ -412,7 +416,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             })
 
         except Exception as e:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return Response({"error": str(e)}, status=500)
         
     @action(detail=False, methods=['post'], url_path='filter/jobstatuses')
@@ -436,7 +440,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             })
 
         except Exception as e:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return Response({"error": str(e)}, status=500)
     
     @action(detail=False, methods=['post'], url_path='filter/carryforwardroles')
@@ -471,7 +475,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
                 "grouped_data": list(grouped_data),
             })
         except Exception as e:
-         print(traceback.format_exc())
+         logger.error(traceback.format_exc())
         return Response({"error": str(e)}, status=500)
     
     @action(detail=False,methods=['post'], url_path='filter/pipelineAndCancelledCount')
@@ -496,7 +500,7 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             }
             )
         except Exception as e:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return Response({"error": str(e)}, status=500)
   
 class TATCountAPIView(APIView):
@@ -539,7 +543,7 @@ class TATCountAPIView(APIView):
     
 class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
     @staticmethod
-    def setFilters(data):
+    def setFilters(data,type="submission"):
         filters = {}
         end_clients = data.get('endclients', [])
         accounts = data.get('accounts', [])
@@ -552,17 +556,16 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
         if accounts and accounts[0] != 0:
                 filters['Job__account_id__in'] = accounts
         if recruiters and recruiters[0] !=0:
-            filters['recruiter__in']=recruiters
-        # if start_date:
-        #         filters['submission_date__gte'] = start_date
-        # if end_date:
-        #         filters['submission_date__lte'] = end_date
+            if type=="submission":
+                filters['recruiter__in']=recruiters
+            else:
+                filters['assigned_recruiter__in']=recruiters
         return filters
 
     @action(detail=False, methods=['post'], url_path='filter/recruiterdashboard')
     def recruiterDashboard(self,request):
         filter_type = request.data.get('filter_type')
-        print(f"data we are getting is {request.data}")
+        logger.debug("data we are getting is %s", request.data)
         start_date = request.data.get('from_date')
         end_date = request.data.get('to_date')
         filters = self.setFilters(request.data)
@@ -571,12 +574,7 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
         try:
             overall_data = Submissions.objects.select_related(
                 'Job','recruiter').filter(**filters).aggregate(
-                    # amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False )),
-                    # csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
-                    # techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
-                    # interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
-                    # offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
-                    # starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                  
                     amsubs = Count('submission_id', filter=Q(am_sub_date__range=(start_date, end_date))),
                     csubs = Count('submission_id', filter=Q(client_sub_date__range=(start_date, end_date))),
                     techscreens = Count('submission_id', filter=Q(tech_screen_date__range=(start_date, end_date))),
@@ -587,12 +585,7 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
                 )
             recruiter_group_data = Submissions.objects.select_related(
                 'Job','recruiter').filter(**filters).values('recruiter','recruiter__emp_fName').annotate(
-                    # amsubs = Count('submission_id', filter=Q(am_sub_date__isnull=False)),
-                    # csubs = Count('submission_id', filter=Q(client_sub_date__isnull=False)),
-                    # techscreens=Count('submission_id', filter=Q(tech_screen_date__isnull=False)),
-                    # interviews=Count('submission_id', filter=Q(client_interview_date__isnull=False)),
-                    # offers=Count('submission_id', filter=Q(offer_date__isnull=False)),
-                    # starts=Count('submission_id', filter=Q(start_date__isnull=False)),
+                  
                     amsubs = Count('submission_id', filter=Q(am_sub_date__range=(start_date, end_date))),
                     csubs = Count('submission_id', filter=Q(client_sub_date__range=(start_date, end_date))),
                     techscreens = Count('submission_id', filter=Q(tech_screen_date__range=(start_date, end_date))),
@@ -627,34 +620,102 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
             }
             )
         except Exception as e:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return Response({"error": str(e)}, status=500)
+    @action(detail=False, methods=['post'], url_path='filter/recruiter_assigned_tat')
+    def AssignedRecruiterDetails(self,request):
+        start_date = request.data.get('from_date')
+        end_date = request.data.get('to_date')
+        filters = self.setFilters(request.data,type="Requirement")
+
+# Step 1: Rank submissions made only by assigned recruiter
+        try:
+            job_recruiter_top2_avg_tat = (
+    Submissions.objects
+    .filter(
+        Job_id=OuterRef('requirement_id'),                      # correlate to Requirements.Job_id
+        recruiter_id=OuterRef('assigned_recruiter_id'), # correlate to Requirements.assigned_recruiter_id
+        am_sub_date__range=(start_date, end_date),
+    )
+    .annotate(
+        rn=Window(
+            expression=RowNumber(),
+            partition_by=[F('Job_id'), F('recruiter_id')],   # rank per job + recruiter
+            order_by=F('client_sub_date').asc(),
+        )
+    )
+    .filter(rn__lte=2)
+    .values('Job_id', 'recruiter_id')
+    .annotate(avg_tat=Avg('turn_around_time'))
+    .values('avg_tat')[:1]
+)
+
+# Outer: annotate each requirement/job row with job_avg_tat, then group by recruiter
+            overall_roles_tat_details = (
+    Requirements.objects
+    .filter(**filters)
+    .annotate(
+        job_avg_tat=Subquery(job_recruiter_top2_avg_tat),
+    )
+    .values(
+        'assigned_recruiter_id',
+        'assigned_recruiter__emp_fName',   # recruiter_name (adjust field)
+    )
+    .annotate(
+        roles_assigned=Count(
+            'requirement_id',
+            filter=Q(req_opened_date__range=(start_date, end_date)),
+            dristinct=True,
+        ),
+        active_roles=Count(
+            'requirement_id',
+            filter=Q(req_opened_date__range=(start_date, end_date)) &
+                   Q(job_status__job_status="Active"),
+            distinct=True,
+        ),
+        avg_tat=Avg('job_avg_tat'),  # recruiter-level avg of per-job avg tat
+    ).order_by('-roles_assigned')
+)
+            for item in overall_roles_tat_details:
+                item['avg_tat'] = round(item['avg_tat'], 2) if item['avg_tat'] is not None else None
+            
+            return Response({
+                "overall_roles_tat_details": list(overall_roles_tat_details),
+            })
+        
+        except Exception as e:
+            logger.error(traceback.format_exc())    
+            return Response({"error": str(e)}, status=500)
+
         
 
 class SourcerDashboardView(ReadOnlyModelViewSet):
     @staticmethod
-    def setFilters(data):
+    def setFilters(data,type="submission"):
         filters = {}
         end_clients = data.get('endclients', [])
         accounts = data.get('accounts', [])
         sourcers = data.get('recruiters',[])
-        # start_date = data.get('from_date')
-        # end_date = data.get('to_date')
-        
      
         if end_clients and end_clients[0] != 0:
                 filters['Job__end_client_id__in'] = end_clients
         if accounts and accounts[0] != 0:
                 filters['Job__account_id__in'] = accounts
         if sourcers and sourcers[0] !=0:
-            filters['sourcer__in']=sourcers
-        filters['sourcer__department'] = 1
+            if type=="submission":
+                filters['sourcer__in']=sourcers
+            else:
+                filters['assigned_sourcer__in']=sourcers
+        if type=="submission":        
+            filters['sourcer__department'] = 1
+        else:
+            filters['assigned_sourcer__department'] = 1
         return filters
 
     @action(detail=False, methods=['post'], url_path='filter/sourcerdashboard')
     def sourcerdashboard(self,request):
         filter_type = request.data.get('filter_type')
-        print(f"data we are getting is {request.data}")
+        logger.debug("data we are getting is %s", request.data)
         filters = self.setFilters(request.data)
         start_date = request.data.get('from_date')
         end_date = request.data.get('to_date')
@@ -697,11 +758,10 @@ class SourcerDashboardView(ReadOnlyModelViewSet):
             output_field=IntegerField()
         )
                     ).order_by().order_by('-amsubs')
-            print(recruiter_group_data.query)            
+            logger.debug(recruiter_group_data.query)
             for item in recruiter_group_data:
                 item['tat'] = round(item['tat'], 2) if item['tat'] is not None else None
-            data = list(recruiter_group_data)
-            print([d["amsubs"] for d in data])
+           
             return Response({
               "grouped_data": list(recruiter_group_data),
               "overall_data":   overall_data
@@ -709,5 +769,69 @@ class SourcerDashboardView(ReadOnlyModelViewSet):
             )
         
         except Exception as e:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
+            return Response({"error": str(e)}, status=500)
+        
+    @action(detail=False, methods=['post'], url_path='filter/sourcer_assigned_tat')
+    def AssignedRecruiterDetails(self,request):
+        start_date = request.data.get('from_date')
+        end_date = request.data.get('to_date')
+        filters = self.setFilters(request.data,type="Requirement")
+# Step 1: Rank submissions made only by assigned recruiter
+        try:
+            job_recruiter_top2_avg_tat = (
+    Submissions.objects
+    .filter(
+        Job_id=OuterRef('requirement_id'),                      # correlate to Requirements.Job_id
+        sourcer_id=OuterRef('assigned_sourcer_id'), # correlate to Requirements.assigned_recruiter_id
+        am_sub_date__range=(start_date, end_date),
+    )
+    .annotate(
+        rn=Window(
+            expression=RowNumber(),
+            partition_by=[F('Job_id'), F('sourcer_id')],   # rank per job + recruiter
+            order_by=F('client_sub_date').asc(),
+        )
+    )
+    .filter(rn__lte=2)
+    .values('Job_id', 'sourcer_id')
+    .annotate(avg_tat=Avg('turn_around_time'))
+    .values('avg_tat')[:1]
+)
+
+# Outer: annotate each requirement/job row with job_avg_tat, then group by recruiter
+            overall_roles_tat_details = (
+    Requirements.objects
+    .filter(**filters)
+    .annotate(
+        job_avg_tat=Subquery(job_recruiter_top2_avg_tat),
+    )
+    .values(
+        'assigned_sourcer_id',
+        'assigned_sourcer__emp_fName',   # sourcer_name (adjust field)
+    )
+    .annotate(
+        roles_assigned=Count(
+            'requirement_id',
+            filter=Q(req_opened_date__range=(start_date, end_date)),
+            distinct=True,
+        ),
+        active_roles=Count(
+            'requirement_id',
+            filter=Q(req_opened_date__range=(start_date, end_date)) &
+                   Q(job_status__job_status="Active"),
+            distinct=True,
+        ),
+        avg_tat=Avg('job_avg_tat'),  # recruiter-level avg of per-job avg tat
+    ).order_by('-roles_assigned')
+)
+            for item in overall_roles_tat_details:
+                item['avg_tat'] = round(item['avg_tat'], 2) if item['avg_tat'] is not None else None
+            
+            return Response({
+                "overall_roles_tat_details": list(overall_roles_tat_details),
+            })
+        
+        except Exception as e:
+            logger.error(traceback.format_exc())    
             return Response({"error": str(e)}, status=500)

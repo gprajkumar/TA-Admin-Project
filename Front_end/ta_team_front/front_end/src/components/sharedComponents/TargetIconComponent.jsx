@@ -15,9 +15,9 @@ const converttoFloat = (value) => {
 export const TargetIconComponent = ({ targetAchieved }) => {
     const targetachieved = converttoFloat(targetAchieved);
     const meta = useMemo(() => {
-    if (targetachieved >= 80) return { cls: "success", icon: "✔", label: "On track" };
+    if (targetachieved >= 75) return { cls: "success", icon: "↑", label: "On track" };
     if (targetachieved >= 50) return { cls: "warning", icon: "↗", label: "In progress" };
-    return { cls: "danger", icon: "✖", label: "Behind target" };
+    return { cls: "danger", icon: "↓", label: "Behind target" };
   }, [targetachieved]);
 
   const showCrown = targetachieved === 100;
