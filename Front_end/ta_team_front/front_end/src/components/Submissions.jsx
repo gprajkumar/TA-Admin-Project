@@ -32,7 +32,7 @@ const Submission = ({ submission_id,viewtype = false,externaldropdowndata,onSucc
     am_sub_date:"",
     turn_around_time: "",
     loop_closed: false,
-    loop_closed_date: "",
+    loop_closed_date: null,
     loop_closed_reason: ""
       }
 const[alertConfig,setAlertConfig] = useState({show: false, message:"", type:""});
@@ -116,7 +116,8 @@ const resetform = () =>
     try {
       if(!submission_id)
       {
-      await axiosInstance.post(`/ta_team/submissions/`, formData);
+        const payload = {...formData, loop_closed_date: formData.loop_closed_date || null};
+      await axiosInstance.post(`/ta_team/submissions/`, payload);
       setAlertConfig({show: true, message:"Submitted successfully", type:"success"});
     //   alert("Submitted successfully");
     //  <CustomAlert message={"Submitted successfully"} type="success" />
@@ -124,8 +125,9 @@ const resetform = () =>
       }
       else
       {
+          const payload = {...formData, loop_closed_date: formData.loop_closed_date || null};
       console.log("Form data to be submitted for update:", formData);
-        await axiosInstance.patch(`/ta_team/submissions/${submission_id}/`, formData);
+        await axiosInstance.patch(`/ta_team/submissions/${submission_id}/`, payload);
         setAlertConfig({show: true, message:"Updated successfully", type:"success"});
         await onSuccess?.();
         onClose?.();
@@ -206,7 +208,8 @@ useEffect(() => {
   const handleChange = (e) => {
     const { name, value } = e.target;
   setFormData((prev) => {
-    const updatedForm = { ...prev, [name]: value };
+    const updatedForm = { ...prev, [name]: name === "loop_closed_date" ? (value || null) : value  };
+    
     if (name === "submission_date") {
       updatedForm["am_sub_date"] = value; // Sync am_submission with submission_date
     }
@@ -330,7 +333,7 @@ else
       <Col md={4}>
    
       <Form.Label className="fs-6 ">Loop Closed Date:</Form.Label>
-      <Form.Control type="Date" name="loop_closed_date" value={formData.loop_closed_date} onChange={handleChange} disabled={!formData.loop_closed} min={formData.submission_date} max={new Date().toISOString().split("T")[0]} />
+      <Form.Control type="Date" name="loop_closed_date" value={formData.loop_closed_date || ""} onChange={handleChange} disabled={!formData.loop_closed} min={formData.submission_date} max={new Date().toISOString().split("T")[0]} />
       </Col>
       <Col md={6}>
    
