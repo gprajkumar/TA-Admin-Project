@@ -1,9 +1,14 @@
-.modal-90w {
-  max-width: 70% !important; /* or any width you want */
-  width: 50% !important;
-  padding: 0px;
+.modal-90w.modal-dialog {
+  max-width: 90vw !important;
+  width: 90vw !important;
+  margin: 1rem auto !important;
 }
-.modal-body {
+
+.modal-90w .modal-content {
+  width: 100%;
+}
+
+.modal-90w .modal-body {
   padding: 0 !important;
 }
 .date-filter-input {
@@ -31,7 +36,10 @@
   color: white;
   transition: background-color 0.3s ease;
 }
-
+.modal-dialog.submission-modal {
+  max-width: 90vw !important;
+  width: 90vw !important;
+}
 .search-button:hover {
   background-color: #0056b3;
   color: white;

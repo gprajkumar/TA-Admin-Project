@@ -24,6 +24,9 @@ class Submissions(models.Model):
     start_date = models.DateField(blank=True, null=True)
     turn_around_time =models.IntegerField(null=True, blank=True)
     current_status = models.CharField(blank=True, max_length=50)
+    loop_closed = models.BooleanField(default=False)
+    loop_closed_date = models.DateField(blank=True, null=True)
+    loop_closed_reason = models.CharField(max_length=200, blank=True, null=True)
     created_by = models.ForeignKey(Employee, related_name='submissions_created_by', on_delete=models.CASCADE, null=True)
 
     class Meta:

@@ -15,7 +15,8 @@ import Dropdown_component from "./sharedComponents/Dropdown_component";
 import CustomAlert from "./sharedComponents/Alert";
 import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
 
-const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
+const Submission = ({ submission_id,viewtype = false,externaldropdowndata,onSuccess,
+  onClose}) => {
   const [loading, setLoading] = useState(submission_id ? true : false); 
   const[fetchedJobs,setFetchedJobs] = useState([]);
   const baseurl = import.meta.env.VITE_API_BASE_URL;
@@ -30,8 +31,11 @@ const Submission = ({ submission_id,viewtype = false,externaldropdowndata}) => {
     source: "",
     am_sub_date:"",
     turn_around_time: "",
+    loop_closed: false,
+    loop_closed_date: "",
+    loop_closed_reason: ""
       }
-
+const[alertConfig,setAlertConfig] = useState({show: false, message:"", type:""});
   const [formData, setFormData] = useState(initialFormData);
    const loadOptions = async (inputValue) => {
    const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
@@ -83,10 +87,7 @@ const resetform = () =>
           ]);
 
         setDropdownData({
-          // jobs: jobres.map((data) => ({
-          //   id: data.requirement_id,
-          //   name: `${data.job_code} - ${data.job_title}`,
-          // })),
+  
           recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
           sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
           sources: normalizeData(sourceres,"source_id","source"),
@@ -116,16 +117,20 @@ const resetform = () =>
       if(!submission_id)
       {
       await axiosInstance.post(`/ta_team/submissions/`, formData);
-      alert("Submitted successfully");
-     <CustomAlert message={"Submitted successfully"} type="success" />
+      setAlertConfig({show: true, message:"Submitted successfully", type:"success"});
+    //   alert("Submitted successfully");
+    //  <CustomAlert message={"Submitted successfully"} type="success" />
       resetform();
       }
       else
       {
+      console.log("Form data to be submitted for update:", formData);
         await axiosInstance.patch(`/ta_team/submissions/${submission_id}/`, formData);
-        alert("Updated successfully");
+        setAlertConfig({show: true, message:"Updated successfully", type:"success"});
+        await onSuccess?.();
+        onClose?.();
  
-  <CustomAlert message={"Updated successfully"} type="success" />
+
       }
     } catch (err) {
       console.error("Error submitting requirement:", err);
@@ -161,6 +166,7 @@ useEffect(() => {
   const hasError = !!errors[name];
 
   return (
+    
     <Form.Group className="mb-3">
       <Form.Label className="fs-6">{label}{name != "w2_C2C" && <span style={{ color: "red" }}>*</span>}:</Form.Label>
       <Select
@@ -217,8 +223,14 @@ useEffect(() => {
 else
 {
   return (
-    <Form onSubmit={handleSubmit} className="requirement-form container">
+    <Form onSubmit={handleSubmit} className="requirement-form">
+      <Row>
+        <Col md={12}>
+        <CustomAlert message={alertConfig.message} type={alertConfig.type} show={alertConfig.show} onClose={() => setAlertConfig(prev => ({ ...prev, show: false }))} />
+        </Col>
+      </Row>
       <h2 className="mb-4">{submission_id && "Edit "}Candidate Submission</h2>
+      {!submission_id &&
       <Row>
         <Col md={12}>
            <Form.Group className="mb-3 " controlId="job">
@@ -229,6 +241,7 @@ else
        </Form.Group>
         </Col>
       </Row>
+}
       <Row>
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="submission_date">
@@ -303,6 +316,31 @@ else
           </div>}
       </Col>
       </Row>
+       {submission_id &&
+       <div className="loop-closed-area">
+     <Row>
+     
+      <Col md={2}>
+       <Form.Label className="fs-6">Loop Closed:</Form.Label>
+      <Form.Check style={{display:"inline"}} type="checkbox" name="loop_closed" checked={formData.loop_closed} onChange={(e) => handleChange({ target: { name: "loop_closed", value: e.target.checked } })} />
+
+      
+  
+      </Col>
+      <Col md={4}>
+   
+      <Form.Label className="fs-6 ">Loop Closed Date:</Form.Label>
+      <Form.Control type="Date" name="loop_closed_date" value={formData.loop_closed_date} onChange={handleChange} disabled={!formData.loop_closed} min={formData.submission_date} max={new Date().toISOString().split("T")[0]} />
+      </Col>
+      <Col md={6}>
+   
+      <Form.Label className="fs-6">Loop Closed Reason:</Form.Label>
+      <Form.Control as="textarea"  className="fs-6" rows={3} name="loop_closed_reason" value={formData.loop_closed_reason} onChange={handleChange} disabled={!formData.loop_closed} />
+      </Col>
+      
+      </Row>
+      </div>
+}
     {!viewtype && <Row className="justify-content-center mt-4">
   <Col xs="auto">
     <Button className="submit-button" type="submit">

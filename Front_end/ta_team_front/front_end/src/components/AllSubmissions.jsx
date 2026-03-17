@@ -22,7 +22,8 @@ import {
   Form,
   Row,
   Col,
-  Button
+  Button,
+  FormCheck
 } from "react-bootstrap";
 import Select from "react-select";
 import SubmissionDatesForm from "./SubmissonDatesForm";
@@ -35,9 +36,6 @@ const AllSubmissions = ({ dateform = false, empId }) => {
    const {
     drop_down_endClients,
     drop_down_clients,
-    drop_down_jobStatus,
-   
-    drop_down_roleTypes,
     drop_down_employees,
     drop_down_sources
   } = useMasterDropdowns();
@@ -55,19 +53,23 @@ const AllSubmissions = ({ dateform = false, empId }) => {
     candidate_name: "",
     current_status: "",
     source: "",
-    empcode:""
+    empcode:"",
+    loop_closed:"",
+    loop_closed_date:"",
+    loop_closed_reason:""
   });
-  const [allSubmissions, setAllSubmissions] = useState([]);
+
   const [show, setShow] = useState(false);
-  const [dateFilter, setdateFilter] = useState({
-    from_sub_date: "",
-    to_sub_date: "",
-  });
   const [currentSubid, setcurrentSubid] = useState("");
   const [viewtype, setviewtype] = useState(false);
   const handleClose = () => {
     setShow(false);
+    
+    
   };
+  const refreshCurrentPage = async () => {
+  await handlePageChange(paginationData.currentpage);
+};
     const [paginationData, setPaginationData] = useState(
     {
       totalpages:0,
@@ -144,6 +146,7 @@ const AllSubmissions = ({ dateform = false, empId }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log("Changed:", name, value);
     setSelectedvalue((prev) => ({
       ...prev,
       [name]: value,
@@ -151,22 +154,7 @@ const AllSubmissions = ({ dateform = false, empId }) => {
   };
   const handleSearch = async () => {
     try {
-     setPaginationData((prev) => ({...prev, currentpage: 1 }));
-      const cleanFilters={};
-
-     Object.entries(selectedvalue).forEach(([key, value]) => {
-        if (value !== "") {
-          cleanFilters[key] = value;
-        }});
-          if (empcode) {
-      cleanFilters["empcode"] = empcode;
-    }
-    else
-    {
-      delete cleanFilters["empcode"] ;
-    }
-        cleanFilters["page"] = 1;
-
+     const cleanFilters = buildCleanFilters(1);
       const paginatedfilteredData = await getFilteredSubmissions(
        cleanFilters
       );
@@ -323,15 +311,28 @@ const paginatedItemGenerate = () => {
   
  const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
+ const buildCleanFilters = (page) => {
+  const cleanFilters = {};
+
+  Object.entries(selectedvalue).forEach(([key, value]) => {
+    if (value !== "") {
+      cleanFilters[key] = value;
+    }
+  });
+
+  if (empcode) {
+    cleanFilters.empcode = empcode;
+  } else {
+    delete cleanFilters.empcode;
+  }
+
+  cleanFilters.page = page;
+
+  return cleanFilters;
+};
  const handlePageChange = async (page) => {
   try {
-    const cleanFilters = {};
-    Object.entries(selectedvalue).forEach(([key, value]) => {
-      if (value !== "") {
-        cleanFilters[key] = value;
-      }
-    });
-    cleanFilters["page"] = page;
+    const cleanFilters = buildCleanFilters(page);
 
     const paginatedfilteredData = await getFilteredSubmissions(cleanFilters);
 
@@ -525,6 +526,7 @@ const paginatedItemGenerate = () => {
         >
           Start Date
         </Col>
+        <Col className="col-job-status">Loop Closed</Col>
         <Col className="col-action">Action</Col>
       </Row>
       {filteredSubs.map((sub) => (
@@ -573,6 +575,7 @@ const paginatedItemGenerate = () => {
               ? formatDateMMDDYYYY(sub.offer_date)
               : ""}
           </Col>
+          
 
           <Col
             className="col-job-status"
@@ -581,6 +584,12 @@ const paginatedItemGenerate = () => {
             {sub.start_date
               ? formatDateMMDDYYYY(sub.start_date)
               : ""}
+          </Col>
+          <Col
+            className="col-job-status"
+           
+          >
+             <label style={{marginLeft:"5px", color: sub.loop_closed ? "green" : "red",fontWeight:"bold"}}>{sub.loop_closed ? "Yes":"No"}</label>
           </Col>
           <Col className="col-action">
             <button
@@ -607,12 +616,14 @@ const paginatedItemGenerate = () => {
           </Col>
         </Row>
       ))}
-      <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
+      <Modal show={show} onHide={handleClose} size="xl" dialogClassName="submission-modal">
         <Modal.Header closeButton></Modal.Header>
-        <Modal.Body style={{ width: "100% !important" }}>
+        <Modal.Body style={{ width: "100%" }}>
           { viewtype ? <ViewForm data={passData} formtype="submission"/>:
-          dateform? <SubmissionDatesForm submission_id={currentSubid} viewtype={viewtype} externaldropdowndata={filterdropdowndata}/>:
-          <Submission submission_id={currentSubid} viewtype={viewtype} externaldropdowndata={filterdropdowndata}/>} 
+          dateform? <SubmissionDatesForm submission_id={currentSubid} viewtype={viewtype} externaldropdowndata={filterdropdowndata} onSuccess={refreshCurrentPage}
+    onClose={handleClose}/>:
+          <Submission submission_id={currentSubid} viewtype={viewtype} externaldropdowndata={filterdropdowndata} onSuccess={refreshCurrentPage}
+    onClose={handleClose}/>} 
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>

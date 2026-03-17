@@ -119,7 +119,16 @@ return (
         <Col md={3}>Current Status:</Col>
         <Col md={3}>{data.current_status || "N/A"}</Col>
       </Row>
-      
+      <Row className="view-row">
+        <Col md={3}>Loop Closed:</Col>
+        <Col md={3} style={{color:data.loop_closed? "green" : "red"}}>{data.loop_closed ? "Yes" : "No"}</Col>
+        <Col md={3}>Date Closed:</Col>
+        <Col md={3}>{data.loop_closed_date || "N/A"}</Col>
+        </Row>
+         <Row className="view-row">
+        <Col md={6}>Loop Closed Reason:</Col>
+        <Col md={6}>{data.loop_closed_reason || "N/A"}</Col>
+        </Row>
      </div>
 )
 }

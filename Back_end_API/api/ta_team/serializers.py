@@ -146,7 +146,10 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'start_date',
             'current_status',
             'turn_around_time',
-            'created_by'
+            'created_by',
+            'loop_closed',
+            'loop_closed_date', 
+            'loop_closed_reason'
         ]
 
 class DesignationSerializer(serializers.ModelSerializer):
