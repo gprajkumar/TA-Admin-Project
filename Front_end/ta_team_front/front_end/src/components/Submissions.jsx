@@ -1,5 +1,5 @@
 import axiosInstance from "../services/axiosInstance";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, use } from "react";
 import Select from "react-select";
 import "./RequirementForm.css";
 import {
@@ -47,6 +47,20 @@ const[alertConfig,setAlertConfig] = useState({show: false, message:"", type:""})
      value: job.requirement_id
    }));
  };  
+ useEffect(() => {
+  if(alertConfig.show){
+    closeAlert();
+  }
+  return () => {
+    clearTimeout(closeAlert);
+  };  
+ }, [alertConfig.show]);
+ const closeAlert=() =>{
+  setTimeout(() => {  
+    setAlertConfig(prev => ({ ...prev, show: false }));
+  }, 3000);
+  
+}
 const OnhandleSelect = useCallback(
     ({ name, value }) => {  setFormData((prevdata) => ({ ...prevdata, [name]: value })); },
     [setFormData] );
@@ -104,6 +118,7 @@ const resetform = () =>
 
     fetchData();
   }, [submission_id]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -338,7 +353,7 @@ else
       <Col md={6}>
    
       <Form.Label className="fs-6">Loop Closed Reason:</Form.Label>
-      <Form.Control as="textarea"  className="fs-6" rows={3} name="loop_closed_reason" value={formData.loop_closed_reason} onChange={handleChange} disabled={!formData.loop_closed} />
+      <Form.Control as="textarea"  className="fs-6" rows={3} name="loop_closed_reason" value={formData.loop_closed_reason} onChange={handleChange} disabled={!formData.loop_closed} maxLength={199} />
       </Col>
       
       </Row>
