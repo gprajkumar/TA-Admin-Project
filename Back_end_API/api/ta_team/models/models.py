@@ -272,6 +272,7 @@ class PermissionType(models.Model):
 class Module(models.Model):
     module_id = models.AutoField(primary_key=True)
     module_name = models.CharField(max_length=100, verbose_name="Module Name")
+    module_code = models.CharField(max_length=50, verbose_name="Module Code", unique=True, null=True, blank=True)
     
     def __str__(self):
         return self.module_name

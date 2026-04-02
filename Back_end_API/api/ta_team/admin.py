@@ -60,6 +60,19 @@ admin.site.register(Employee,EmployeeAdmin)
 admin.site.register(Designation)
 admin.site.register(Department)
 admin.site.register(ReasonForLeaving)
-admin.site.register(RolePermission)
-admin.site.register(Module)
-admin.site.register(PermissionType)
+# admin.site.register(RolePermission)
+# admin.site.register(Module)
+# admin.site.register(PermissionType)
+@admin.register(RolePermission)
+class RolePermissionAdmin(admin.ModelAdmin):
+    list_display = ['designation', 'module', 'permission_type']
+    list_filter = ['designation', 'module', 'permission_type']  # easy filtering in admin
+    search_fields = ['designation__designation_name', 'module__module_name']
+
+@admin.register(Module)
+class ModuleAdmin(admin.ModelAdmin):
+    list_display = ['module_name', 'module_code']
+
+@admin.register(PermissionType)
+class PermissionTypeAdmin(admin.ModelAdmin):
+    list_display = ['permission_type_name']

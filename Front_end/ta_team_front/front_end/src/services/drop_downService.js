@@ -45,7 +45,7 @@ export const getAccountManagers = () => fetchDropdownData("accountmanagers");
 export const getHiringManagers = () => fetchDropdownData("hiringmanagers");
 export const getSources = () => fetchDropdownData("sources");
 export const getRoleTypes = () => fetchDropdownData("roletypes");
-
+export const getCurrentPermissions = (designation_id) => fetchPermissionData(designation_id);
 export const getJobreqs = () => fetchDropdownData("requirements");
 export const getSubmissions = () => fetchDropdownData("submissions");
 export const getFilteredJobs = (filterParams) => fetchFilteredJobs(filterParams);
@@ -59,6 +59,19 @@ const fetchDropdownasArray = async (endpoint) => {
   // Return `data.results` if paginated, otherwise return `data` directly
   return Array.isArray(data) ? data : data.results || [];
 };
+const fetchPermissionData = async (designation_id) => {
+    try {
+      const response = await axiosInstance.get(`/ta_team/role-permissions/`, {
+        params: { id: designation_id || "" }
+      });
+      const permissions = response.data;
+      console.log("Fetched role permissions:", permissions);
+      return permissions;
+    }
+    catch (error) {
+      console.error("Error fetching role permissions:", error); 
+    }
+  }
 const fetcchSubmissionsbyReq = async (reqid) =>
   {
     const response = await axiosInstance.get(`/ta_team/submissions/`, {

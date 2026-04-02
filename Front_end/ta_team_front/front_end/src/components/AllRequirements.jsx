@@ -7,6 +7,8 @@ import "./AllRequirements.css";
 import RequirementForm from './RequirementForm'
 import AsyncSelect from 'react-select/async';
 import ViewForm from "./ViewForm";
+import SubmissionsofReqs  from "./sharedComponents/SubmissionsofReqs";
+import { hasPermission,canDelete,canEdit } from "../services/utilities/rbac";
 import {
   getJobreqs,
   getFilteredJobs,getPaginatedJobReqs
@@ -27,9 +29,16 @@ const AllRequirements = () => {
   jobStatus: drop_down_jobStatus,
   roleTypes: drop_down_roleTypes,
   employees: drop_down_employees,
+  permissions: drop_down_permissions,
 } = useSelector((state) => state.master_dropdown);
+console.log("Dropdown Permissions in AllRequirements:", drop_down_permissions); // Debug log for permissions
+const can_view = () => {
+  return hasPermission(drop_down_permissions, "requirements", "view");
+} 
 
   const baseurl = import.meta.env.VITE_API_BASE_URL;
+   const profileEmployee =  useSelector((state) => state.employee.employee_details);
+    const profile_employee_id = profileEmployee ? profileEmployee.employee_id : null;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
     role_type: "",
@@ -50,6 +59,12 @@ const AllRequirements = () => {
 const[currentReqid, setcurrentReqid] =useState('');
 const[viewtype, setviewtype] =useState(false);
   const handleClose = () => {setShow(false)};
+  const [showSubmissions, setShowSubmissions] = useState(false);
+  const SubmissionshandleClose = () => setShowSubmissions(false);
+  const handleShowSubmissions = (reqId) => {
+    setcurrentReqid(reqId);
+    setShowSubmissions(true);
+  }
  // const handleShow = () => {setShow(true);}
  const handleView = (reqId,sendata) => {
 setcurrentReqid(reqId);
@@ -57,7 +72,13 @@ setpassData(sendata);
 setShow(true)
 setviewtype(true)
  }
-const handleEdit = (reqId) => {
+const handleEdit = (reqId,recruiterId,sourcerId) => {
+   console.log("Attempting to edit submission:", reqId, "Recruiter ID:", recruiterId, "Sourcer ID:", sourcerId,"empcode:", profile_employee_id ); // Debug log for edit action
+      const ownerCheck = (profile_employee_id === recruiterId) || (profile_employee_id === sourcerId);
+      if(!canEdit(drop_down_permissions, "requirements", ownerCheck)) {
+        alert("You don't have permission to edit this candidate as you are neither the recruiter nor the sourcer for this submission.");
+      return;
+      }
 setcurrentReqid(reqId);
 setShow(true)
 setviewtype(false)
@@ -72,7 +93,13 @@ setviewtype(false)
      value: job.requirement_id
    }));
  };  
- const handleDelete = async (reqId) => {
+ const handleDelete = async (reqId,recruiterId,sourcerId) => {
+  const ownerCheck = (profile_employee_id === recruiterId) || (profile_employee_id === sourcerId);
+  
+      if((!canDelete(drop_down_permissions, "requirements", ownerCheck))) {
+        alert("You don't have permission to delete this candidate as you are neither the recruiter nor the sourcer for this submission.");
+        return;
+      }
   if (window.confirm("Are you sure you want to delete this requirement?")) {
     try {
     
@@ -299,9 +326,13 @@ const  jobsRes = await getJobreqs();
     console.error("Error fetching page data:", error);
   }
 };
+if (!can_view()) {
+  return <div className="no-access">You do not have permission to view this content.</div>;
+}
 
 
   return (
+ 
     <div className="data-container">
  
       <Row>
@@ -419,7 +450,7 @@ const  jobsRes = await getJobreqs();
 </Row>
       {/* Header row with class 'header-row' */}
       <Row className="header-row">
-        <Col className="col-job">Job</Col>
+        <Col className="col-job-title">Job</Col>
         <Col className="col-end-client">Job Opened Date</Col>
         <Col className="col-client">Client</Col>
         <Col className="col-recruiter">Recruiter</Col>
@@ -430,7 +461,9 @@ const  jobsRes = await getJobreqs();
       </Row>
       {filteredReqs.map((req) => (
         <Row key={req.requirement_id} className="data-row">
-          <Col className="col-job">{`${req.job_code}- ${req.job_title}`}</Col>
+          <Col className="col-job" onClick={() => handleShowSubmissions(req.requirement_id)}>
+            {`${req.job_code}- ${req.job_title}`}
+          </Col>
           <Col className="col-end-client">{formatDateMMDDYYYY(req.req_opened_date)}</Col>
           <Col className="col-client">{req.client_name}</Col>
           <Col className="col-recruiter">{req.assigned_recruiter_name}</Col>
@@ -448,14 +481,14 @@ const  jobsRes = await getJobreqs();
             <button
               aria-label="Edit"
               title="Edit"
-              onClick={() => handleEdit(req.requirement_id)}
+              onClick={() => handleEdit(req.requirement_id,req.assigned_recruiter,req.assigned_sourcer)}
             >
               <FaEdit />
             </button>
             <button
               aria-label="Delete"
               title="Delete"
-              onClick={() => handleDelete(req.requirement_id)}
+              onClick={() => handleDelete(req.requirement_id,req.assigned_recruiter,req.assigned_sourcer)}
             >
               <FaTrash />
             </button>
@@ -466,7 +499,7 @@ const  jobsRes = await getJobreqs();
       
         
         
-      <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
+      <Modal show={show} onHide={handleClose} dialogClassName="modal-90w" size="xl">
         <Modal.Header closeButton>
          
         </Modal.Header>
@@ -477,6 +510,20 @@ const  jobsRes = await getJobreqs();
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showSubmissions} onHide={SubmissionshandleClose} dialogClassName="modal-90w" size="xl" >
+        <Modal.Header closeButton>
+         
+        </Modal.Header>
+        <Modal.Body style={{ width: '100% !important' }}>
+          <SubmissionsofReqs requirmentid={currentReqid} />
+        
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={SubmissionshandleClose}>
             Close
           </Button>
         </Modal.Footer>

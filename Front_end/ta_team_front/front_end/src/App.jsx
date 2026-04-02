@@ -21,13 +21,14 @@ import ClientDashboard from './components/dashboards/ClientDashboard.jsx';
 import MyProfile from './components/myProfile';
 import ComingSoon from './components/ComingSoon.jsx';
 import { setEmployee,clearEmployee } from './redux/slices/authSlice';
-import {fetchCurrentEmployee, getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers} from './services/drop_downService.js';
-import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers} from './redux/slices/dropdownSlice';
+import {fetchCurrentEmployee, getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers,getCurrentPermissions} from './services/drop_downService.js';
+import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers,setPermissions} from './redux/slices/dropdownSlice';
 import { useIsAuthenticated } from "@azure/msal-react";
 import {
   useMsal
 } from "@azure/msal-react";
 import { loginRequest } from "./services/utilities/authConfig.js";
+import {formatPermissions} from './services/utilities/rbac.js';
 
 function App() {
   const dispatch = useDispatch();
@@ -38,17 +39,7 @@ const [userDetails, setUserDetails] = useState(null);
 const isAuthenticated = useIsAuthenticated();
   // Prevent dropdown fetch from running multiple times
   const dropdownsLoadedRef = useRef(false);
-  // useEffect(() => {
-  //   const account = accounts[0];
-  //   if (account) {
-  //     setUserDetails({ empName: account.username });
-  //     instance.setActiveAccount(account);
-  //     fetchDropdowns();
-    
-  //   } else {
-  //     setUserDetails(null);
-  //   }
-  // }, [accounts]); 
+ 
   useEffect(() => {
     const init = async () => {
       // Wait for MSAL startup/redirect to complete
@@ -134,7 +125,8 @@ const handleLogin = async () => {
     // Valid employee
     dispatch(setEmployee(profile));
     setUserDetails({ empName: profile.user });
-    await fetchDropdowns();
+    console.log("Employee profile fetched:", profile);
+    await fetchDropdowns(profile.emp_details?.designation?.designation_id); // Pass designation_id to fetch dropdowns based on permissions
     navigate("/allsubmissions");
   
 
@@ -178,10 +170,10 @@ const handleLogout = async () => {
   }
 };
 
-const fetchDropdowns = async () => {
+const fetchDropdowns = async (designation_id) => {
 
   try {
-    const [accountData, endClientData,clientData,jobstatusData,sourceData,roleTypeData,employeeData,accountManagersData,HiringManagersData] = await Promise.all([
+    const [accountData, endClientData,clientData,jobstatusData,sourceData,roleTypeData,employeeData,accountManagersData,HiringManagersData,permissionData] = await Promise.all([
       getAccounts(),
       getEndClients(),
       getClients(),
@@ -190,7 +182,9 @@ const fetchDropdowns = async () => {
       getRoleTypes(),
       getEmployees(),
       getAccountManagers(),
-      getHiringManagers()
+      getHiringManagers(),
+      getCurrentPermissions(designation_id)
+
     ]);
 
     dispatch(setAccounts(accountData));
@@ -202,6 +196,7 @@ const fetchDropdowns = async () => {
     dispatch(setEmployees(employeeData));
     dispatch(setAccountManagers(accountManagersData));
     dispatch(setHiringManagers(HiringManagersData));
+    dispatch(setPermissions(formatPermissions(permissionData).byModule)); // Store formatted permissions by module
   } catch (err) {
     console.error('Dropdown fetch failed:', err.message);
   }

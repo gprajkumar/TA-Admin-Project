@@ -2,6 +2,7 @@ import React, { useEffect, useMemo,useState } from 'react'
 import { Row, Col, Button, Form, Alert } from "react-bootstrap";
 import { FaFilter } from "react-icons/fa";
 import { useSelector } from 'react-redux';
+import { hasPermission } from '../../services/utilities/rbac.js';
 import axiosInstance from '../../services/axiosInstance.js';
 import {
   getdashboardUpdateData,
@@ -17,10 +18,24 @@ const RecruitersDashboard = ({team="Recruiter"}) => {
    const AccountData = useSelector((state) => state.master_dropdown.accounts);
     const endClientData = useSelector((state) => state.master_dropdown.endClients);
     const RecruitersData = useSelector((state) => state.master_dropdown.employees);
+    const emp_permissions = useSelector((state) => state.master_dropdown.permissions);
    const errors = {};
    const viewtype =false;
   const normalizeData = (data, idkey, namekey) =>
     data.map((item) => ({ id: item[idkey], name: item[namekey] }));
+  const canview = () => {
+    if(team === "Recruiter"){
+       if(hasPermission(emp_permissions,"recruiter_dashboard","view") || hasPermission(emp_permissions,"recruiter_dashboard","edit") || hasPermission(emp_permissions,"recruiter_dashboard","edit_own_data") || hasPermission(emp_permissions,"recruiter_dashboard","delete_own_data")){
+      return true;
+    }
+    }
+    else{
+       if(hasPermission(emp_permissions,"sourcer_dashboard","view") || hasPermission(emp_permissions,"sourcer_dashboard","edit") || hasPermission(emp_permissions,"sourcer_dashboard","edit_own_data") || hasPermission(emp_permissions,"sourcer_dashboard","delete_own_data")){
+        return true;
+      }
+    }
+   
+  } 
  const filterdropdowndata = useMemo(()=>{
   return{
     AccountData:normalizeData(AccountData,"account_id", "account_name"),
@@ -169,6 +184,14 @@ useEffect(()=>{
       });
     }
   };
+  if(!canview()){
+    return (
+      <div className="no-access">
+        <h2>Access Denied</h2>
+        <p>You do not have permission to view this dashboard.</p>
+      </div>
+    );
+  }   
   return (
    <div>
      

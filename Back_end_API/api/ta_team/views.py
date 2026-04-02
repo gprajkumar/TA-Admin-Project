@@ -35,6 +35,7 @@ from rest_framework.permissions import AllowAny
 # Create your views here.
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from api.module_permission import RequirementsPermission, SubmissionsPermission, ClientDashboardPermission, RecruiterDashboardPermission, SourcerDashboardPermission
 
 import logging
 
@@ -53,6 +54,7 @@ class RequirementsViewSet(ModelViewSet):
     pagination_class = RequirementPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = RequirementFilter
+    permission_classes = [RequirementsPermission]
 
     def get_queryset(self):
         queryset = Requirements.objects.select_related(
@@ -76,14 +78,16 @@ class ClientViewSet(ModelViewSet):
     serializer_class = ClientSerializer
     
 class RolePermissionViewSet(APIView):
-    def get(self, request):
-        desingation_id = request.query_params.get("id", "")
+   def get(self, request):
+        designation_id = request.query_params.get("id")
+
         queryset = RolePermission.objects.filter(
-           Q(designation_id=desingation_id)
-        )
+            designation_id=designation_id
+        ).select_related("module", "permission_type")
+
         serializer = RolePermissionSerializer(queryset, many=True)
         return Response(serializer.data)
-
+    
 class RequirementSearchDropdownAPI(APIView):
     def get(self, request):
         q = request.query_params.get("q", "")
@@ -147,6 +151,7 @@ class SubmisionViewSet(ModelViewSet):
     pagination_class = RequirementPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = SubmissionFilter
+    permission_classes = [SubmissionsPermission]
 
     def get_queryset(self):
         queryset = Submissions.objects.select_related(
@@ -173,6 +178,7 @@ class EmployeeViewSet(ModelViewSet):
     serializer_class = EmployeeSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['can_recruit','department','is_active','can_source']
+
     
 class UniqueCandidate_Status_ViewSet(ReadOnlyModelViewSet):
     queryset = Submissions.objects.none() 
@@ -184,39 +190,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer    
 
 class CurrentEmployeeView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = []
-    # permission_classes = []
+
     def get(self, request):
         
         username = request.user.username
-   
-        # try:
-        #     user = User.objects.get(username=username)
-        #     print("User found:", user.username)
-        # except User.DoesNotExist:
-        #       return Response(
-        #         {
-        #             "user": username,
-        #             "emp_details": None,
-        #             "is_active": None,
-        #             "detail": "User is authenticated via Azure AD but not registered in TA system.",
-        #         },
-        #         status=status.HTTP_200_OK,
-        #         )
-        # except Exception as e:
-        #     print("Error retrieving user:", str(e))
-         
-        # if (not user.is_active):
-        #         return Response(
-        #             {
-        #                 "user": username,
-        #                 "emp_details": None,
-        #                 "is_active": False,
-        #                 "detail": "User is inactive in TA system.",
-        #             },
-        #             status=status.HTTP_200_OK,
-        #         )
         try:
             employee = Employee.objects.get(email_id=username)
         except Employee.DoesNotExist:
@@ -269,6 +246,7 @@ class get_client_update_date(APIView):
             return JsonResponse({'error': str(e)}, status=500)
         
 class ClientDashboardView(ReadOnlyModelViewSet):
+    permission_classes = [ClientDashboardPermission]
     queryset = DashboardJobData.objects.all()
     serializer_class = DashboardDataSerializer
     @staticmethod
@@ -542,6 +520,7 @@ class TATCountAPIView(APIView):
         })
     
 class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
+    permission_classes = [RecruiterDashboardPermission]
     @staticmethod
     def setFilters(data,type="submission"):
         filters = {}
@@ -690,6 +669,7 @@ class RecruiterDashboardAPIView(ReadOnlyModelViewSet):
         
 
 class SourcerDashboardView(ReadOnlyModelViewSet):
+    permission_classes = [SourcerDashboardPermission]
     @staticmethod
     def setFilters(data,type="submission"):
         filters = {}

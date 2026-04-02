@@ -5,6 +5,7 @@ import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import "./Header.css";
 import { NavLink } from "react-router-dom";
+import { hasPermission } from "../services/utilities/rbac";
 
 import { useSelector } from "react-redux";
 
@@ -12,8 +13,8 @@ const Header = ({ userdetails, onSignOut, onLogin, isAuthenticated }) => {
   const employee_id = useSelector(
     (state) => state.employee.employee_details?.employee_id
   );
+  const emp_permissions = useSelector((state) => state.master_dropdown.permissions);  // Access permissions from dropdown slice
   const [activeSection, setActiveSection] = useState(null);
- 
 const isAuthorizedEmployee = isAuthenticated && employee_id;
 
   const handleMainLinkClick = (section) => {
@@ -23,7 +24,9 @@ const isAuthorizedEmployee = isAuthenticated && employee_id;
   const handleDropdownItemClick = (section) => {
     setActiveSection(section);
   };
-
+const permission_checker = (moduleCode, action) => {
+  return hasPermission(emp_permissions, moduleCode, action);
+}
   return (
     <Navbar expand="lg" className="custom-navbar" bg="dark" variant="dark">
       <Container>
@@ -53,7 +56,7 @@ const isAuthorizedEmployee = isAuthenticated && employee_id;
             {isAuthorizedEmployee && (
               <>
                 {" "}
-                <NavDropdown
+                {permission_checker("requirements","view") && <NavDropdown
                   title="Requirement"
                   id="requirement-nav-dropdown"
                   active={
@@ -88,9 +91,9 @@ const isAuthorizedEmployee = isAuthenticated && employee_id;
                   >
                     Job Fill
                   </NavDropdown.Item>
-                </NavDropdown>
+                </NavDropdown>}
                 {/* Submission Dropdown */}
-                <NavDropdown
+                {permission_checker("submissions","view") && <NavDropdown
                   title="Submission"
                   id="submission-nav-dropdown"
                   active={
@@ -135,6 +138,7 @@ const isAuthorizedEmployee = isAuthenticated && employee_id;
                     Submission Date Details
                   </NavDropdown.Item>
                 </NavDropdown>
+}
                 <NavDropdown
                   title="My View"
                   id="myrequirements-nav-dropdown"
@@ -170,6 +174,7 @@ const isAuthorizedEmployee = isAuthenticated && employee_id;
                     activeSection === "analytics-sourcer"
                   }
                 >
+                  {permission_checker("client_dashboard","view") && 
                   <NavDropdown.Item
                   
                       as={NavLink}
@@ -179,7 +184,8 @@ const isAuthorizedEmployee = isAuthenticated && employee_id;
                     active={activeSection === "analytics-client"}
                   >
                     Client Dashboard
-                  </NavDropdown.Item>
+                  </NavDropdown.Item>}
+                  {permission_checker("recruiter_dashboard","view") && 
                   <NavDropdown.Item
                    as={NavLink}
                       to={'/recruiterdashboard'}
@@ -189,7 +195,8 @@ const isAuthorizedEmployee = isAuthenticated && employee_id;
                     active={activeSection === "analytics-recruiter"}
                   >
                     Recruiter Dashboard
-                  </NavDropdown.Item>
+                  </NavDropdown.Item>}
+                  {permission_checker("sourcer_dashboard","view") &&
                   <NavDropdown.Item
                    as={NavLink}
                      to={'/sourcerdashboard'}
@@ -197,7 +204,7 @@ const isAuthorizedEmployee = isAuthenticated && employee_id;
                     active={activeSection === "analytics-sourcer"}
                   >
                     Sourcer Dashboard
-                  </NavDropdown.Item>
+                  </NavDropdown.Item>}
                 </NavDropdown>
               </>
             )}

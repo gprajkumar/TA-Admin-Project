@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { FaFilter } from "react-icons/fa";
 import AlertComponent from "../AlertComponent";
 import CustomBarchart from "../charts/CustomBarChart";
+import { hasPermission } from "../../services/utilities/rbac";
 import CustomPieChart from "../charts/CustomPieChart";
 import {
   getRoleTypeGroupbyData,
@@ -28,9 +29,15 @@ const ClientDashboard = () => {
   });
   const accountRes = useSelector((state) => state.master_dropdown.accounts);
   const endClientRes = useSelector((state) => state.master_dropdown.endClients);
+  const emp_permissions = useSelector((state) => state.master_dropdown.permissions);
   const [activeFilter, setActiveFilter] = useState("account");
   const [updatedDate, setUpdatedDate] = useState("");
   const [dateAlert, setDateAlert] = useState(false);
+  const canViewDashboard = () => {
+  if(hasPermission(emp_permissions,"client_dashboard","view") || hasPermission(emp_permissions,"client_dashboard","edit") || hasPermission(emp_permissions,"client_dashboard","edit_own_data") || hasPermission(emp_permissions,"client_dashboard","delete_own_data")){
+    return true;
+  } 
+}
   const [selectedData, setSelectedData] = useState({
     accounts: [0], // Default is "Select All"
     endclients: [0],
@@ -267,7 +274,14 @@ useEffect(() => {
     setDateAlert(true);
     handleFilterSearch();
   };
-
+if(!canViewDashboard()){
+  return (
+    <div className="no-access">
+      <h2>Access Denied</h2>  
+      <p>You do not have permission to view this dashboard.</p>
+    </div>
+  );
+}
   return (
     <div>
       <div className="update_container">

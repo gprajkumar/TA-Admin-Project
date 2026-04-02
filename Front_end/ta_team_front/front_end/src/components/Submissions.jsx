@@ -8,12 +8,14 @@ import {
   getJobreqs,
 } from "../services/drop_downService";
 import { Form, Row, Col, Button } from "react-bootstrap";
+import { hasPermission,canEdit } from "../services/utilities/rbac";
 import useCalTAT from "../services/customHooks/useCalTAT";
 import { normalizeData } from "../services/utilities/utilities";
 import Loader from "./sharedComponents/Loader";
 import Dropdown_component from "./sharedComponents/Dropdown_component";
 import CustomAlert from "./sharedComponents/Alert";
 import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
+import { useSelector } from "react-redux";
 
 const Submission = ({ submission_id,viewtype = false,externaldropdowndata,onSuccess,
   onClose}) => {
@@ -35,6 +37,12 @@ const Submission = ({ submission_id,viewtype = false,externaldropdowndata,onSucc
     loop_closed_date: null,
     loop_closed_reason: ""
       }
+const emp_permissions = useSelector((state) => state.master_dropdown.permissions);
+const canEditSubmission = () => {
+  if(canEdit(emp_permissions,"submissions") || canEdit(emp_permissions,"submissions",true)){
+    return true;
+  } 
+}
 const[alertConfig,setAlertConfig] = useState({show: false, message:"", type:""});
   const [formData, setFormData] = useState(initialFormData);
    const loadOptions = async (inputValue) => {
@@ -234,6 +242,15 @@ useEffect(() => {
     return updatedForm;
   });
   };
+  if(!canEditSubmission()){
+    return (
+      <div className="no-access">   
+        <h2>Access Denied</h2>
+        <p>You do not have permission to {submission_id ? "edit" : "create"} submission.</p>
+      </div>
+    );
+  }
+
   if(loading)
 {
    return <Loader />;

@@ -1,14 +1,13 @@
-import React, { useEffect,useState } from 'react';
+
 import { Form, Row, Col } from "react-bootstrap";
 import './ViewForm.css';
 import { useSelector } from 'react-redux';
-import axiosInstance from '../services/axiosInstance';
-import { findDimensionValueType } from 'framer-motion';
+import React from 'react';
 
 const MyProfile = () => {
   const emp_details = useSelector((state) => state.employee.employee_details);  // fixed access to state
+  const emp_permissions = useSelector((state) => state.master_dropdown.permissions);  // Access permissions from dropdown slice
   const role_access = [];
-  const [loadPermissions , setLoadPermissions] = useState(false);
   if (emp_details && emp_details.designation) {
     for (const [role, access] of Object.entries(emp_details.designation)) {
       if (access === true) {
@@ -16,29 +15,10 @@ const MyProfile = () => {
       }
     }
   }
-  const [role_permission, setRolePermission] = useState([]);
-
-  useEffect(() => {
-     if (emp_details?.designation?.designation_id) {
-  fetchPermissionData();
-     }
-  }, [emp_details?.designation?.designation_id]);
-
-  const fetchPermissionData = async () => {
-    try {
-      const response = await axiosInstance.get(`/ta_team/role-permissions/`, {
-        params: { id: emp_details?.designation?.designation_id || "" }
-      });
-      const permissions = response.data;
-      setRolePermission(permissions);
-    }
-    catch (error) {
-      console.error("Error fetching role permissions:", error); 
-    }
-    finally {
-setLoadPermissions(true);
-    }
-  }
+ 
+console.log("Employee Permissions in MyProfile:", emp_permissions); // Debug log for permissions
+  
+  
   
   return (
     <>
@@ -64,18 +44,9 @@ setLoadPermissions(true);
         <Col md={6}>Designation:</Col>
         <Col md={6}>{emp_details?.designation?.designation_name || "N/A"}</Col>
       </Row>
-      <Row className="view-row">
-        <Col md={6}>Access Details:</Col>
-        {role_access.length > 0 ? (
-          role_access.map((access, index) => (
-            <Col md={6} key={index}>{access}</Col>
-          ))
-        ) : (
-          <Col md={6}>No access assigned</Col>
-        )}
-      </Row>
+    
     </div>
-    {loadPermissions && (
+    {emp_permissions && (
     <div className='view-form-container '>
        <Row className="view-row">
       <p>Role Permissions for the Designation: {emp_details?.designation?.designation_name || "N/A"}</p>
@@ -87,13 +58,14 @@ setLoadPermissions(true);
    
       </Row>
       <Row className="view-row">
-        {role_permission.length > 0 ? (
-          role_permission.map((permission, index) => (
-            <React.Fragment key={index}>
-              <Col md={6}>{permission.module_name}</Col>
-              <Col md={6}>{permission.permission_type_name}</Col>
-            </React.Fragment>   
-          ))
+        {emp_permissions && Object.keys(emp_permissions).length > 0 ? (
+    Object.entries(emp_permissions).map(([moduleCode, permissions]) => (
+      <React.Fragment key={moduleCode}>
+        <Col md={6}>{moduleCode}</Col>
+        <Col md={6}>{permissions.join(", ")}</Col>
+      </React.Fragment>
+    ))
+        
         ) : (
           <Col md={6}>No access assigned</Col>
         )}

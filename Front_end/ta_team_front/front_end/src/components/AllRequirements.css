@@ -28,7 +28,11 @@
 }
 
 /* Columns flex */
-.col-job {
+.col-job,.col-job-content {
+  flex: 2;
+  padding-left: 20px;
+}
+.col-job-title {
   flex: 2;
   padding-left: 20px;
 }
@@ -153,4 +157,25 @@
 .jobs-found-count {
   color: #007bff;
   font-weight: bold;
+}
+.col-job {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: 400;                         /* Set base weight explicitly */
+  transition: color 0.3s ease, 
+              text-shadow 0.3s ease;        /* Only transition what renders smoothly */
+}
+
+.col-job:hover {
+  color: #3f039f;
+  text-decoration: underline;
+  text-shadow: 0.5px 0 0 #1c0345;          /* Fakes bold — no layout shift */
+}
+.modal-90w {
+  max-width: 90% !important;
+  width: 90% !important;
+}
+
+.modal-90w .modal-content {
+  width: 100%;
 }

@@ -5,6 +5,7 @@ import { normalizeData } from "../services/utilities/utilities";
 import useMasterDropdowns from "../services/customHooks/useMasterDropdowns";
 import Loader from "./sharedComponents/Loader";
 import RequirementComponent from "./forms/RequirementComponent";
+import {canEdit} from "../services/utilities/rbac";
 const RequirementForm = ({ reqid, viewtype = false, externaldropdowndata }) => {
 
   const initialFormData = {
@@ -36,10 +37,17 @@ const RequirementForm = ({ reqid, viewtype = false, externaldropdowndata }) => {
     drop_down_hiringManagers,
     drop_down_roleTypes,
     drop_down_employees,
-    drop_down_accounts
+    drop_down_accounts,
+    drop_down_permissions
   } = useMasterDropdowns();
 
   const [formData, setFormData] = useState(initialFormData);
+  const can_Edit= () =>{
+    if(canEdit(drop_down_permissions,"requirements") || canEdit(drop_down_permissions,"requirements",true)){
+      return true;
+    }
+
+  }
 
   const [dropdownData, setDropdownData] = useState({
     clients: [],
@@ -272,7 +280,14 @@ useEffect(() => {
       alert("Submission failed");
     }
   };
-
+if(!can_Edit()){
+  return (
+    <div className="no-access">
+      <h2>Access Denied</h2>
+      <p>You do not have permission to create new requirement.</p>
+    </div>
+  );
+}
   if (loading) {
     return  <Loader />;
   } else {

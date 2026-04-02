@@ -157,6 +157,15 @@ class DesignationSerializer(serializers.ModelSerializer):
         model=Designation
         fields ='__all__'
 
+class RolePermissionSerializer(serializers.ModelSerializer):
+    module_name = serializers.CharField(source="module.module_name", read_only=True)
+    module_code = serializers.CharField(source="module.module_code", read_only=True)
+    permission_type_name = serializers.CharField(source="permission_type.permission_type_name", read_only=True)
+
+    class Meta:
+        model = RolePermission
+        fields = ["module_name", "module_code", "permission_type_name"]
+
 class EmployeeSerializer(serializers.ModelSerializer):
     designation = DesignationSerializer(read_only=True)
     class Meta:
@@ -168,13 +177,6 @@ class PlacementSerializer(serializers.ModelSerializer):
        model= Placement
        fields='__all__'
        
-class RolePermissionSerializer(serializers.ModelSerializer):
-    designation_name = serializers.CharField(source='designation.designation_name', read_only=True)
-    module_name = serializers.CharField(source='module.module_name', read_only=True)
-    permission_type_name = serializers.CharField(source='permission_type.permission_type_name', read_only=True)
-    class Meta:
-        model = RolePermission
-        fields = ['role_permission_id','designation_name','module_name','permission_type_name']
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
      def validate(self, attrs):

@@ -10,6 +10,7 @@ import ViewForm from "./ViewForm";
 import Pagination from 'react-bootstrap/Pagination';
 import CustomPagination from "./sharedComponents/CustomPagination";
 import Submission from "./Submissions";
+import { hasPermission ,canDelete,canEdit} from "../services/utilities/rbac";
 import useMasterDropdowns from "../services/customHooks/useMasterDropdowns";
 import {
   
@@ -37,10 +38,16 @@ const AllSubmissions = ({ dateform = false, empId }) => {
     drop_down_endClients,
     drop_down_clients,
     drop_down_employees,
-    drop_down_sources
+    drop_down_sources,
+    drop_down_permissions
   } = useMasterDropdowns();
- 
-  
+  const profileEmployee =  useSelector((state) => state.employee.employee_details);
+  const profile_employee_id = profileEmployee ? profileEmployee.employee_id : null;
+  console.log("Employee Details from Redux:", profileEmployee); // Debug log for employee details
+ console.log("Dropdown Permissions in AllSubmissions:", drop_down_permissions); // Debug log for permissions
+  const can_view = ()=> {
+    return hasPermission(drop_down_permissions, "submissions", "view");
+  }
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
@@ -89,7 +96,13 @@ const AllSubmissions = ({ dateform = false, empId }) => {
     setShow(true);
     setviewtype(true);
   };
-  const handleEdit = (subId) => {
+  const handleEdit = (subId,recruiterId,sourcerId) => {
+    console.log("Attempting to edit submission:", subId, "Recruiter ID:", recruiterId, "Sourcer ID:", sourcerId,"empcode:", profile_employee_id ); // Debug log for edit action
+    const ownerCheck = (profile_employee_id === recruiterId) || (profile_employee_id === sourcerId);
+    if(!canEdit(drop_down_permissions, "submissions", ownerCheck)) {
+      alert("You don't have permission to edit this candidate as you are neither the recruiter nor the sourcer for this submission.");
+    return;
+    }
     setcurrentSubid(subId);
     setShow(true);
     setviewtype(false);
@@ -104,7 +117,14 @@ const AllSubmissions = ({ dateform = false, empId }) => {
     value: job.requirement_id
   }));
 };  
-  const handleDelete = async (subId) => {
+  const handleDelete = async (subId, recruiterId, sourcerId) => {
+    const ownerCheck = (profile_employee_id === recruiterId) || (profile_employee_id === sourcerId);
+
+    if((!canDelete(drop_down_permissions, "submissions", ownerCheck))) {
+      alert("You don't have permission to delete this candidate as you are neither the recruiter nor the sourcer for this submission.");
+      return;
+    }
+
     if (window.confirm("Are you sure you want to delete this Candidate?")) {
       try {
         const response = await axiosInstance.delete(
@@ -167,6 +187,7 @@ const AllSubmissions = ({ dateform = false, empId }) => {
       endpageitemno: totalPages > 10 ? 6 : totalPages - 1,
     });
      const filteredData = paginatedfilteredData.results;
+     console.log("Filtered Submissions:", filteredData); // Debug log for filtered submissions
       setfilteredSubs(filteredData);
     } catch (error) {
       console.error("Error fetching filtered jobs:", error);
@@ -369,7 +390,9 @@ const paginatedItemGenerate = () => {
     console.error("Error fetching page data:", error);
   }
 };
-
+if(!can_view()){  
+    return <div className="no-access">You do not have permission to view this content.</div>; 
+}
   return (
     <div className="data-container">
       <Row>
@@ -499,7 +522,7 @@ const paginatedItemGenerate = () => {
       </Row>
       {/* Header row with class 'header-row' */}
       <Row className="header-row">
-        <Col className="col-job">Job</Col>
+        <Col className="col-job-title">Job</Col>
         <Col className="col-end-client">Submission Date</Col>
         <Col className="col-client">Candidate Name</Col>
         <Col className="col-recruiter">
@@ -531,7 +554,7 @@ const paginatedItemGenerate = () => {
       </Row>
       {filteredSubs.map((sub) => (
         <Row key={sub.submission_id} className="data-row">
-          <Col className="col-job">{`${sub.job_details.job_code}- ${sub.job_details.job_title}`}</Col>
+          <Col className="col-job-content">{`${sub.job_details.job_code}- ${sub.job_details.job_title}`}</Col>
           <Col className="col-end-client">
             {formatDateMMDDYYYY(sub.submission_date)}
           </Col>
@@ -602,14 +625,14 @@ const paginatedItemGenerate = () => {
             <button
               aria-label="Edit"
               title="Edit"
-              onClick={() => handleEdit(sub.submission_id)}
+              onClick={() => handleEdit(sub.submission_id,sub.recruiter,sub.sourcer)}
             >
               <FaEdit />
             </button>
             <button
               aria-label="Delete"
               title="Delete"
-              onClick={() => handleDelete(sub.submission_id)}
+              onClick={() => handleDelete(sub.submission_id,sub.recruiter,sub.sourcer)}
             >
               <FaTrash />
             </button>

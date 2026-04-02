@@ -4,6 +4,8 @@ import {
   getJobreqs,
   getSubmissionsbyReqid,
 } from "../services/drop_downService";
+import { useSelector } from "react-redux";
+import { canEdit } from "../services/utilities/rbac";
 import { Form, Row, Col, Button, FormGroup, FormLabel } from "react-bootstrap";
 import Select from "react-select";
 
@@ -26,6 +28,12 @@ const SubmissionDatesForm = ({
     tech_screen_date: "",
     am_screen_date: "",
   });
+  const emp_permissions = useSelector((state) => state.master_dropdown.permissions);
+const canEditSubmission = () => {
+  if(canEdit(emp_permissions,"submissions") || canEdit(emp_permissions,"submissions",true)){
+    return true;
+  } 
+}
   const loadOptions = async (inputValue) => {
    const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
      params: { q: inputValue }
@@ -241,7 +249,15 @@ const jobdataready = DropdownData.jobdropdown.length > 0;
       </Form.Group>
     );
   };
-
+if(!canEditSubmission())
+{
+  return (
+    <div className="no-access">
+      <h2>Access Denied</h2>
+      <p>You do not have permission to edit submission dates.</p>
+    </div>
+  );
+}
   return (
     <div>
       <Form onSubmit={handleSubmit} className="requirement-form container">
