@@ -116,6 +116,7 @@ def has_own_permission(user, module_code, own_action, obj, owner_field=None, own
     if owner_field:
         return getattr(obj, owner_field, None) == employee.employee_id
 
+
     return False
 
 
