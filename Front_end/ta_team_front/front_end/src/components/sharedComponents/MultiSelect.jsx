@@ -1,4 +1,5 @@
 import Select, { components } from "react-select";
+const BaseMenuList = components.MenuList;
 import { Form } from "react-bootstrap";
 
 // ── Custom Option: label + checkbox ──────────────────────────────────────────
@@ -104,7 +105,7 @@ const MenuList = ({ children, selectProps }) => {
   const handleSelectAll = () => onChange(allSelected ? [] : [...options]);
 
   return (
-    <components.MenuList {...{ children, selectProps }}>
+    <BaseMenuList {...{ children, selectProps }}>
       <div
         style={{
           display: "flex",
@@ -135,7 +136,7 @@ const MenuList = ({ children, selectProps }) => {
         </button>
       </div>
       {children}
-    </components.MenuList>
+    </BaseMenuList>
   );
 };
 
