@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models.models import DashboardJobData, RolePermission, Designation,Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Role_Type, Source, Tech_Screener, Screening_Status, Employee
+from .models.models import DashboardJobData, RolePermission, Designation,Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Role_Type, Source, Tech_Screener, Screening_Status, Employee, SubmissionStatus
 from .models.requirement import Requirements
-from .models.submission import Placement,Submissions
+from .models.submission import Placement,Submissions,SubmissionStatusLog
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
@@ -91,6 +91,11 @@ class JobStatusSerializer(serializers.ModelSerializer):
         model = JobStatus
         fields = '__all__'
 
+class SubmissionStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubmissionStatus
+        fields = ['status_id', 'status_name', 'order', 'is_active', 'main_table_field']
+
 
 class RoleTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -145,12 +150,23 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'offer_date',
             'start_date',
             'current_status',
+            'current_new_status',
             'turn_around_time',
             'created_by',
             'loop_closed',
-            'loop_closed_date', 
+            'loop_closed_date',
             'loop_closed_reason'
         ]
+
+class StatuslogSerializer(serializers.ModelSerializer):
+    status_name = serializers.CharField(source='status.status_name', read_only=True)
+    status_order = serializers.IntegerField(source='status.order', read_only=True)
+    updated_by_name = serializers.CharField(source='updated_by.emp_fName', read_only=True)
+    submission_details = SubmissionSerializer(source='submission', read_only=True)
+
+    class Meta:
+        model = SubmissionStatusLog
+        fields = '__all__'
 
 class DesignationSerializer(serializers.ModelSerializer):
     class Meta:

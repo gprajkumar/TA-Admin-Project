@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models.models import ReasonForLeaving,Account, AccountManager, AccountHead, AccountCoordinator, EndClient, Client, JobStatus, Screening_Status, Feedback, Holiday, Source, Role_Type, Tech_Screener, HiringManager, Designation, Department, Employee, RolePermission, Module, PermissionType,TargetforTeam # This imports everything from models.py and requirement.py
+from .models.models import ReasonForLeaving,Account, AccountManager, AccountHead, AccountCoordinator, EndClient, Client, JobStatus, Screening_Status, Feedback, Holiday, Source, Role_Type, Tech_Screener, HiringManager, Designation, Department, Employee, RolePermission, Module, PermissionType,TargetforTeam, SubmissionStatus # This imports everything from models.py and requirement.py
+from .models.submission import SubmissionStatusLog, Submissions
 from django.contrib.auth.models import User
 from .admin_form import CustomUserCreationForm
 from django.contrib.auth.admin import UserAdmin
@@ -60,6 +61,7 @@ admin.site.register(Employee,EmployeeAdmin)
 admin.site.register(Designation)
 admin.site.register(Department)
 admin.site.register(ReasonForLeaving)
+admin.site.register(SubmissionStatus)
 # admin.site.register(RolePermission)
 # admin.site.register(Module)
 # admin.site.register(PermissionType)
@@ -76,3 +78,14 @@ class ModuleAdmin(admin.ModelAdmin):
 @admin.register(PermissionType)
 class PermissionTypeAdmin(admin.ModelAdmin):
     list_display = ['permission_type_name']
+
+@admin.register(Submissions)
+class SubmissionsAdmin(admin.ModelAdmin):
+    search_fields = ['candidate_name']
+
+@admin.register(SubmissionStatusLog)
+class SubmissionStatusLogAdmin(admin.ModelAdmin):
+    list_display = ['submission', 'status', 'status_date', 'updated_by', 'created_at']
+    list_filter = ['status']
+    search_fields = ['submission__candidate_name']
+    autocomplete_fields = ['submission']

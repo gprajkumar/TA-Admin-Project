@@ -24,6 +24,7 @@ class Submissions(models.Model):
     start_date = models.DateField(blank=True, null=True)
     turn_around_time =models.IntegerField(null=True, blank=True)
     current_status = models.CharField(blank=True, max_length=50)
+    current_new_status = models.ForeignKey(SubmissionStatus, on_delete=models.CASCADE, default=1)
     loop_closed = models.BooleanField(default=False)
     loop_closed_date = models.DateField(blank=True, null=True)
     loop_closed_reason = models.CharField(max_length=200, blank=True, null=True)
@@ -34,34 +35,57 @@ class Submissions(models.Model):
             models.Index(fields=["Job"]),
             models.Index(fields=["recruiter"]),
             models.Index(fields=["sourcer"]),
+            models.Index(fields=["source"]),
             models.Index(fields=["submission_date"]),
             models.Index(fields=["client_sub_date"]),
             models.Index(fields=["current_status"]),
+            models.Index(fields=["current_new_status"]),
         ]
 
     def __str__(self):
         return self.candidate_name
 
-    def save(self, *args, **kwargs):
-        self.update_status()
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     self.update_status()
+    #     super().save(*args, **kwargs)
 
-    def update_status(self):
-        if self.start_date:
-            self.current_status = "Started"
-        elif self.offer_date:
-            self.current_status = "Offered"
-        elif self.client_interview_date:
-            self.current_status = "Interviewed"
-        elif self.client_sub_date:
-            self.current_status = "Submitted to Client"
-        elif self.tech_screen_date:
-            self.current_status = "Technical Screened"
-        elif self.am_screen_date:
-            self.current_status = "AM Screened"
-        else:
-            self.current_status = "Submitted to AM"
+    # def update_status(self):
+    #     if self.start_date:
+    #         self.current_status = "Started"
+    #     elif self.offer_date:
+    #         self.current_status = "Offered"
+    #     elif self.client_interview_date:
+    #         self.current_status = "Interviewed"
+    #     elif self.client_sub_date:
+    #         self.current_status = "Submitted to Client"
+    #     elif self.tech_screen_date:
+    #         self.current_status = "Technical Screened"
+    #     elif self.am_screen_date:
+    #         self.current_status = "AM Screened"
+    #     else:
+    #         self.current_status = "Submitted to AM"
     
+class SubmissionStatusLog(models.Model):
+    log_id      = models.AutoField(primary_key=True)
+    submission  = models.ForeignKey('Submissions', on_delete=models.CASCADE, related_name='status_logs')
+    status      = models.ForeignKey(SubmissionStatus, on_delete=models.CASCADE)
+    status_date = models.DateField()
+    updated_by  = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('submission', 'status')
+        verbose_name = "Submission Status Log"
+        verbose_name_plural = "Submission Status Logs"
+        indexes = [
+            models.Index(fields=['submission']),
+            models.Index(fields=['status']),
+        ]
+
+    def __str__(self):
+        return f"{self.submission.candidate_name} - {self.status.status_name}"
+
+
 class Placement(models.Model):
     placment_id = models.AutoField(primary_key=True)
     Job = models.ForeignKey(Requirements,on_delete=models.CASCADE)

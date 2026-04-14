@@ -35,11 +35,11 @@ class Requirements(models.Model):
             models.Index(fields=["req_opened_date"]),
             models.Index(fields=["client"]),
             models.Index(fields=["end_client"]),
+            models.Index(fields=["account"]),
             models.Index(fields=["job_status"]),
             models.Index(fields=["assigned_recruiter"]),
             models.Index(fields=["assigned_sourcer"]),
-            models.Index(fields=["role_type"])
-          
+            models.Index(fields=["role_type"]),
         ]
 
     def __str__(self):

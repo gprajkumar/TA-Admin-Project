@@ -105,6 +105,22 @@ class JobStatus(models.Model):
     def __str__(self):
         return self.job_status
     
+class SubmissionStatus(models.Model):
+    status_id        = models.AutoField(primary_key=True)
+    status_name      = models.CharField(max_length=100, verbose_name="Status Name")
+    order            = models.PositiveIntegerField(verbose_name="Order")
+    is_active        = models.BooleanField(default=True, verbose_name="Active")
+    main_table_field = models.CharField(max_length=50, blank=True, null=True, verbose_name="Main Table Field")
+
+    class Meta:
+        verbose_name = "Submission Status"
+        verbose_name_plural = "Submission Statuses"
+        ordering = ['order']
+
+    def __str__(self):
+        return self.status_name
+
+
 class Source(models.Model):
     source_id = models.AutoField(primary_key=True)
     source = models.CharField(max_length=100, verbose_name="Source")

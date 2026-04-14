@@ -5,7 +5,7 @@ from rest_framework import status
 from .models.models import (
     Client, EndClient, Account, AccountManager, HiringManager,
     AccountHead, AccountCoordinator, Feedback, JobStatus,
-     Role_Type, Source, Tech_Screener, Screening_Status, Employee, DashboardJobData, RolePermission, Holiday,TargetforTeam
+     Role_Type, Source, Tech_Screener, Screening_Status, Employee, DashboardJobData, RolePermission, Holiday,TargetforTeam, SubmissionStatus
 )
 from django.http import JsonResponse
 from django.views import View
@@ -13,19 +13,19 @@ from rest_framework.views import APIView
 from django.db import connection
 from django_filters.rest_framework import DjangoFilterBackend
 from .models.requirement import Requirements
-from .models.submission import Placement,Submissions
+from .models.submission import Placement, Submissions, SubmissionStatusLog
 from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientSerializer, AccountSerializer,
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
     AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,RolePermissionSerializer,
      RoleTypeSerializer, EmployeeSerializer,
-    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer,DashboardDataSerializer)
+    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer,DashboardDataSerializer, SubmissionStatusSerializer, StatuslogSerializer)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
 from .filters.requirement_filter import RequirementFilter,SubmissionFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
 from django.db.models import F, Count, IntegerField, OuterRef, Subquery, Sum, Avg, Value, Window
-from django.db.models.functions import Coalesce, RowNumber, TruncMonth
+from django.db.models.functions import Coalesce, RowNumber, Round, TruncMonth
 import traceback
 from django.db.models import Q
 from datetime import datetime, timedelta, timezone
@@ -128,6 +128,11 @@ class JobStatusViewSet(ModelViewSet):
     queryset = JobStatus.objects.all()
     serializer_class = JobStatusSerializer
 
+class SubmissionStatusViewSet(ReadOnlyModelViewSet):
+    queryset = SubmissionStatus.objects.filter(is_active=True).order_by('order')
+    serializer_class = SubmissionStatusSerializer
+    permission_classes = [IsAuthenticated]
+
 class RoleTypeViewSet(ModelViewSet):
     queryset = Role_Type.objects.all()
     serializer_class = RoleTypeSerializer
@@ -159,16 +164,67 @@ class SubmisionViewSet(ModelViewSet):
         ).all().order_by('-submission_date')
 
         empcode = self.request.query_params.get("empcode")
-    
 
         if empcode:
             queryset = queryset.filter(
                 Q(recruiter_id=empcode) | Q(sourcer_id=empcode)
             )
-       
-     
 
         return queryset
+
+    def _sync_status_log(self, submission, status_date_override=None, updated_by=None):
+        """Write a SubmissionStatusLog entry for the current status.
+
+        Date resolution order:
+          1. status_date_override  — from request field 'status_update_submission_date'
+          2. submission.<main_table_field>  — if the status maps to a column
+        If neither yields a date, the log entry is skipped.
+        """
+        status = submission.current_new_status
+        if not status:
+            return
+
+        # Try to resolve a date
+        status_date = status_date_override
+        if not status_date and status.main_table_field:
+            status_date = getattr(submission, status.main_table_field, None)
+
+        if not status_date:
+            return
+
+        SubmissionStatusLog.objects.update_or_create(
+            submission=submission,
+            status=status,
+            defaults={"status_date": status_date, "updated_by": updated_by},
+        )
+
+    def perform_create(self, serializer):
+        employee = getattr(self.request.user, 'employee', None)
+        status_date_override = self.request.data.get('status_update_submission_date') or None
+        submission = serializer.save(created_by=employee)
+        self._sync_status_log(submission, status_date_override=status_date_override, updated_by=employee)
+
+    def perform_update(self, serializer):
+        employee = getattr(self.request.user, 'employee', None)
+        status_date_override = self.request.data.get('status_update_submission_date') or None
+        submission = serializer.save()
+        self._sync_status_log(submission, status_date_override=status_date_override, updated_by=employee)
+
+class SubmissionHistoryViewSet(ReadOnlyModelViewSet):
+    serializer_class = StatuslogSerializer
+    permission_classes = [SubmissionsPermission]
+
+    def get_queryset(self):
+        submission_id = self.request.query_params.get("submission_id")
+        if not submission_id:
+            return SubmissionStatusLog.objects.none()
+        return (
+            SubmissionStatusLog.objects
+            .filter(submission_id=submission_id)
+            .select_related("status", "submission", "updated_by")
+            .order_by("-status_date")
+        )
+
 class PlacementViewSet(ModelViewSet):
     queryset = Placement.objects.all()
     serializer_class = PlacementSerializer
@@ -274,6 +330,15 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             filters = self.build_filters(request.data)
             queryset = DashboardJobData.objects.filter(**filters)
 
+            avg_fields = dict(
+                avg_turnaround_time=Round(Avg('avg_turnaround_time'), 2),
+                avg_days_am_to_csub=Round(Avg('avg_days_am_to_csub'), 2),
+                avg_days_time_to_fill=Round(Avg('avg_days_time_to_fill'), 2),
+                avg_days_time_to_hire=Round(Avg('avg_days_time_to_hire'), 2),
+                avg_days_csub_to_offer=Round(Avg('avg_days_csub_to_offer'), 2),
+                avg_days_time_to_interview=Round(Avg('avg_days_time_to_interview'), 2),
+            )
+
             overall_calculations = queryset.aggregate(
                 roles_opened=Count('job_code'),
                 amsubs=Sum('amsubs'),
@@ -283,16 +348,10 @@ class ClientDashboardView(ReadOnlyModelViewSet):
                 starts=Sum('starts'),
                 techscreens=Sum('techscreens'),
                 techscreen_csubs=Sum('techscreen_csubs'),
-                avg_turnaround_time=Avg('avg_turnaround_time'),
-                avg_days_am_to_csub=Avg('avg_days_am_to_csub'),
-                avg_days_time_to_fill=Avg('avg_days_time_to_fill'),  
-                avg_days_time_to_hire=Avg('avg_days_time_to_hire'),
-                avg_days_csub_to_offer=Avg('avg_days_csub_to_offer'),
-                avg_days_time_to_interview=Avg('avg_days_time_to_interview')    
+                **avg_fields,
             )
 
-            if filter_type == "endclient":
-                grouped_data = queryset.values('end_client_id', 'end_client_name').annotate(
+            count_fields = dict(
                 roles_opened=Count('job_code'),
                 amsubs=Sum('amsubs'),
                 csubs=Sum('csubs'),
@@ -301,46 +360,17 @@ class ClientDashboardView(ReadOnlyModelViewSet):
                 starts=Sum('starts'),
                 techscreens=Sum('techscreens'),
                 techscreen_csubs=Sum('techscreen_csubs'),
-                avg_turnaround_time=Avg('avg_turnaround_time'),
-                avg_days_am_to_csub=Avg('avg_days_am_to_csub'),
-                avg_days_time_to_fill=Avg('avg_days_time_to_fill'),  
-                avg_days_time_to_hire=Avg('avg_days_time_to_hire'),
-                avg_days_csub_to_offer=Avg('avg_days_csub_to_offer'),
-                avg_days_time_to_interview=Avg('avg_days_time_to_interview')
+                **avg_fields,
+            )
+
+            if filter_type == "endclient":
+                grouped_data = queryset.values('end_client_id', 'end_client_name').annotate(
+                    **count_fields
                 ).order_by('end_client_id')
             else:
                 grouped_data = queryset.values('account_id', 'account_name').annotate(
-                    roles_opened=Count('job_code'),
-                    amsubs=Sum('amsubs'),
-                    csubs=Sum('csubs'),
-                    interviews=Sum('interviews'),
-                    offers=Sum('offers'),
-                    starts=Sum('starts'),
-                    techscreens = Sum('techscreens'),
-                    techscreen_csubs = Sum('techscreen_csubs'),
-                    avg_turnaround_time=Avg('avg_turnaround_time'),
-                    avg_days_am_to_csub=Avg('avg_days_am_to_csub'),
-                    avg_days_time_to_fill=Avg('avg_days_time_to_fill'),  
-                    avg_days_time_to_hire=Avg('avg_days_time_to_hire'),
-                    avg_days_csub_to_offer=Avg('avg_days_csub_to_offer'),
-                    avg_days_time_to_interview=Avg('avg_days_time_to_interview')
-                    ).order_by('account_name')
-
-
-            for item in grouped_data:
-                item['avg_turnaround_time'] = round(item['avg_turnaround_time'], 2) if item['avg_turnaround_time'] is not None else None
-                item['avg_days_am_to_csub'] = round(item['avg_days_am_to_csub'], 2) if item['avg_days_am_to_csub'] is not None else None
-                item['avg_days_time_to_fill'] = round(item['avg_days_time_to_fill'], 2) if item['avg_days_time_to_fill'] is not None else None
-                item['avg_days_time_to_hire'] = round(item['avg_days_time_to_hire'], 2) if item['avg_days_time_to_hire'] is not None else None
-                item['avg_days_csub_to_offer'] = round(item['avg_days_csub_to_offer'], 2) if item['avg_days_csub_to_offer'] is not None else None
-                item['avg_days_time_to_interview'] = round(item['avg_days_time_to_interview'], 2) if item['avg_days_time_to_interview'] is not None else None
-            
-            overall_calculations['avg_turnaround_time'] = round(overall_calculations['avg_turnaround_time'], 2) if overall_calculations['avg_turnaround_time'] is not None else None
-            overall_calculations['avg_days_am_to_csub'] = round(overall_calculations['avg_days_am_to_csub'], 2) if overall_calculations['avg_days_am_to_csub'] is not None else None
-            overall_calculations['avg_days_time_to_fill'] = round(overall_calculations['avg_days_time_to_fill'], 2) if overall_calculations['avg_days_time_to_fill'] is not None else None
-            overall_calculations['avg_days_time_to_hire'] = round(overall_calculations['avg_days_time_to_hire'], 2) if overall_calculations['avg_days_time_to_hire'] is not None else None
-            overall_calculations['avg_days_csub_to_offer'] = round(overall_calculations['avg_days_csub_to_offer'], 2) if overall_calculations['avg_days_csub_to_offer'] is not None else None
-            overall_calculations['avg_days_time_to_interview'] = round(overall_calculations['avg_days_time_to_interview'], 2) if overall_calculations['avg_days_time_to_interview'] is not None else None
+                    **count_fields
+                ).order_by('account_name')
             
             return Response({
                 "grouped_data": list(grouped_data),
@@ -351,6 +381,120 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             logger.error(traceback.format_exc())
             return Response({"error": str(e)}, status=500)
     
+    @action(detail=False, methods=['post'], url_path='filter/all')
+    def filter_all_dashboard(self, request):
+        try:
+            filter_type = request.data.get('filter_type')
+            filters = self.build_filters(request.data)
+            qs = DashboardJobData.objects.filter(**filters)
+
+            # Reusable rounded avg expressions
+            avg_fields = dict(
+                avg_turnaround_time=Round(Avg('avg_turnaround_time'), 2),
+                avg_days_am_to_csub=Round(Avg('avg_days_am_to_csub'), 2),
+                avg_days_time_to_fill=Round(Avg('avg_days_time_to_fill'), 2),
+                avg_days_time_to_hire=Round(Avg('avg_days_time_to_hire'), 2),
+                avg_days_csub_to_offer=Round(Avg('avg_days_csub_to_offer'), 2),
+                avg_days_time_to_interview=Round(Avg('avg_days_time_to_interview'), 2),
+            )
+            count_fields = dict(
+                roles_opened=Count('job_code'),
+                amsubs=Sum('amsubs'),
+                csubs=Sum('csubs'),
+                interviews=Sum('interviews'),
+                offers=Sum('offers'),
+                starts=Sum('starts'),
+                techscreens=Sum('techscreens'),
+                techscreen_csubs=Sum('techscreen_csubs'),
+                **avg_fields,
+            )
+
+            # 1. Overall totals
+            total_data = qs.aggregate(**count_fields)
+
+            # 2. Grouped by account or end client
+            if filter_type == 'endclient':
+                grouped_data = list(
+                    qs.values('end_client_id', 'end_client_name')
+                    .annotate(**count_fields)
+                    .order_by('end_client_id')
+                )
+            else:
+                grouped_data = list(
+                    qs.values('account_id', 'account_name')
+                    .annotate(**count_fields)
+                    .order_by('account_name')
+                )
+
+            # 3. Monthly submissions
+            monthly_qs = (
+                qs.annotate(month=TruncMonth('req_opened_date'))
+                .values('month')
+                .annotate(
+                    roles_opened=Count('job_code'),
+                    amsubs=Sum('amsubs'),
+                    csubs=Sum('csubs'),
+                    interviews=Sum('interviews'),
+                    offers=Sum('offers'),
+                    starts=Sum('starts'),
+                )
+                .order_by('month')
+            )
+            monthly_data = [
+                {**item, 'month': item['month'].strftime('%b %Y')}
+                for item in monthly_qs
+            ]
+
+            # 4. Role types
+            role_type_data = list(
+                qs.values('role_type_id', 'role_type')
+                .annotate(no_of_roles_opened=Count('job_code'))
+                .order_by('role_type_id')
+            )
+
+            # 5. Job statuses
+            job_status_data = list(
+                qs.values('job_status_id', 'job_status')
+                .annotate(no_of_roles_opened=Count('job_code'))
+                .order_by('job_status_id')
+            )
+
+            # 6. Carry-forward active roles (excluding current month)
+            current_month = datetime.today().replace(day=1)
+            carry_qs = (
+                qs.annotate(month=TruncMonth('req_opened_date'))
+                .filter(job_status='Active')
+                .exclude(month=TruncMonth(current_month))
+                .values('month')
+                .annotate(roles_opened=Count('job_code'))
+                .order_by('month')
+            )
+            carry_forward_data = [
+                {**item, 'month': item['month'].strftime('%b %Y')}
+                for item in carry_qs
+            ]
+
+            # 7. Pipeline and cancelled count
+            pipeline_cancel_data = qs.aggregate(
+                pipelineorCancelCount=Count('job_code', filter=Q(job_status_id=8) | Q(role_type_id=2)),
+                cancelCount=Count('job_code', filter=Q(job_status_id=8)),
+                pipelinecount=Count('job_code', filter=Q(role_type_id=2)),
+            )
+
+            return Response({
+                'total_data': total_data,
+                'grouped_data': grouped_data,
+                'monthly_data': monthly_data,
+                'role_type_data': role_type_data,
+                'job_status_data': job_status_data,
+                'carry_forward_data': carry_forward_data,
+                'pipeline_cancel_data': pipeline_cancel_data,
+            })
+
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return Response({'error': str(e)}, status=500)
+
     @action(detail=False, methods=['post'], url_path='filter/monthdata')
     def filter_monthly_dashboard(self, request):
         try:

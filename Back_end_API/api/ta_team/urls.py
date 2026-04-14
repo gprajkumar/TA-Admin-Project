@@ -13,6 +13,7 @@ router.register(r'accountheads', AccountHeadViewSet)
 router.register(r'accountcoordinators', AccountCoordinatorViewSet)
 router.register(r'feedbacks', FeedbackViewSet)
 router.register(r'jobstatuses', JobStatusViewSet)
+router.register(r'submissionstatuses', SubmissionStatusViewSet, basename='submissionstatuses')
 router.register(r'roletypes', RoleTypeViewSet)
 router.register(r'sources', SourceViewSet)
 router.register(r'techscreeners', TechScreenerViewSet)
@@ -24,6 +25,7 @@ router.register(r'placements',PlacementViewSet)
 router.register(r'recruitersdata',RecruiterDashboardAPIView, basename='recruitersdata')
 router.register(r'sourcersdata',SourcerDashboardView, basename='sourcersdata')
 router.register(r'candidate_status',UniqueCandidate_Status_ViewSet,basename='candidate_status')
+router.register(r'submission-history', SubmissionHistoryViewSet, basename='submission-history')
 urlpatterns = [
     path('', include(router.urls)),
     path('refresh-client-dashboard/', RefreshClientDashboardView.as_view()), 
