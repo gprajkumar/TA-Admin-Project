@@ -16,14 +16,17 @@ import Dropdown_component from "./sharedComponents/Dropdown_component";
 import CustomAlert from "./sharedComponents/Alert";
 import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
 import { useSelector } from "react-redux";
+import { current } from "@reduxjs/toolkit";
 
 const Submission = ({ submission_id,viewtype = false,externaldropdowndata,onSuccess,
   onClose}) => {
   const [loading, setLoading] = useState(submission_id ? true : false); 
   const[fetchedJobs,setFetchedJobs] = useState([]);
+  const[submissionHistory,setSubmissionHistory] = useState([]); 
   const baseurl = import.meta.env.VITE_API_BASE_URL;
       const [errors,setErrors] = useState({});
-      const initialFormData = {Job: "",
+      const initialFormData = {
+    Job: "",
     submission_date: "",
     candidate_name: "",
     payrate: "",
@@ -31,13 +34,23 @@ const Submission = ({ submission_id,viewtype = false,externaldropdowndata,onSucc
     recruiter: "",
     sourcer: "",
     source: "",
-    am_sub_date:"",
+    am_sub_date: "",
+    am_screen_date: "",
+    tech_screen_date: "",
+    client_sub_date: "",
+    client_interview_date: "",
+    offer_date: "",
+    start_date: "",
     turn_around_time: "",
+    current_new_status: "",
     loop_closed: false,
     loop_closed_date: null,
-    loop_closed_reason: ""
+    loop_closed_reason: "",
+    status_update_submission_date: "",
+    current_status: ""
       }
 const emp_permissions = useSelector((state) => state.master_dropdown.permissions);
+const submissionStatuses = useSelector((state) => state.master_dropdown.submissionstatuses ?? []);
 const canEditSubmission = () => {
   if(canEdit(emp_permissions,"submissions") || canEdit(emp_permissions,"submissions",true)){
     return true;
@@ -100,25 +113,40 @@ const resetform = () =>
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [recruitersRes, sourcersRes, sourceres] =
-          await Promise.all([
-           
+        if (externaldropdowndata) {
+          setDropdownData({
+            recruiters: externaldropdowndata.recruiters || [],
+            sourcers: externaldropdowndata.sourcers || [],
+            sources: externaldropdowndata.sources || [],
+          });
+        } else {
+          const [recruitersRes, sourcersRes, sourceres] = await Promise.all([
             getfilteredEmployees({ can_recruit: true }),
             getfilteredEmployees({ can_source: true }),
             getSources(),
           ]);
+          setDropdownData({
+            recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
+            sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
+            sources: normalizeData(sourceres, "source_id", "source"),
+          });
+        }
 
-        setDropdownData({
-  
-          recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
-          sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
-          sources: normalizeData(sourceres,"source_id","source"),
-        });
-           if (submission_id) {
-        const res = await axiosInstance.get(`/ta_team/submissions/${submission_id}/`);
-        setFormData(res.data);
-        setLoading(false);
-      }
+        if (submission_id) {
+          const [SubRes, HistoryRes] = await Promise.all([
+            axiosInstance.get(`/ta_team/submissions/${submission_id}/`),
+            axiosInstance.get(`/ta_team/submission-history/?submission_id=${submission_id}`),
+          ]);
+          const subData = SubRes.data;
+          const historyData = HistoryRes.data;
+          setSubmissionHistory(historyData);
+          const historyEntry = historyData.find(h => h.status === subData.current_new_status);
+          setFormData({
+            ...subData,
+            status_update_submission_date: historyEntry ? historyEntry.status_date : subData.status_update_submission_date || "",
+          });
+          setLoading(false);
+        }
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
       }
@@ -126,6 +154,12 @@ const resetform = () =>
 
     fetchData();
   }, [submission_id]);
+     
+  const cleanFormData = (data) => {
+    return Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [key, value === "" ? null : value])
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -137,18 +171,18 @@ const resetform = () =>
     }
 
     try {
+      
       if(!submission_id)
       {
-        const payload = {...formData, loop_closed_date: formData.loop_closed_date || null};
+        const payload = {...cleanFormData(formData), loop_closed_date: formData.loop_closed_date || null, current_new_status: submissionStatuses.length > 0 ? submissionStatuses.find(s => s.main_table_field === "submission_date")?.status_id || null:null,current_status:submissionStatuses.length > 0 ? submissionStatuses.find(s => s.main_table_field === "submission_date")?.status_name || null:null};
+        console.log("Form data to be submitted for creation:", payload);
       await axiosInstance.post(`/ta_team/submissions/`, payload);
       setAlertConfig({show: true, message:"Submitted successfully", type:"success"});
-    //   alert("Submitted successfully");
-    //  <CustomAlert message={"Submitted successfully"} type="success" />
       resetform();
       }
       else
       {
-          const payload = {...formData, loop_closed_date: formData.loop_closed_date || null};
+          const payload = {...cleanFormData(formData), loop_closed_date: formData.loop_closed_date || null, current_new_status: formData.current_new_status || null};
       console.log("Form data to be submitted for update:", formData);
         await axiosInstance.patch(`/ta_team/submissions/${submission_id}/`, payload);
         setAlertConfig({show: true, message:"Updated successfully", type:"success"});
@@ -232,9 +266,20 @@ useEffect(() => {
     const { name, value } = e.target;
   setFormData((prev) => {
     const updatedForm = { ...prev, [name]: name === "loop_closed_date" ? (value || null) : value  };
-    
+
     if (name === "submission_date") {
-      updatedForm["am_sub_date"] = value; // Sync am_submission with submission_date
+      updatedForm["am_sub_date"] = value;
+    }
+    if (name === "current_new_status") {
+      const historyEntry = submissionHistory.find(h => h.status === value);
+      updatedForm["status_update_submission_date"] = historyEntry ? historyEntry.status_date : "";
+    }
+    if (name === "status_update_submission_date") {
+      const selectedStatus = submissionStatuses.find(s => s.status_id === prev.current_new_status);
+      if (selectedStatus?.main_table_field) {
+        updatedForm[selectedStatus.main_table_field] = value;
+      }
+      updatedForm["current_status"]=selectedStatus?.status_name || "";
     }
     if(errors[name]){
       setErrors((preverrors)=>({...preverrors,[name]:""}))
@@ -376,6 +421,43 @@ else
       </Row>
       </div>
 }
+    {submission_id && (
+      <div className="status-dates-area mt-3">
+        <Row>
+          <Col md={12}>
+            <Form.Group className="mb-3">
+              <Form.Label className="fs-6">Current Status:</Form.Label>
+              <Select
+                classNamePrefix="my-select"
+                options={submissionStatuses.map(s => ({ value: s.status_id, label: s.status_name }))}
+                value={submissionStatuses.map(s => ({ value: s.status_id, label: s.status_name })).find(opt => opt.value === formData.current_new_status) || null}
+                onChange={(selected) => handleChange({ target: { name: "current_new_status", value: selected ? selected.value : "" } })}
+                placeholder="Select Status"
+                isClearable
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+        {formData.current_new_status && (
+          <Row>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label className="fs-6">
+                  {submissionStatuses.find(s => s.status_id === formData.current_new_status)?.status_name} Date:
+                </Form.Label>
+                <Form.Control
+                  type="date"
+                  name="status_update_submission_date"
+                  max={new Date().toISOString().split("T")[0]}
+                  value={formData.status_update_submission_date || ""}
+                  onChange={handleChange}
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+        )}
+      </div>
+    )}
     {!viewtype && <Row className="justify-content-center mt-4">
   <Col xs="auto">
     <Button className="submit-button" type="submit">
@@ -388,6 +470,29 @@ else
     </Button>
   </Col>
 </Row>}
+    {submission_id && submissionHistory.length > 0 && (
+      <div className="mt-4">
+        <h6 className="mb-2">Status History</h6>
+        <table className="table table-sm table-bordered">
+          <thead className="table-light">
+            <tr>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Changed By</th>
+            </tr>
+          </thead>
+          <tbody>
+            {submissionHistory.map((entry) => (
+              <tr key={entry.log_id}>
+                <td>{entry.status_name}</td>
+                <td>{entry.status_date ? new Date(entry.status_date + "T00:00:00").toLocaleDateString() : "—"}</td>
+                <td>{entry.updated_by_name || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
     </Form>
   );
 };

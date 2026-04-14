@@ -15,7 +15,8 @@ const useMasterDropdowns = () => {
       drop_down_employees: master_dropdown.employees,
       drop_down_accounts: master_dropdown.accounts,
       drop_down_sources: master_dropdown.sources,
-      drop_down_permissions: master_dropdown.permissions
+      drop_down_permissions: master_dropdown.permissions,
+      drop_down_submissionStatus: master_dropdown.submissionstatuses
     };
   }, [master_dropdown]);
 

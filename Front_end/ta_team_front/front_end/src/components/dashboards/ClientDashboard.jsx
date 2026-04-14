@@ -9,17 +9,11 @@ import CustomBarchart from "../charts/CustomBarChart";
 import { hasPermission } from "../../services/utilities/rbac";
 import CustomPieChart from "../charts/CustomPieChart";
 import {
-  getRoleTypeGroupbyData,
-  getCompleteAccountData,
-  getCompleteEndClientData,
-  getMonthlySubsData,
-  getJobStatusGroupbyData,
-  getcarryforwardActiveData,
+  getDashboardAllData,
   getdashboardUpdateData,
-  getPipelineorCancelledData
 } from "../../services/helper";
 import ScoreCard from "./ScoreCard.jsx";
-import MultiSelectComponent from "../sharedComponents/MultiSelectComponent.jsx";
+import MultiSelect from "../sharedComponents/MultiSelect.jsx";
 
 const ClientDashboard = () => {
     const [barChartData, setBarChartData] = useState({
@@ -132,105 +126,42 @@ return toPercentage(
   
   
     
-    const barChart = async () => {
-      try{
-      const mainRequest = activeFilter === "account" ? getCompleteAccountData(selectedData) : getCompleteEndClientData(selectedData);
-      const[updaedDateResponse,mainResponse,pipeline_cancelled_response] = await Promise.all([getdashboardUpdateData(), mainRequest, getPipelineorCancelledData(selectedData)]);
-      setUpdatedDate(updaedDateResponse.last_updated || "No data available");
-  
-     
-      setBarChartData((prev) => ({
-        ...prev,
-        pipeline_cancelled_data: pipeline_cancelled_response.pipelineCancelCount || {},
-        overall_data: mainResponse.total_data,
-        grouped_data: mainResponse.grouped_data
-        
-      }));
+  const handleFilterSearch = async (data = selectedData, filter = activeFilter) => {
+    try {
+      const res = await getDashboardAllData({ ...data, filter_type: filter });
+      setBarChartData({
+        overall_data: res.total_data || {},
+        grouped_data: res.grouped_data || [],
+        pipeline_cancelled_data: res.pipeline_cancel_data || {},
+      });
+      SetmonthlySubsData(res.monthly_data || []);
+      setRoleTypeChartData(res.role_type_data || []);
+      setJobStatusChartData(res.job_status_data || []);
+      setcarryforwardChartData(res.carry_forward_data || []);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
     }
-    catch (error) {
-      console.error("Error fetching bar chart data:", error);
-    }
-      
-    };
-   
-
-const monthlycharts = async () => {
-  try{
-      const monthlydataResponse =await getMonthlySubsData(selectedData);
-
-      SetmonthlySubsData(monthlydataResponse.grouped_data);
-
-  }
-  catch (error) {
-    console.error("Error fetching monthly submissions data:", error);
-  }
-
-  } 
- 
-  
-const roletypesfetch = async () => {
-   try{
- const role_type_response =await getRoleTypeGroupbyData(selectedData);
-
-      setRoleTypeChartData(role_type_response.grouped_data);
-   }
-    catch (error) { 
-    console.error("Error fetching role type data:", error);
-    }
-   
-  } 
- 
-
-   
-const jobstatusfetch = async () => {
-  try { 
-     const job_status_response =await getJobStatusGroupbyData(selectedData);
-
-      setJobStatusChartData(job_status_response.grouped_data);
-  }
-  catch (error) {
-    console.error("Error fetching job status data:", error);  
-  }
-   
-    
-  } 
-
-  const handleFilterSearch = () => {
-  barChart();
-  jobstatusfetch();
-  roletypesfetch();  
-  monthlycharts();
-  carryforwardfetch();  
-}
-useEffect(() => { 
-  handleFilterSearch();
-}, [activeFilter]);
- 
-  const carryforwardfetch = async () => {
-   try {
-     const carry_forward_activedata =await getcarryforwardActiveData(selectedData);
-
-      setcarryforwardChartData(carry_forward_activedata.grouped_data);
-   } catch (error) {
-    console.error("Error fetching carry forward data:", error);
-   }
+  };
      
-  } 
-     
-  const normalizeData = (data, idkey, namekey) =>
-    data.map((item) => ({ id: item[idkey], name: item[namekey] }));
+  const normalizeAndSort = (data, idkey, namekey) =>
+    data
+      .map((item) => ({ id: item[idkey], name: item[namekey] }))
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
 
   useEffect(() => {
     setfilterdropdowndata((prev) => ({
       ...prev,
-      account_dropdown: normalizeData(accountRes, "account_id", "account_name"),
-      endclient_dropdown: normalizeData(
-        endClientRes,
-        "end_client_id",
-        "end_client_name"
-      ),
+      account_dropdown: normalizeAndSort(accountRes, "account_id", "account_name"),
+      endclient_dropdown: normalizeAndSort(endClientRes, "end_client_id", "end_client_name"),
     }));
   }, [accountRes, endClientRes]);
+
+  useEffect(() => {
+    getdashboardUpdateData().then((res) =>
+      setUpdatedDate(res.last_updated || "No data available")
+    );
+    handleFilterSearch();
+  }, []);
 
   const errors = {};
   const viewtype = false;
@@ -306,17 +237,17 @@ if(!canViewDashboard()){
               label="Filter by End Client"
               checked={activeFilter === "endclient"}
               onChange={(e) => {
-              const newFilter = e.target.checked ? "endclient" : "account";
-  setActiveFilter(newFilter);
-  setSelectedData((prev) => ({
-    ...prev,
-    accounts:[0], 
-    endclients:[0],
-    filter_type: newFilter,  // keep in sync
-  }));
-}
-              
-              }
+                const newFilter = e.target.checked ? "endclient" : "account";
+                const newData = {
+                  ...selectedData,
+                  accounts: [0],
+                  endclients: [0],
+                  filter_type: newFilter,
+                };
+                setActiveFilter(newFilter);
+                setSelectedData(newData);
+                handleFilterSearch(newData, newFilter);
+              }}
             />
           </Form.Group>
         </Col>
@@ -349,12 +280,26 @@ if(!canViewDashboard()){
 
              <Col md={4}>
           {activeFilter === "account"
-            ? <MultiSelectComponent name={"accounts"} label={"Account"} options={filterdropdowndata.account_dropdown} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>
-            :<MultiSelectComponent name={"endclients"} label={"End Client"} options={filterdropdowndata.endclient_dropdown} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>}
+            ? <MultiSelect
+                name="accounts"
+                label="Account"
+                options={[{ id: 0, name: "Select All" }, ...filterdropdowndata.account_dropdown]}
+                value={selectedData.accounts}
+                onChange={handleChange}
+                disabled={viewtype}
+              />
+            : <MultiSelect
+                name="endclients"
+                label="End Client"
+                options={[{ id: 0, name: "Select All" }, ...filterdropdowndata.endclient_dropdown]}
+                value={selectedData.endclients}
+                onChange={handleChange}
+                disabled={viewtype}
+              />}
         </Col>
          <Col md={2}>
           <button
-            className="btn btn-primary" onClick={handleFilterSearch}>Filter</button>
+            className="btn btn-primary" onClick={() => handleFilterSearch()}>Filter</button>
         </Col>
       </Row>
 

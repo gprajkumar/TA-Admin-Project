@@ -9,9 +9,11 @@ import { formatDateMMDDYYYY } from "../services/helper";
 import ViewForm from "./ViewForm";
 import Pagination from 'react-bootstrap/Pagination';
 import CustomPagination from "./sharedComponents/CustomPagination";
+import MultiSelect from "./sharedComponents/MultiSelect";
 import Submission from "./Submissions";
 import { hasPermission ,canDelete,canEdit} from "../services/utilities/rbac";
 import useMasterDropdowns from "../services/customHooks/useMasterDropdowns";
+import useDebounce from "../services/customHooks/useDebounce";
 import {
   
   getJobreqs,
@@ -39,7 +41,9 @@ const AllSubmissions = ({ dateform = false, empId }) => {
     drop_down_clients,
     drop_down_employees,
     drop_down_sources,
-    drop_down_permissions
+    drop_down_permissions,
+    drop_down_submissionStatus,
+    drop_down_accounts
   } = useMasterDropdowns();
   const profileEmployee =  useSelector((state) => state.employee.employee_details);
   const profile_employee_id = profileEmployee ? profileEmployee.employee_id : null;
@@ -51,20 +55,29 @@ const AllSubmissions = ({ dateform = false, empId }) => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
-    end_client: "",
-    client: "",
+    account: [],
+    end_client: [],
+    client: [],
     recruiter: "",
     sourcer: "",
     from_sub_date: "",
     to_sub_date: "",
     candidate_name: "",
-    current_status: "",
+    current_status: [],
+    current_new_status: [],
     source: "",
     empcode:"",
     loop_closed:"",
     loop_closed_date:"",
     loop_closed_reason:""
   });
+
+  const [candidateName, setCandidateName] = useState("");
+  const debouncedCandidateName = useDebounce(candidateName, 500);
+
+  useEffect(() => {
+    setSelectedvalue((prev) => ({ ...prev, candidate_name: debouncedCandidateName }));
+  }, [debouncedCandidateName]);
 
   const [show, setShow] = useState(false);
   const [currentSubid, setcurrentSubid] = useState("");
@@ -279,18 +292,14 @@ const paginatedItemGenerate = () => {
             id: data.requirement_id,
             name: `${data.job_code} - ${data.job_title}`,
           })),
-          clients: normalizeData(clientRes, "client_id", "client_name"),
-          endClients: normalizeData(
-            endClientsRes,
-            "end_client_id",
-            "end_client_name"
-          ),
+          clients: normalizeAndSort(clientRes, "client_id", "client_name"),
+          endClients: normalizeAndSort(endClientsRes, "end_client_id", "end_client_name"),
           candidate_current_Status: Array.isArray(CurrentStatusRes)
             ? CurrentStatusRes.map((status) => ({ id: status, name: status }))
             : [],
-          recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
-          sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
-          sources: normalizeData(sourceRes, "source_id", "source"),
+          recruiters: normalizeAndSort(recruitersRes, "employee_id", "emp_fName"),
+          sourcers: normalizeAndSort(sourcersRes, "employee_id", "emp_fName"),
+          sources: normalizeAndSort(sourceRes, "source_id", "source"),
         });
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
@@ -298,7 +307,7 @@ const paginatedItemGenerate = () => {
     };
 
     fetchData();
-  }, []);
+  }, [drop_down_clients, drop_down_endClients, drop_down_employees, drop_down_sources]);
 
   const renderSelect = (name, label, options) => {
     const selectOptions = (options || []).map((opt) => ({
@@ -328,15 +337,19 @@ const paginatedItemGenerate = () => {
       </div>
     );
   };
-   
-  
+
  const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
+ const normalizeAndSort = (data, idKey, nameKey) =>
+    normalizeData(data, idKey, nameKey).sort((a, b) =>
+      (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
  const buildCleanFilters = (page) => {
   const cleanFilters = {};
 
   Object.entries(selectedvalue).forEach(([key, value]) => {
-    if (value !== "") {
+    if (Array.isArray(value)) {
+      if (value.length > 0) cleanFilters[key] = value.join(',');
+    } else if (value !== "") {
       cleanFilters[key] = value;
     }
   });
@@ -413,44 +426,73 @@ if(!can_view()){
 />
           </Form.Group>
         </Col>
-        <Col md={3}>
+        <Col md={6}>
           <Form.Group className="mb-3 " controlId="candidate_name">
             <Form.Label className="fs-6">Candidate Name</Form.Label>
             <Form.Control
               type="input"
-              onChange={handleChange}
-              value={selectedvalue.candidate_name}
+              onChange={(e) => setCandidateName(e.target.value)}
+              value={candidateName}
               name="candidate_name"
             />
           </Form.Group>
         </Col>
-        <Col md={3}>
+        {/* <Col md={3}>
           <Form.Group className="mb-3" controlId="current_status">
-            <Form.Label className="fs-6">Candidate Status:</Form.Label>
-            {renderSelect(
-              "current_status",
-              "Candidate Current Status",
-              filterdropdowndata.candidate_current_Status
-            )}
+            <MultiSelect
+              name="current_status"
+              label="Candidate Status"
+              options={filterdropdowndata.candidate_current_Status}
+              value={selectedvalue.current_status}
+              onChange={handleChange}
+              placeholder="Select Status"
+            />
           </Form.Group>
+        </Col> */}
+        </Row>
+        <Row>
+        <Col md={6}>
+          <MultiSelect
+            name="current_new_status"
+            label="Submission Status"
+            options={(drop_down_submissionStatus || []).map((s) => ({ id: s.status_id, name: s.status_name }))}
+            value={selectedvalue.current_new_status}
+            onChange={handleChange}
+            placeholder="Select Submission Status"
+          />
         </Col>
-      </Row>
+        <Col md={6}>
+          <MultiSelect
+            name="account"
+            label="Account"
+            options={(drop_down_accounts || []).map((a) => ({ id: a.account_id, name: a.account_name })).sort((a, b) => a.name.localeCompare(b.name))}
+            value={selectedvalue.account}
+            onChange={handleChange}
+            placeholder="Select Account"
+          />
+        </Col>
+        </Row>
+
       <Row>
         <Col md={3}>
-          <Form.Group className="mb-3" controlId="EndClient">
-            <Form.Label className="fs-6">End Client:</Form.Label>
-            {renderSelect(
-              "end_client",
-              "End Client",
-              filterdropdowndata.endClients
-            )}
-          </Form.Group>
+          <MultiSelect
+            name="end_client"
+            label="End Client"
+            options={filterdropdowndata.endClients}
+            value={selectedvalue.end_client}
+            onChange={handleChange}
+            placeholder="Select End Client"
+          />
         </Col>
         <Col md={3}>
-          <Form.Group className="mb-3 " controlId="Client">
-            <Form.Label className="fs-6">Client:</Form.Label>
-            {renderSelect("client", "Client", filterdropdowndata.clients)}
-          </Form.Group>
+          <MultiSelect
+            name="client"
+            label="Client"
+            options={filterdropdowndata.clients}
+            value={selectedvalue.client}
+            onChange={handleChange}
+            placeholder="Select Client"
+          />
         </Col>
         <Col md={2}>
           <Form.Group className="mb-3 " controlId="recruiter">

@@ -20,9 +20,9 @@ const MultiSelectComponent = ({
       borderRadius: "0.375rem",
       fontSize: "1rem",
       boxShadow: state.isFocused
-        ? "0 0 0 0.2rem rgba(0, 123, 255, 0.25)"
+        ? "0 0 0 0.2rem rgba(0, 255, 174, 0.25)"
         : base.boxShadow,
-      "&:hover": { borderColor: "#86b7fe" },
+      "&:hover": { borderColor: "#86fedc" },
     }),
     valueContainer: (base) => ({ ...base, padding: "0 8px" }),
     input: (base) => ({ ...base, margin: 0, padding: 0 }),

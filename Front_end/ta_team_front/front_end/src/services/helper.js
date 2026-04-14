@@ -1,6 +1,16 @@
 import axiosInstance from "./axiosInstance";
 
 
+export const getDashboardAllData = async (filters) => {
+  try {
+    const response = await axiosInstance.post('ta_team/accountdata/filter/all/', filters);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    return {};
+  }
+};
+
 export const getCompleteAccountData = async (filters) => {
   try {
     const response = await axiosInstance.post('ta_team/accountdata/filter/',filters);

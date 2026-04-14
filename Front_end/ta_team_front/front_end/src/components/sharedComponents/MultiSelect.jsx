@@ -2,6 +2,21 @@ import Select, { components } from "react-select";
 const BaseMenuList = components.MenuList;
 import { Form } from "react-bootstrap";
 
+// ── Theme tokens ──────────────────────────────────────────────────────────────
+const G = {
+  primary:      "#045533",   // dark green — buttons, accents
+  primaryHover: "#033d26",   // darker on hover
+  primaryLight: "#e6f4ef",   // very light green — tag background
+  primaryBorder:"#a3d4be",   // muted green — tag border
+  primaryText:  "#045533",   // dark green text on light bg
+  focusShadow:  "rgba(4,85,51,0.2)",
+  focusBorder:  "#04aa6d",   // mid-green border on focus
+  menuHeader:   "#f0f9f5",   // faint green tint for menu header bg
+  headerBorder: "#c8e8d8",
+  hoverRow:     "#f0f9f5",   // row hover bg
+  countText:    "#3a7d5e",   // muted green for "N of M selected"
+};
+
 // ── Custom Option: label + checkbox ──────────────────────────────────────────
 const Option = ({ children, isSelected, innerProps, innerRef, isFocused }) => (
   <div
@@ -13,7 +28,7 @@ const Option = ({ children, isSelected, innerProps, innerRef, isFocused }) => (
       gap: "10px",
       padding: "8px 12px",
       cursor: "pointer",
-      backgroundColor: isFocused ? "#f0f4ff" : "white",
+      backgroundColor: isFocused ? G.hoverRow : "white",
       transition: "background 0.15s",
     }}
   >
@@ -22,7 +37,7 @@ const Option = ({ children, isSelected, innerProps, innerRef, isFocused }) => (
       checked={isSelected}
       onChange={() => {}}
       style={{
-        accentColor: "#4361ee",
+        accentColor: G.primary,
         width: "15px",
         height: "15px",
         cursor: "pointer",
@@ -40,9 +55,9 @@ const MultiValue = ({ children, removeProps }) => (
       display: "inline-flex",
       alignItems: "center",
       gap: "4px",
-      backgroundColor: "#e8edff",
-      color: "#3a56d4",
-      border: "1px solid #c5d0f8",
+      backgroundColor: G.primaryLight,
+      color: G.primaryText,
+      border: `1px solid ${G.primaryBorder}`,
       borderRadius: "20px",
       padding: "2px 8px",
       fontSize: "0.78rem",
@@ -58,7 +73,7 @@ const MultiValue = ({ children, removeProps }) => (
         fontWeight: 700,
         fontSize: "0.85rem",
         lineHeight: 1,
-        color: "#3a56d4",
+        color: G.primary,
         marginLeft: "2px",
       }}
     >
@@ -81,7 +96,7 @@ const MultiValueContainer = ({ selectProps, data, children }) => {
         style={{
           display: "inline-flex",
           alignItems: "center",
-          backgroundColor: "#4361ee",
+          backgroundColor: G.primary,
           color: "white",
           borderRadius: "20px",
           padding: "2px 10px",
@@ -98,25 +113,25 @@ const MultiValueContainer = ({ selectProps, data, children }) => {
 };
 
 // ── Menu header: Select All / Clear All ──────────────────────────────────────
-const MenuList = ({ children, selectProps }) => {
+const MenuList = ({ children, selectProps, ...rest }) => {
   const { options, value, onChange } = selectProps;
   const allSelected = value?.length === options.length;
 
   const handleSelectAll = () => onChange(allSelected ? [] : [...options]);
 
   return (
-    <BaseMenuList {...{ children, selectProps }}>
+    <BaseMenuList {...rest} selectProps={selectProps}>
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           padding: "6px 12px",
-          borderBottom: "1px solid #e9ecef",
-          backgroundColor: "#f8f9fa",
+          borderBottom: `1px solid ${G.headerBorder}`,
+          backgroundColor: G.menuHeader,
         }}
       >
-        <span style={{ fontSize: "0.78rem", color: "#6c757d", fontWeight: 500 }}>
+        <span style={{ fontSize: "0.78rem", color: G.countText, fontWeight: 500 }}>
           {value?.length || 0} of {options.length} selected
         </span>
         <button
@@ -125,7 +140,7 @@ const MenuList = ({ children, selectProps }) => {
           style={{
             background: "none",
             border: "none",
-            color: "#4361ee",
+            color: G.primary,
             fontSize: "0.78rem",
             fontWeight: 600,
             cursor: "pointer",
@@ -209,16 +224,16 @@ const MultiSelect = ({
             borderColor: hasError
               ? "#dc3545"
               : state.isFocused
-              ? "#86b7fe"
+              ? G.focusBorder
               : "#ced4da",
             borderRadius: "0.375rem",
             boxShadow: hasError
               ? "0 0 0 0.2rem rgba(220,53,69,.25)"
               : state.isFocused
-              ? "0 0 0 0.2rem rgba(67,97,238,.2)"
+              ? `0 0 0 0.2rem ${G.focusShadow}`
               : "none",
             "&:hover": {
-              borderColor: hasError ? "#dc3545" : "#86b7fe",
+              borderColor: hasError ? "#dc3545" : G.focusBorder,
             },
             flexWrap: "wrap",
           }),
@@ -232,18 +247,18 @@ const MultiSelect = ({
             borderRadius: "0.5rem",
             boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
             overflow: "hidden",
-            border: "1px solid #e2e8f0",
+            border: `1px solid ${G.headerBorder}`,
           }),
           menuPortal: (base) => ({ ...base, zIndex: 999999 }),
-          option: () => ({}),          // handled by custom Option component
-          multiValue: () => ({}),      // handled by custom MultiValue
+          option: () => ({}),
+          multiValue: () => ({}),
           multiValueLabel: () => ({}),
           multiValueRemove: () => ({}),
           placeholder: (base) => ({ ...base, color: "#adb5bd", fontSize: "0.9rem" }),
           input: (base) => ({ ...base, fontSize: "0.9rem" }),
           dropdownIndicator: (base, state) => ({
             ...base,
-            color: "#6c757d",
+            color: G.primary,
             transition: "transform 0.2s",
             transform: state.selectProps.menuIsOpen ? "rotate(180deg)" : "rotate(0deg)",
           }),

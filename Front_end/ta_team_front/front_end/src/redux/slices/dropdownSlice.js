@@ -8,7 +8,8 @@ const initialState ={
     sources:[],
     roleTypes:[],
     employees:[],
-    permissions:[]
+    permissions:[],
+    submissionstatuses:[]
 }
 
 const dropdownSlice = createSlice(
@@ -45,11 +46,14 @@ const dropdownSlice = createSlice(
             },
             setPermissions(state,action){
                 state.permissions = action.payload;
+             },
+                setSubmissionStatuses(state,action){    
+                state.submissionstatuses = action.payload;
              }
             
         }
     }
 );
 
-export const{setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setAccountManagers,setHiringManagers,setPermissions} = dropdownSlice.actions;
+export const{setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setAccountManagers,setHiringManagers,setPermissions,setSubmissionStatuses} = dropdownSlice.actions;
 export default dropdownSlice.reducer;

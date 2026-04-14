@@ -41,6 +41,7 @@ export const getAccounts = () => fetchDropdownData("accounts");
 export const getJobStatuses = () => fetchDropdownData("jobstatuses");
 export const getRecruiters = () => fetchDropdownData("recruiters");
 export const getSourcers = () => fetchDropdownData("sourcers");
+export const getSubmissionStatuses = () => fetchDropdownData("submissionstatuses");
 export const getAccountManagers = () => fetchDropdownData("accountmanagers");
 export const getHiringManagers = () => fetchDropdownData("hiringmanagers");
 export const getSources = () => fetchDropdownData("sources");
@@ -120,6 +121,7 @@ export const getfilteredEmployees = (filter) =>
     const response = await axiosInstance.get(`/ta_team/submissions/`, {
     params: { 
        Job: filterParams.Job,
+    account: filterParams.account,
     end_client: filterParams.end_client,
     client: filterParams.client,
     recruiter: filterParams.recruiter,
@@ -128,6 +130,7 @@ export const getfilteredEmployees = (filter) =>
     to_sub_date: filterParams.to_sub_date,
     candidate_name: filterParams.candidate_name,
     current_status: filterParams.current_status,
+    current_new_status: filterParams.current_new_status,
     source: filterParams.source,
     empcode:filterParams.empcode,
     page: filterParams.page || 1 

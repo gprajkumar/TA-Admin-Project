@@ -21,8 +21,8 @@ import ClientDashboard from './components/dashboards/ClientDashboard.jsx';
 import MyProfile from './components/myProfile';
 import ComingSoon from './components/ComingSoon.jsx';
 import { setEmployee,clearEmployee } from './redux/slices/authSlice';
-import {fetchCurrentEmployee, getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers,getCurrentPermissions} from './services/drop_downService.js';
-import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers,setPermissions} from './redux/slices/dropdownSlice';
+import {fetchCurrentEmployee, getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers,getCurrentPermissions,getSubmissionStatuses} from './services/drop_downService.js';
+import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers,setPermissions,setSubmissionStatuses} from './redux/slices/dropdownSlice';
 import { useIsAuthenticated } from "@azure/msal-react";
 import {
   useMsal
@@ -173,7 +173,9 @@ const handleLogout = async () => {
 const fetchDropdowns = async (designation_id) => {
 
   try {
-    const [accountData, endClientData,clientData,jobstatusData,sourceData,roleTypeData,employeeData,accountManagersData,HiringManagersData,permissionData] = await Promise.all([
+    const [permissionData,SubmissionStatus,accountData,endClientData,clientData,jobstatusData,sourceData,roleTypeData,employeeData,accountManagersData,HiringManagersData] = await Promise.all([
+      getCurrentPermissions(designation_id),
+      getSubmissionStatuses(),
       getAccounts(),
       getEndClients(),
       getClients(),
@@ -182,11 +184,13 @@ const fetchDropdowns = async (designation_id) => {
       getRoleTypes(),
       getEmployees(),
       getAccountManagers(),
-      getHiringManagers(),
-      getCurrentPermissions(designation_id)
+      getHiringManagers()
+      
 
     ]);
-
+    console.log("submission status data in app.jsx",SubmissionStatus);
+dispatch(setPermissions(formatPermissions(permissionData).byModule)); // Store formatted permissions by module
+dispatch(setSubmissionStatuses(SubmissionStatus));
     dispatch(setAccounts(accountData));
     dispatch(setEndClients(endClientData));
     dispatch(setClients(clientData));
@@ -196,7 +200,7 @@ const fetchDropdowns = async (designation_id) => {
     dispatch(setEmployees(employeeData));
     dispatch(setAccountManagers(accountManagersData));
     dispatch(setHiringManagers(HiringManagersData));
-    dispatch(setPermissions(formatPermissions(permissionData).byModule)); // Store formatted permissions by module
+  
   } catch (err) {
     console.error('Dropdown fetch failed:', err.message);
   }
