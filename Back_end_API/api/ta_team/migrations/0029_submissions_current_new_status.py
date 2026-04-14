@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ta_team', '0028_submissionstatus_submissionstatuslog'),
+        ('ta_team', '0028_5_seed_submissionstatus'),
     ]
 
     operations = [
