@@ -58,10 +58,29 @@ class RequirementsViewSet(ModelViewSet):
 
     def get_queryset(self):
         queryset = Requirements.objects.select_related(
-            'client', 'end_client', 'account', 'job_status', 
+            'client', 'end_client', 'account', 'job_status',
             'assigned_recruiter', 'assigned_sourcer',
             'accountManager', 'hiringManager', 'role_type'
-        ).all().order_by('-req_opened_date')
+        ).only(
+            # Requirements own fields
+            'requirement_id', 'job_code', 'job_title', 'req_opened_date',
+            'notes', 'created_at', 'updated_at', 'no_of_positions',
+            'no_of_positions_filled', 'filled_date', 'created_by_id',
+            # FK ids (needed by DRF to serialise the FK integer fields)
+            'client_id', 'end_client_id', 'account_id', 'job_status_id',
+            'assigned_recruiter_id', 'assigned_sourcer_id',
+            'accountManager_id', 'hiringManager_id', 'role_type_id',
+            # Related fields read by the serializer
+            'client__client_name',
+            'end_client__end_client_name',
+            'account__account_name',
+            'job_status__job_status',
+            'assigned_recruiter__emp_fName',
+            'assigned_sourcer__emp_fName',
+            'accountManager__account_manager',
+            'hiringManager__hiring_manager',
+            'role_type__role_type',
+        ).order_by('-req_opened_date')
 
         empcode = self.request.query_params.get("empcode")
         logger.debug("Empcode: %s", empcode)

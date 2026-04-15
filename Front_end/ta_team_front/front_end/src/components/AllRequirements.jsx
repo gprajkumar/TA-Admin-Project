@@ -1,17 +1,14 @@
-import { useState, useEffect,useMemo } from "react";
-import axios from "axios";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { FaEye, FaEdit, FaTrash,FaSearch } from "react-icons/fa";
 import Modal from 'react-bootstrap/Modal';
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
 import RequirementForm from './RequirementForm'
-import AsyncSelect from 'react-select/async';
 import ViewForm from "./ViewForm";
 import SubmissionsofReqs  from "./sharedComponents/SubmissionsofReqs";
 import { hasPermission,canDelete,canEdit } from "../services/utilities/rbac";
 import {
-  getJobreqs,
-  getFilteredJobs,getPaginatedJobReqs
+  getFilteredJobs,
 } from "../services/drop_downService";
 import { Form, Row, Col, Button } from "react-bootstrap";
 import Select from "react-select";
@@ -23,6 +20,18 @@ import CustomPagination from "./sharedComponents/CustomPagination";
 import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
 import { formatDateMMDDYYYY } from "../services/helper";
 import useMasterDropdowns from "../services/customHooks/useMasterDropdowns";
+import useDebounce from "../services/customHooks/useDebounce";
+
+// ── Pure helpers — no component dependencies, never recreated ─────────────────
+const normalizeData = (data, idKey, nameKey) =>
+  data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
+
+const normalizeAndSort = (data, idKey, nameKey) =>
+  normalizeData(data, idKey, nameKey).sort((a, b) =>
+    (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+  );
+// ─────────────────────────────────────────────────────────────────────────────
+
 const AllRequirements = () => {
   const {empcode} = useParams();
   const {
@@ -35,9 +44,10 @@ const AllRequirements = () => {
     drop_down_accounts,
   } = useMasterDropdowns();
 
-  const can_view = () => {
-    return hasPermission(drop_down_permissions, "requirements", "view");
-  }
+  const canView = useMemo(
+    () => hasPermission(drop_down_permissions, "requirements", "view"),
+    [drop_down_permissions]
+  );
 
   const baseurl = import.meta.env.VITE_API_BASE_URL;
    const profileEmployee =  useSelector((state) => state.employee.employee_details);
@@ -56,6 +66,7 @@ const AllRequirements = () => {
   });
  
   
+  const [isLoading, setIsLoading] = useState(false);
   const [show, setShow] = useState(false);  
   
 const[currentReqid, setcurrentReqid] =useState('');
@@ -115,7 +126,6 @@ setviewtype(false)
   const [filteredReqs, setfilteredReqs] = useState([]);
   const [passData,setpassData] =  useState({});
   const [filterdropdowndata, setfilterdropdowndata] = useState({
-    jobs: [],
     recruiters: [],
     sourcers: [],
     jobstatuses: [],
@@ -124,34 +134,13 @@ setviewtype(false)
     endClients: [],
     accounts: [],
   });
- useEffect(() => {
-  if (empcode) {
+  const debouncedFilters = useDebounce(selectedvalue, 400);
+
+  useEffect(() => {
     handleSearch();
-  }
-  else{
-    setSelectedvalue((prev) => ({
-      ...prev,
-      empcode: "",
-    }));
-  }
-  
-}, [empcode]);
-
-useEffect(() => {
-  
-  handleSearch();
-  
-}, [selectedvalue]);
+  }, [debouncedFilters, empcode]);
 
 
-
-  const normalizeData = (data, idKey, nameKey) =>
-    data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
-
-  const normalizeAndSort = (data, idKey, nameKey) =>
-    normalizeData(data, idKey, nameKey).sort((a, b) =>
-      (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
-    );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -161,7 +150,7 @@ useEffect(() => {
     }));
   };
 
-  const buildCleanFilters = (page) => {
+  const buildCleanFilters = useCallback((page) => {
     const cleanFilters = {};
     Object.entries(selectedvalue).forEach(([key, value]) => {
       if (Array.isArray(value)) {
@@ -177,9 +166,10 @@ useEffect(() => {
     }
     cleanFilters.page = page;
     return cleanFilters;
-  };
+  }, [selectedvalue, empcode]);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
+    setIsLoading(true);
     try {
       const cleanFilters = buildCleanFilters(1);
       const paginatedfilteredData = await getFilteredJobs(cleanFilters);
@@ -194,38 +184,27 @@ useEffect(() => {
       setfilteredReqs(paginatedfilteredData.results);
     } catch (error) {
       console.error("Error fetching filtered jobs:", error);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [buildCleanFilters]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const recruitersRes = drop_down_employees.filter(
-          (e) => e.can_recruit === true && e.department === 2
-        );
-        const sourcersRes = drop_down_employees.filter(
-          (e) => e.can_source === true && e.department === 1
-        );
-        const jobsRes = await getJobreqs();
-        setfilterdropdowndata({
-          jobs: jobsRes.map((data) => ({
-            id: data.requirement_id,
-            name: `${data.job_code} - ${data.job_title}`,
-          })),
-          clients: normalizeAndSort(drop_down_clients, "client_id", "client_name"),
-          endClients: normalizeAndSort(drop_down_endClients, "end_client_id", "end_client_name"),
-          jobstatuses: normalizeAndSort(drop_down_jobStatus, "job_status_id", "job_status"),
-          recruiters: normalizeAndSort(recruitersRes, "employee_id", "emp_fName"),
-          sourcers: normalizeAndSort(sourcersRes, "employee_id", "emp_fName"),
-          roletypes: normalizeAndSort(drop_down_roleTypes, "role_type_id", "role_type"),
-          accounts: normalizeAndSort(drop_down_accounts || [], "account_id", "account_name"),
-        });
-      } catch (err) {
-        console.error("Error fetching dropdown data:", err);
-      }
-    };
-
-    fetchData();
+    const recruiters = drop_down_employees.filter(
+      (e) => e.can_recruit === true && e.department === 2
+    );
+    const sourcers = drop_down_employees.filter(
+      (e) => e.can_source === true && e.department === 1
+    );
+    setfilterdropdowndata({
+      clients: normalizeAndSort(drop_down_clients, "client_id", "client_name"),
+      endClients: normalizeAndSort(drop_down_endClients, "end_client_id", "end_client_name"),
+      jobstatuses: normalizeAndSort(drop_down_jobStatus, "job_status_id", "job_status"),
+      recruiters: normalizeAndSort(recruiters, "employee_id", "emp_fName"),
+      sourcers: normalizeAndSort(sourcers, "employee_id", "emp_fName"),
+      roletypes: normalizeAndSort(drop_down_roleTypes, "role_type_id", "role_type"),
+      accounts: normalizeAndSort(drop_down_accounts || [], "account_id", "account_name"),
+    });
   }, [drop_down_clients, drop_down_endClients, drop_down_jobStatus, drop_down_employees, drop_down_roleTypes, drop_down_accounts]);
 
   const [paginationData, setPaginationData] = useState(
@@ -270,47 +249,50 @@ useEffect(() => {
 
 
 
-  const handlePageChange = async (page) => {
-  try {
-    const cleanFilters = buildCleanFilters(page);
-    const paginatedfilteredData = await getFilteredJobs(cleanFilters);
+  const handlePageChange = useCallback(async (page) => {
+    setIsLoading(true);
+    try {
+      const cleanFilters = buildCleanFilters(page);
+      const paginatedfilteredData = await getFilteredJobs(cleanFilters);
 
-    const totalPages = paginationData.totalpages;
-    let newStart = paginationData.startpageitemno;
-    let newEnd = paginationData.endpageitemno;
+      const totalPages = paginationData.totalpages;
+      let newStart = paginationData.startpageitemno;
+      let newEnd = paginationData.endpageitemno;
 
-    // Adjust window to show 5 page numbers at a time dynamically
-    if (totalPages > 10) {
-      if (page <= 3) {
-        newStart = 2;
-        newEnd = 6;
-      } else if (page >= totalPages - 2) {
-        newStart = totalPages - 5;
-        newEnd = totalPages - 1;
+      if (totalPages > 10) {
+        if (page <= 3) {
+          newStart = 2;
+          newEnd = 6;
+        } else if (page >= totalPages - 2) {
+          newStart = totalPages - 5;
+          newEnd = totalPages - 1;
+        } else {
+          newStart = page - 2;
+          newEnd = page + 2;
+        }
       } else {
-        newStart = page - 2;
-        newEnd = page + 2;
+        newStart = 2;
+        newEnd = totalPages - 1;
       }
-    } else {
-      newStart = 2;
-      newEnd = totalPages - 1;
+
+      setPaginationData((prev) => ({
+        ...prev,
+        currentpage: page,
+        startpageitemno: newStart,
+        endpageitemno: newEnd,
+      }));
+
+      setfilteredReqs(paginatedfilteredData.results);
+    } catch (error) {
+      console.error("Error fetching page data:", error);
+    } finally {
+      setIsLoading(false);
     }
+  }, [buildCleanFilters, paginationData.totalpages, paginationData.startpageitemno, paginationData.endpageitemno]);
 
-    setPaginationData((prev) => ({
-      ...prev,
-      currentpage: page,
-      startpageitemno: newStart,
-      endpageitemno: newEnd,
-    }));
-
-    setfilteredReqs(paginatedfilteredData.results);
-  } catch (error) {
-    console.error("Error fetching page data:", error);
+  if (!canView) {
+    return <div className="no-access">You do not have permission to view this content.</div>;
   }
-};
-if (!can_view()) {
-  return <div className="no-access">You do not have permission to view this content.</div>;
-}
 
 
   return (
@@ -455,7 +437,16 @@ if (!can_view()) {
         <Col className="col-job-status">Job Status</Col>
         <Col className="col-action">Action</Col>
       </Row>
-      {filteredReqs.map((req) => (
+
+      {isLoading ? (
+        <Row className="justify-content-center my-4">
+          <Col className="text-center text-muted">Loading...</Col>
+        </Row>
+      ) : filteredReqs.length === 0 ? (
+        <Row className="justify-content-center my-4">
+          <Col className="text-center text-muted">No requirements found.</Col>
+        </Row>
+      ) : filteredReqs.map((req) => (
         <Row key={req.requirement_id} className="data-row">
           <Col className="col-job" onClick={() => handleShowSubmissions(req.requirement_id)}>
             {`${req.job_code}- ${req.job_title}`}
@@ -490,11 +481,8 @@ if (!can_view()) {
             </button>
           </Col>
         </Row>
-      
       ))}
-      
-        
-        
+
       <Modal show={show} onHide={handleClose} dialogClassName="modal-90w" size="xl">
         <Modal.Header closeButton>
          
