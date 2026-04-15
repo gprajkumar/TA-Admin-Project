@@ -15,42 +15,44 @@ import {
 } from "../services/drop_downService";
 import { Form, Row, Col, Button } from "react-bootstrap";
 import Select from "react-select";
+import MultiSelect from "./sharedComponents/MultiSelect";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axiosInstance from "../services/axiosInstance";
 import CustomPagination from "./sharedComponents/CustomPagination";
 import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
 import { formatDateMMDDYYYY } from "../services/helper";
+import useMasterDropdowns from "../services/customHooks/useMasterDropdowns";
 const AllRequirements = () => {
   const {empcode} = useParams();
- const {
-  endClients: drop_down_endClients,
-  clients: drop_down_clients,
-  jobStatus: drop_down_jobStatus,
-  roleTypes: drop_down_roleTypes,
-  employees: drop_down_employees,
-  permissions: drop_down_permissions,
-} = useSelector((state) => state.master_dropdown);
-console.log("Dropdown Permissions in AllRequirements:", drop_down_permissions); // Debug log for permissions
-const can_view = () => {
-  return hasPermission(drop_down_permissions, "requirements", "view");
-} 
+  const {
+    drop_down_endClients,
+    drop_down_clients,
+    drop_down_jobStatus,
+    drop_down_roleTypes,
+    drop_down_employees,
+    drop_down_permissions,
+    drop_down_accounts,
+  } = useMasterDropdowns();
+
+  const can_view = () => {
+    return hasPermission(drop_down_permissions, "requirements", "view");
+  }
 
   const baseurl = import.meta.env.VITE_API_BASE_URL;
    const profileEmployee =  useSelector((state) => state.employee.employee_details);
     const profile_employee_id = profileEmployee ? profileEmployee.employee_id : null;
   const [selectedvalue, setSelectedvalue] = useState({
     Job: "",
-    role_type: "",
-    job_status: "",
-    end_client: "",
-    client: "",
-    
+    role_type: [],
+    job_status: [],
+    end_client: [],
+    client: [],
+    account: [],
     assigned_recruiter: "",
     assigned_sourcer:  "",
     from_date:"",
     to_date:""
-    // empcode:empcode || ""
   });
  
   
@@ -119,7 +121,8 @@ setviewtype(false)
     jobstatuses: [],
     clients: [],
     roletypes: [],
-    end_clients: [],
+    endClients: [],
+    accounts: [],
   });
  useEffect(() => {
   if (empcode) {
@@ -142,8 +145,13 @@ useEffect(() => {
 
 
 
- const normalizeData = (data, idKey, nameKey) =>
+  const normalizeData = (data, idKey, nameKey) =>
     data.map((item) => ({ id: item[idKey], name: item[nameKey] }));
+
+  const normalizeAndSort = (data, idKey, nameKey) =>
+    normalizeData(data, idKey, nameKey).sort((a, b) =>
+      (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+    );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -151,85 +159,66 @@ useEffect(() => {
       ...prev,
       [name]: value,
     }));
-  
   };
 
-  const handleSearch = async () => {
-  try {
-    setPaginationData((prev) => ({ ...prev, currentpage: 1 }));
-        const cleanFilters = {};
+  const buildCleanFilters = (page) => {
+    const cleanFilters = {};
     Object.entries(selectedvalue).forEach(([key, value]) => {
-      if (value !== "") {
+      if (Array.isArray(value)) {
+        if (value.length > 0) cleanFilters[key] = value.join(',');
+      } else if (value !== "") {
         cleanFilters[key] = value;
       }
     });
-      if (empcode) {
-      cleanFilters["empcode"] = empcode;
+    if (empcode) {
+      cleanFilters.empcode = empcode;
+    } else {
+      delete cleanFilters.empcode;
     }
-    else
-    {
-      delete cleanFilters["empcode"] ;
-    }
+    cleanFilters.page = page;
+    return cleanFilters;
+  };
 
-        cleanFilters["page"] = 1;
-    const paginatedfilteredData = await getFilteredJobs(
-      cleanFilters
-    );
-  const totalPages = Math.ceil(paginatedfilteredData.count / 25);
-    setPaginationData({
-      totalpages: totalPages,
-      currentpage: 1,
-      totalrecords: paginatedfilteredData.count,
-      startpageitemno: 2,
-      endpageitemno: totalPages > 10 ? 6 : totalPages - 1,
-    });
-   const filteredData = paginatedfilteredData.results;
-    setfilteredReqs(filteredData);
-  } catch (error) {
-    console.error("Error fetching filtered jobs:", error);
-  }
-};
+  const handleSearch = async () => {
+    try {
+      const cleanFilters = buildCleanFilters(1);
+      const paginatedfilteredData = await getFilteredJobs(cleanFilters);
+      const totalPages = Math.ceil(paginatedfilteredData.count / 25);
+      setPaginationData({
+        totalpages: totalPages,
+        currentpage: 1,
+        totalrecords: paginatedfilteredData.count,
+        startpageitemno: 2,
+        endpageitemno: totalPages > 10 ? 6 : totalPages - 1,
+      });
+      setfilteredReqs(paginatedfilteredData.results);
+    } catch (error) {
+      console.error("Error fetching filtered jobs:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [
-         
-          clientRes,
-          endClientsRes,
-          jobStatusesRes,
-          recruitersRes,
-          sourcersRes,
-          roletypeRes,
-        ] = [
-     
-          drop_down_clients,
-          drop_down_endClients,
-          drop_down_jobStatus,
-          drop_down_employees.filter((recruiters) => recruiters.can_recruit === true && recruiters.department === 2),
-           drop_down_employees.filter((sourcers) => sourcers.can_source === true && sourcers.department === 1),
-          drop_down_roleTypes,
-        ];
-const  jobsRes = await getJobreqs();
+        const recruitersRes = drop_down_employees.filter(
+          (e) => e.can_recruit === true && e.department === 2
+        );
+        const sourcersRes = drop_down_employees.filter(
+          (e) => e.can_source === true && e.department === 1
+        );
+        const jobsRes = await getJobreqs();
         setfilterdropdowndata({
           jobs: jobsRes.map((data) => ({
             id: data.requirement_id,
             name: `${data.job_code} - ${data.job_title}`,
           })),
-          clients: normalizeData(clientRes, "client_id", "client_name"),
-          endClients: normalizeData(
-            endClientsRes,
-            "end_client_id",
-            "end_client_name"
-          ),
-          jobstatuses: normalizeData(
-            jobStatusesRes,
-            "job_status_id",
-            "job_status"
-          ),
-          recruiters: normalizeData(recruitersRes, "employee_id", "emp_fName"),
-          sourcers: normalizeData(sourcersRes, "employee_id", "emp_fName"),
-          roletypes: normalizeData(roletypeRes, "role_type_id", "role_type"),
+          clients: normalizeAndSort(drop_down_clients, "client_id", "client_name"),
+          endClients: normalizeAndSort(drop_down_endClients, "end_client_id", "end_client_name"),
+          jobstatuses: normalizeAndSort(drop_down_jobStatus, "job_status_id", "job_status"),
+          recruiters: normalizeAndSort(recruitersRes, "employee_id", "emp_fName"),
+          sourcers: normalizeAndSort(sourcersRes, "employee_id", "emp_fName"),
+          roletypes: normalizeAndSort(drop_down_roleTypes, "role_type_id", "role_type"),
+          accounts: normalizeAndSort(drop_down_accounts || [], "account_id", "account_name"),
         });
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
@@ -237,7 +226,7 @@ const  jobsRes = await getJobreqs();
     };
 
     fetchData();
-  }, []);
+  }, [drop_down_clients, drop_down_endClients, drop_down_jobStatus, drop_down_employees, drop_down_roleTypes, drop_down_accounts]);
 
   const [paginationData, setPaginationData] = useState(
     {
@@ -281,16 +270,9 @@ const  jobsRes = await getJobreqs();
 
 
 
- const handlePageChange = async (page) => {
+  const handlePageChange = async (page) => {
   try {
-    const cleanFilters = {};
-    Object.entries(selectedvalue).forEach(([key, value]) => {
-      if (value !== "") {
-        cleanFilters[key] = value;
-      }
-    });
-    cleanFilters["page"] = page;
-
+    const cleanFilters = buildCleanFilters(page);
     const paginatedfilteredData = await getFilteredJobs(cleanFilters);
 
     const totalPages = paginationData.totalpages;
@@ -339,47 +321,60 @@ if (!can_view()) {
         <Col md={6}>
           <Form.Group className="mb-3 " controlId="job">
             <Form.Label className="fs-6">Job:</Form.Label>
-                
-<CustomAsyncSelect placeholder={"Search job by title or ID"} loadOptions={loadOptions} name="Job" onChange={handleChange}/>
+            <CustomAsyncSelect placeholder={"Search job by title or ID"} loadOptions={loadOptions} name="Job" onChange={handleChange}/>
           </Form.Group>
         </Col>
         <Col md={3}>
-          <Form.Group className="mb-3 " controlId="Jobtype">
-            <Form.Label className="fs-6">Job Type:</Form.Label>
-            {renderSelect(
-              "role_type",
-              "Job Type",
-              filterdropdowndata.roletypes
-            )}
-          </Form.Group>
+          <MultiSelect
+            name="role_type"
+            label="Job Type"
+            options={filterdropdowndata.roletypes}
+            value={selectedvalue.role_type}
+            onChange={handleChange}
+            placeholder="Select Job Type"
+          />
         </Col>
         <Col md={3}>
-          <Form.Group className="mb-3" controlId="jobstatus">
-            <Form.Label className="fs-6">Job Status:</Form.Label>
-            {renderSelect(
-              "job_status",
-              "Current Status",
-              filterdropdowndata.jobstatuses
-            )}
-          </Form.Group>
+          <MultiSelect
+            name="job_status"
+            label="Job Status"
+            options={filterdropdowndata.jobstatuses}
+            value={selectedvalue.job_status}
+            onChange={handleChange}
+            placeholder="Select Job Status"
+          />
         </Col>
       </Row>
       <Row>
-        <Col md={3}>
-          <Form.Group className="mb-3" controlId="EndClient">
-            <Form.Label className="fs-6">End Client:</Form.Label>
-            {renderSelect(
-              "end_client",
-              "End Client",
-              filterdropdowndata.endClients
-            )}
-          </Form.Group>
+         <Col md={3}>
+          <MultiSelect
+            name="account"
+            label="Account"
+            options={filterdropdowndata.accounts}
+            value={selectedvalue.account}
+            onChange={handleChange}
+            placeholder="Select Account"
+          />
         </Col>
         <Col md={3}>
-          <Form.Group className="mb-3 " controlId="Client">
-            <Form.Label className="fs-6">Client:</Form.Label>
-            {renderSelect("client", "Client", filterdropdowndata.clients)}
-          </Form.Group>
+          <MultiSelect
+            name="end_client"
+            label="End Client"
+            options={filterdropdowndata.endClients}
+            value={selectedvalue.end_client}
+            onChange={handleChange}
+            placeholder="Select End Client"
+          />
+        </Col>
+        <Col md={3}>
+          <MultiSelect
+            name="client"
+            label="Client"
+            options={filterdropdowndata.clients}
+            value={selectedvalue.client}
+            onChange={handleChange}
+            placeholder="Select Client"
+          />
         </Col>
        
         <Col md={3}>
@@ -392,18 +387,19 @@ if (!can_view()) {
             )}
           </Form.Group>
         </Col>
+      </Row>
+      <Row>
         <Col md={3}>
           <Form.Group className="mb-3" controlId="sourcer">
             <Form.Label className="fs-6">Assigned Sourcer:</Form.Label>
             {renderSelect(
               "assigned_sourcer",
               "Sourcer",
-              filterdropdowndata.sourcers 
+              filterdropdowndata.sourcers
             )}
           </Form.Group>
         </Col>
-      </Row>
-   <Row className="align-items-end mb-3">
+    
   <Col md={2}>
     <Form.Group controlId="from_date">
       <Form.Label className="fs-6">From:</Form.Label>

@@ -38,7 +38,15 @@ class ModuleRBACPermission(BasePermission):
             return can_view(request.user, self.module_code)
 
         if method == "POST":
-            return can_edit(request.user, self.module_code)
+            return (
+                can_edit(request.user, self.module_code)
+                or can_edit(
+                    request.user,
+                    self.module_code,
+                    obj=object(),  # placeholder: check edit_own_data permission exists
+                    owner_check=lambda employee, obj: True,
+                )
+            )
 
         if method in ("PUT", "PATCH"):
             # allow through if user has edit or edit_own_data;

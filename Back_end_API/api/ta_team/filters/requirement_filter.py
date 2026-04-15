@@ -3,12 +3,17 @@ from ..models.requirement import Requirements
 from ..models.submission import Submissions
 
 class RequirementFilter(django_filters.FilterSet):
-    from_date = django_filters.DateFilter(field_name="req_opened_date",lookup_expr='gte')
-    to_date = django_filters.DateFilter(field_name="req_opened_date",lookup_expr='lte')
-    
+    from_date = django_filters.DateFilter(field_name="req_opened_date", lookup_expr='gte')
+    to_date = django_filters.DateFilter(field_name="req_opened_date", lookup_expr='lte')
+    end_client = django_filters.BaseInFilter(field_name="end_client__end_client_id", lookup_expr='in')
+    client = django_filters.BaseInFilter(field_name="client__client_id", lookup_expr='in')
+    job_status = django_filters.BaseInFilter(field_name="job_status__job_status_id", lookup_expr='in')
+    role_type = django_filters.BaseInFilter(field_name="role_type__role_type_id", lookup_expr='in')
+    account = django_filters.BaseInFilter(field_name="account__account_id", lookup_expr='in')
+
     class Meta:
         model = Requirements
-        fields = ["from_date","to_date","assigned_recruiter","assigned_sourcer","requirement_id","end_client","client","job_status","role_type"]
+        fields = ["from_date", "to_date", "assigned_recruiter", "assigned_sourcer", "requirement_id", "end_client", "client", "job_status", "role_type", "account"]
 
 
 class SubmissionFilter(django_filters.FilterSet):
