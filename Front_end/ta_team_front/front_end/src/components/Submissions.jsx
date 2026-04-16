@@ -448,7 +448,6 @@ else
                 <Form.Control
                   type="date"
                   name="status_update_submission_date"
-                  max={new Date().toISOString().split("T")[0]}
                   value={formData.status_update_submission_date || ""}
                   onChange={handleChange}
                 />
