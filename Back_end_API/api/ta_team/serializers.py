@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models.models import DashboardJobData, RolePermission, Designation,Client,EndClient,Account,AccountManager,HiringManager, AccountHead, AccountCoordinator, Feedback, JobStatus, Role_Type, Source, Tech_Screener, Screening_Status, Employee, SubmissionStatus
 from .models.requirement import Requirements
+from .models.tech_screen import Tech_Screen
 from .models.submission import Placement,Submissions,SubmissionStatusLog
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
@@ -229,3 +230,24 @@ class DashboardDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = DashboardJobData
         fields = '__all__'
+
+class TechScreenSerializer(serializers.ModelSerializer):
+    job_code = serializers.CharField(source='job.job_code', read_only=True)
+    job_title = serializers.CharField(source='job.job_title', read_only=True)
+    candidate_name = serializers.CharField(source='submission.candidate_name', read_only=True)
+    screening_status_name = serializers.CharField(source='screening_status.screening_status', read_only=True)
+    tech_screener_name = serializers.CharField(source='tech_screener.tech_screener_name', read_only=True)
+    updated_by_name = serializers.CharField(source='updated_by.emp_fName', read_only=True)
+    class Meta:
+        model = Tech_Screen
+        fields = [
+            'tech_screen_id',
+            'job', 'job_code', 'job_title',
+            'submission', 'candidate_name',
+            'screening_status', 'screening_status_name',
+            'tech_screener', 'tech_screener_name',
+            'feedback',
+            'screening_date',
+            'updated_at',
+            'updated_by_name'
+        ]

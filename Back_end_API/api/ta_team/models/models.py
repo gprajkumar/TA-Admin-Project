@@ -319,5 +319,3 @@ class TargetforTeam(models.Model):
 
     def __str__(self):
         return f"{self.employee.emp_fName} - {self.year} - Target: {self.target_offers} offers"
-
-

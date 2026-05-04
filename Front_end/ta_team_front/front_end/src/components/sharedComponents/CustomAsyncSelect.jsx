@@ -7,6 +7,9 @@ const CustomAsyncSelect = ({
   onChange,
   name,
   error,
+  defaultOptions = [],
+  value,
+  isDisabled = false,
 }) => {
   const [localError, setLocalError] = useState(error);
 
@@ -14,18 +17,23 @@ const CustomAsyncSelect = ({
     setLocalError(error);
   }, [error]);
 
+  const controlledProps = value !== undefined ? { value } : {};
+
   return (
     <div>
       <AsyncSelect
         cacheOptions
-        defaultOptions={[]}
+        defaultOptions={defaultOptions}
         loadOptions={loadOptions}
+        isDisabled={isDisabled}
+        {...controlledProps}
         onChange={(selectedOption) => {
           if (onChange) {
             onChange({
               target: {
                 name,
                 value: selectedOption ? selectedOption.value : "",
+                selectedOption: selectedOption || null,
               },
             });
           }

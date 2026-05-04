@@ -13,15 +13,16 @@ from rest_framework.views import APIView
 from django.db import connection
 from django_filters.rest_framework import DjangoFilterBackend
 from .models.requirement import Requirements
+from .models.tech_screen import Tech_Screen
 from .models.submission import Placement, Submissions, SubmissionStatusLog
 from .serializers import ( RequirementsSerializer,  ClientSerializer, EndClientSerializer, AccountSerializer,
     AccountManagerSerializer, HiringManagerSerializer, AccountHeadSerializer,
     AccountCoordinatorSerializer, FeedbackSerializer, JobStatusSerializer,RolePermissionSerializer,
      RoleTypeSerializer, EmployeeSerializer,
-    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer,DashboardDataSerializer, SubmissionStatusSerializer, StatuslogSerializer)
+    SourceSerializer, TechScreenerSerializer, ScreeningStatusSerializer, SubmissionSerializer,EmployeeSerializer, PlacementSerializer,CustomTokenObtainPairSerializer,DashboardDataSerializer, SubmissionStatusSerializer, StatuslogSerializer,TechScreenSerializer)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
-from .filters.requirement_filter import RequirementFilter,SubmissionFilter
+from .filters.requirement_filter import RequirementFilter, SubmissionFilter, TechScreenFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
 from django.db.models import F, Count, IntegerField, OuterRef, Subquery, Sum, Avg, Value, Window
@@ -86,12 +87,12 @@ class RequirementsViewSet(ModelViewSet):
         logger.debug("Empcode: %s", empcode)
         if empcode:
             queryset = queryset.filter(
-                Q(assigned_recruiter_id=empcode) | 
+                Q(assigned_recruiter_id=empcode) |
                 Q(assigned_sourcer_id=empcode)
             )
 
         return queryset
-   
+
 class ClientViewSet(ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
@@ -110,9 +111,12 @@ class RolePermissionViewSet(APIView):
 class RequirementSearchDropdownAPI(APIView):
     def get(self, request):
         q = request.query_params.get("q", "")
-        queryset = Requirements.objects.filter(
-           Q(job_title__icontains=q) | Q(job_code__icontains=q)
-        ).values("requirement_id","job_code", "job_title","req_opened_date")[:20]  # Limit result
+        queryset = (
+            Requirements.objects
+            .filter(Q(job_title__icontains=q) | Q(job_code__icontains=q))
+            .order_by("-req_opened_date")
+            .values("requirement_id", "job_code", "job_title", "req_opened_date")[:25]
+        )
         return Response(queryset)
 
 class EndClientViewSet(ModelViewSet):
@@ -978,3 +982,23 @@ class SourcerDashboardView(ReadOnlyModelViewSet):
         except Exception as e:
             logger.error(traceback.format_exc())    
             return Response({"error": str(e)}, status=500)
+        
+class Tech_Screen_ViewSet(ModelViewSet):
+    serializer_class = TechScreenSerializer
+    pagination_class = RequirementPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TechScreenFilter
+
+    def get_queryset(self):
+        queryset = (
+            Tech_Screen.objects
+            .select_related('job', 'submission', 'tech_screener', 'screening_status')
+            .order_by('-screening_date', '-tech_screen_id')
+        )
+        empcode = self.request.query_params.get("empcode")
+        if empcode:
+            queryset = queryset.filter(
+                Q(submission__recruiter_id=empcode) |
+                Q(submission__sourcer_id=empcode)
+            )
+        return queryset

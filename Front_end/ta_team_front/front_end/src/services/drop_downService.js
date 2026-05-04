@@ -45,12 +45,30 @@ export const getSubmissionStatuses = () => fetchDropdownData("submissionstatuses
 export const getAccountManagers = () => fetchDropdownData("accountmanagers");
 export const getHiringManagers = () => fetchDropdownData("hiringmanagers");
 export const getSources = () => fetchDropdownData("sources");
+export const getScreeningStatuses = () => fetchDropdownData("screeningstatuses");
+export const getTechScreeners = () => fetchDropdownData("techscreeners");
+export const getTechScreens = () => fetchDropdownData("tech-screens");
 export const getRoleTypes = () => fetchDropdownData("roletypes");
 export const getCurrentPermissions = (designation_id) => fetchPermissionData(designation_id);
 export const getJobreqs = () => fetchDropdownData("requirements");
 export const getSubmissions = () => fetchDropdownData("submissions");
 export const getFilteredJobs = (filterParams) => fetchFilteredJobs(filterParams);
 export const getFilteredSubmissions = (filterParams) => fetchFilteredSubmissions(filterParams);
+export const getFilteredTechScreens = async (filterParams = {}) => {
+  const response = await axiosInstance.get('/ta_team/tech-screens/', {
+    params: {
+      job: filterParams.job || undefined,
+      candidate_name: filterParams.candidate_name || undefined,
+      tech_screener: filterParams.tech_screener?.length ? filterParams.tech_screener.join(',') : undefined,
+      screening_status: filterParams.screening_status?.length ? filterParams.screening_status.join(',') : undefined,
+      from_date: filterParams.from_date || undefined,
+      to_date: filterParams.to_date || undefined,
+      empcode: filterParams.empcode || undefined,
+      page: filterParams.page || 1,
+    },
+  });
+  return response.data;
+};
 export const getSubmissionsbyReqid =(reqid) => fetcchSubmissionsbyReq(reqid);
 export const getCurrentCandidateStatus = () => fetchDropdownasArray("candidate_status")
 const fetchDropdownasArray = async (endpoint) => {

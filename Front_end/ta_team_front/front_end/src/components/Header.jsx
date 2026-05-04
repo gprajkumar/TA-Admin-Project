@@ -1,4 +1,4 @@
-import { useState}  from "react";
+import { act, useState}  from "react";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
@@ -100,7 +100,8 @@ const permission_checker = (moduleCode, action) => {
                     activeSection === "submission-add" ||
                     activeSection === "submission-all" ||
                     activeSection === "submission-dates" ||
-                    activeSection === "submission-dates-details"
+                    activeSection === "submission-dates-details"||
+                    activeSection === "tech-screen"
                   }
                 >
                   <NavDropdown.Item
@@ -126,6 +127,22 @@ const permission_checker = (moduleCode, action) => {
                     active={activeSection === "submission-dates"}
                   >
                     Submission Date Updates
+                  </NavDropdown.Item>
+                    <NavDropdown.Item
+                    as={NavLink}
+                    to="/techscreendetails/:submissionId"
+                    onClick={() => handleDropdownItemClick("tech-screen")}
+                    active={activeSection === "tech-screen"}
+                  >
+                    Tech Screen Details
+                  </NavDropdown.Item>
+                  <NavDropdown.Item
+                    as={NavLink}
+                    to="/alltechscreens"
+                    onClick={() => handleDropdownItemClick("all-tech-screens")}
+                    active={activeSection === "all-tech-screens"}
+                  >
+                    All Tech Screens
                   </NavDropdown.Item>
                   <NavDropdown.Item
                     as={NavLink}

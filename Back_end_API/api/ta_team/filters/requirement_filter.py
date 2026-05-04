@@ -1,6 +1,7 @@
 import django_filters
 from ..models.requirement import Requirements
 from ..models.submission import Submissions
+from ..models.tech_screen import Tech_Screen
 
 class RequirementFilter(django_filters.FilterSet):
     from_date = django_filters.DateFilter(field_name="req_opened_date", lookup_expr='gte')
@@ -34,5 +35,21 @@ class SubmissionFilter(django_filters.FilterSet):
     class Meta:
         model = Submissions
         fields = ['from_sub_date','to_sub_date','Job', 'recruiter', 'sourcer','source','candidate_name','current_status','current_new_status','account','end_client','client']
-        
 
+
+class TechScreenFilter(django_filters.FilterSet):
+    from_date = django_filters.DateFilter(field_name="screening_date", lookup_expr='gte')
+    to_date = django_filters.DateFilter(field_name="screening_date", lookup_expr='lte')
+    candidate_name = django_filters.CharFilter(
+        field_name="submission__candidate_name", lookup_expr='icontains'
+    )
+    tech_screener = django_filters.BaseInFilter(
+        field_name="tech_screener__tech_screener_id", lookup_expr='in'
+    )
+    screening_status = django_filters.BaseInFilter(
+        field_name="screening_status__screening_status_id", lookup_expr='in'
+    )
+
+    class Meta:
+        model = Tech_Screen
+        fields = ['job', 'candidate_name', 'tech_screener', 'screening_status', 'from_date', 'to_date']

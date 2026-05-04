@@ -24,6 +24,8 @@ import { setEmployee,clearEmployee } from './redux/slices/authSlice';
 import {fetchCurrentEmployee, getAccounts,getClients,getEndClients,getJobStatuses,getSources,getRoleTypes,getEmployees, getAccountManagers, getHiringManagers,getCurrentPermissions,getSubmissionStatuses} from './services/drop_downService.js';
 import {setAccounts,setEndClients,setClients,setJobStatus,setSources,setRoleTypes,setEmployees,setHiringManagers,setAccountManagers,setPermissions,setSubmissionStatuses} from './redux/slices/dropdownSlice';
 import { useIsAuthenticated } from "@azure/msal-react";
+import TechScreenComponent from './components/TechScreenComponent.jsx'
+import AllTechScreens from './components/AllTechScreens.jsx'
 import {
   useMsal
 } from "@azure/msal-react";
@@ -226,6 +228,8 @@ dispatch(setSubmissionStatuses(SubmissionStatus));
    <Route path='/recruiterdashboard' element={<AuthCheck><RecruitersDashboard/></AuthCheck>}/>
    <Route path='/sourcerdashboard' element={<AuthCheck><SourcerDashboard/></AuthCheck>}
    />
+   <Route path='/techscreendetails/:submissionId' element={<AuthCheck><TechScreenComponent/></AuthCheck>}/>
+   <Route path='/alltechscreens/:empcode?' element={<AuthCheck><AllTechScreens/></AuthCheck>}/>
    <Route path="/comingsoon/:feature" element={<AuthCheck><ComingSoon/></AuthCheck>}/>
 </Routes>
 

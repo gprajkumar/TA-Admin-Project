@@ -26,6 +26,7 @@ router.register(r'recruitersdata',RecruiterDashboardAPIView, basename='recruiter
 router.register(r'sourcersdata',SourcerDashboardView, basename='sourcersdata')
 router.register(r'candidate_status',UniqueCandidate_Status_ViewSet,basename='candidate_status')
 router.register(r'submission-history', SubmissionHistoryViewSet, basename='submission-history')
+router.register(r'tech-screens', Tech_Screen_ViewSet, basename='tech-screens')
 urlpatterns = [
     path('', include(router.urls)),
     path('refresh-client-dashboard/', RefreshClientDashboardView.as_view()), 
