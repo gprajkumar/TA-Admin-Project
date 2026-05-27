@@ -348,6 +348,9 @@ if(!canViewDashboard()){
                   <tr>
                     <th>{activeFilter === "account" ? "Account" : "End Client"}</th>
                     <th>Open Roles</th>
+                    <th>Active Roles</th>
+                    <th>Pipeline Roles</th>
+                    <th>Cancelled Roles</th>  
                     <th>AM Submissions</th>
                     <th>Client Submissions</th>
                     <th>Interviews</th>
@@ -361,6 +364,9 @@ if(!canViewDashboard()){
                       <tr key={(activeFilter === "account" ? row.account_name : row.end_client_name) || idx}>
                         <td>{activeFilter === "account" ? row.account_name : row.end_client_name}</td>
                         <td>{row.roles_opened ?? 0}</td>
+                        <td>{row.active_roles ?? 0}</td>
+                        <td>{row.pipeline_roles ?? 0}</td>
+                        <td>{row.cancelled_roles ?? 0}</td>  
                         <td>{row.amsubs ?? 0}</td>
                         <td>{row.csubs ?? 0}</td>
                         <td>{row.interviews ?? 0}</td>

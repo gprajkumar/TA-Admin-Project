@@ -422,6 +422,9 @@ class ClientDashboardView(ReadOnlyModelViewSet):
             )
             count_fields = dict(
                 roles_opened=Count('job_code'),
+                active_roles=Count('job_code', filter=Q(job_status_id=1)|Q(job_status_id=2)|Q(job_status_id=3)),
+                pipeline_roles=Count('job_code', filter=Q(role_type_id=2)),
+                cancelled_roles=Count('job_code', filter=Q(job_status_id=8)),   
                 amsubs=Sum('amsubs'),
                 csubs=Sum('csubs'),
                 interviews=Sum('interviews'),
