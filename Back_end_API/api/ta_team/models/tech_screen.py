@@ -9,7 +9,7 @@ class Tech_Screen(models.Model):
     job = models.ForeignKey(Requirements, on_delete=models.CASCADE, verbose_name="Job Code")
     submission = models.ForeignKey(Submissions, on_delete=models.CASCADE, verbose_name="Submission")
     screening_status = models.ForeignKey(Screening_Status, on_delete=models.CASCADE, verbose_name="Screening Status")
-    feedback = models.CharField(max_length=2000, blank=True, null=True, verbose_name="Feedback")
+    feedback = models.CharField(max_length=3000, blank=True, null=True, verbose_name="Feedback")
     tech_screener = models.ForeignKey(Tech_Screener, on_delete=models.CASCADE, verbose_name="Tech Screener")
     screening_date = models.DateField(verbose_name="Screening Date")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")

@@ -276,6 +276,19 @@
   height: 250px;
 }
 
+/* Grouped data summary table (Client Dashboard) */
+.grouped-data-table {
+  width: 100%;
+  margin: 20px 0;
+  padding: 16px;
+}
+
+.grouped-data-table-title {
+  margin: 0 0 12px 0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
 /* ---- your table styles kept intact ---- */
 .metrics-table {
   width: 100%;

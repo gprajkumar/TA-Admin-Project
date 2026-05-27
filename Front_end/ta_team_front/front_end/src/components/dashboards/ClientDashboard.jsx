@@ -338,9 +338,49 @@ if(!canViewDashboard()){
 
 </div>
 
+          <div className="metrics-table-wrapper grouped-data-table">
+            <h5 className="grouped-data-table-title">
+              {activeFilter === "account" ? "Account" : "End Client"} Summary
+            </h5>
+            <div className="metrics-table-scroll">
+              <table className="metrics-table">
+                <thead>
+                  <tr>
+                    <th>{activeFilter === "account" ? "Account" : "End Client"}</th>
+                    <th>Open Roles</th>
+                    <th>AM Submissions</th>
+                    <th>Client Submissions</th>
+                    <th>Interviews</th>
+                    <th>Offers</th>
+                    <th>Starts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {barChartData.grouped_data && barChartData.grouped_data.length > 0 ? (
+                    barChartData.grouped_data.map((row, idx) => (
+                      <tr key={(activeFilter === "account" ? row.account_name : row.end_client_name) || idx}>
+                        <td>{activeFilter === "account" ? row.account_name : row.end_client_name}</td>
+                        <td>{row.roles_opened ?? 0}</td>
+                        <td>{row.amsubs ?? 0}</td>
+                        <td>{row.csubs ?? 0}</td>
+                        <td>{row.interviews ?? 0}</td>
+                        <td>{row.offers ?? 0}</td>
+                        <td>{row.starts ?? 0}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: "center" }}>No data available</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <div className="chart-box-primary">
             <CustomBarchart data={barChartData.grouped_data} xaxis={ activeFilter === "account" ? "account_name" : "end_client_name"} datakeys={["roles_opened","amsubs", "csubs", "interviews", "offers", "starts"]} />
-            
+
           </div>
           <div className="chart-box-primary">
             <CustomBarchart
