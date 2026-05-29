@@ -99,7 +99,7 @@ const permission_checker = (moduleCode, action) => {
                   active={
                     activeSection === "submission-add" ||
                     activeSection === "submission-all" ||
-                    activeSection === "submission-dates" ||
+                    // activeSection === "submission-dates" ||
                     activeSection === "submission-dates-details"||
                     activeSection === "tech-screen"
                   }
@@ -120,14 +120,14 @@ const permission_checker = (moduleCode, action) => {
                   >
                     All Submissions
                   </NavDropdown.Item>
-                  <NavDropdown.Item
+                  {/* <NavDropdown.Item
                     as={NavLink}
                     to="/submissionsDateEntry"
                     onClick={() => handleDropdownItemClick("submission-dates")}
                     active={activeSection === "submission-dates"}
                   >
                     Submission Date Updates
-                  </NavDropdown.Item>
+                  </NavDropdown.Item> */}
                     <NavDropdown.Item
                     as={NavLink}
                     to="/techscreendetails/:submissionId"
