@@ -1,384 +1,249 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
-import {
-  getJobreqs,
-  getSubmissionsbyReqid,
-} from "../services/drop_downService";
+import { getSubmissionsbyReqid } from "../services/drop_downService";
 import { useSelector } from "react-redux";
 import { canEdit } from "../services/utilities/rbac";
-import { Form, Row, Col, Button, FormGroup, FormLabel } from "react-bootstrap";
+import { Form, Row, Col, Button } from "react-bootstrap";
 import Select from "react-select";
-
+import Loader from "./sharedComponents/Loader";
+import CustomAlert from "./sharedComponents/Alert";
 import axiosInstance from "../services/axiosInstance";
+
+/**
+ * Dynamic submission-dates form.
+ *
+ * Renders one date field per active submission status (from the SubmissionStatus
+ * master) and saves them through the `submissions/<id>/status-dates/` endpoint,
+ * which keeps the Submissions columns and SubmissionStatusLog table in sync.
+ *
+ * Two modes:
+ *   - Edit mode  : `submission_id` is supplied (opened from the submissions list).
+ *   - Pick mode  : no `submission_id` — user selects Job + Candidate first.
+ */
 const SubmissionDatesForm = ({
   submission_id,
   viewtype = false,
-  externaldropdowndata,
+  onSuccess,
+  onClose,
 }) => {
   const baseurl = import.meta.env.VITE_API_BASE_URL;
-  const [errors, setErrors] = useState({});
-  const[fetchedJobs,setFetchedJobs] = useState([]);
-  const [FormData, setFormData] = useState({
-    client_sub_date: "",
-    client_interview_date: "",
-    offer_date: "",
-    start_date: "",
-    submission_id: "",
-    requirement_id: "",
-    tech_screen_date: "",
-    am_screen_date: "",
-  });
   const emp_permissions = useSelector((state) => state.master_dropdown.permissions);
-const canEditSubmission = () => {
-  if(canEdit(emp_permissions,"submissions") || canEdit(emp_permissions,"submissions",true)){
-    return true;
-  } 
-}
-  const loadOptions = async (inputValue) => {
-   const res = await axiosInstance.get( `${baseurl}/ta_team/requirement-search`, {
-     params: { q: inputValue }
-   });
- setFetchedJobs(res.data);
-   return res.data.map(job => ({
-     label: `${job.job_code}-${job.job_title} `,
-     value: job.requirement_id
-   }));
- };  
-  const [JobData, setJobData] = useState([]);
-  const [CandidateData, setCandidateData] = useState([]);
-  const [DropdownData, setDropdownData] = useState({
-    jobdropdown: [],
-    candidatedropdown: [],
-  });
-  useEffect(() => {
-    const fetchJobData = async () => {
-      const jobData = await getJobreqs();
-      setJobData(jobData);
-      setDropdownData((prev) => ({
-        ...prev,
-        jobdropdown: jobData.map((job) => ({
-          id: job.requirement_id,
-          name: `${job.job_code} - ${job.job_title}`,
-        })),
-      }));
-    };
 
-    fetchJobData();
-  }, []);
-  const validateForm = () => {
-    const newErrors = {};
-    if (!FormData.requirement_id)
-      newErrors.requirement_id = "Please Select Job";
-    if (!FormData.submission_id)
-      newErrors.submission_id = "Please Select Candidate";
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState(submission_id || "");
+  const [requirementId, setRequirementId] = useState("");
+  const [candidateOptions, setCandidateOptions] = useState([]);
+  const [statusDates, setStatusDates] = useState([]); // [{status_id, status_name, order, status_date}]
+  const [dateValues, setDateValues] = useState({}); // { [status_id]: "YYYY-MM-DD" }
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({ show: false, message: "", type: "" });
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const canEditSubmission =
+    canEdit(emp_permissions, "submissions") || canEdit(emp_permissions, "submissions", true);
+
+  const activeSubmissionId = submission_id || selectedSubmissionId;
+
+  const showAlert = (message, type) => {
+    setAlertConfig({ show: true, message, type });
+    setTimeout(() => setAlertConfig((prev) => ({ ...prev, show: false })), 3000);
   };
-  const resetform = () => {
-    setFormData({
-      client_sub_date: "",
-      client_interview_date: "",
-      offer_date: "",
-      start_date: "",
-      submission_id: "",
-      requirement_id: "",
-      tech_screen_date: "",
-      am_screen_date: "",
+
+  const loadJobOptions = async (inputValue) => {
+    const res = await axiosInstance.get(`${baseurl}/ta_team/requirement-search`, {
+      params: { q: inputValue },
     });
-  };
-
-  const fetchCandidateData = async () => {
-    if (!FormData.requirement_id) return;
-    const candidateData = await getSubmissionsbyReqid(FormData.requirement_id);
-    setCandidateData(candidateData);
-    setDropdownData((prev) => ({
-      ...prev,
-      candidatedropdown: candidateData.map((candidate) => ({
-        id: candidate.submission_id,
-        name: candidate.candidate_name,
-      })),
+    return res.data.map((job) => ({
+      label: `${job.job_code}-${job.job_title} `,
+      value: job.requirement_id,
     }));
   };
 
+  // Pick mode: load candidates whenever the job changes.
   useEffect(() => {
-    fetchCandidateData();
-  }, [FormData.requirement_id]);
-
-useEffect(() => {
-  const fetchSubmissionByCandidate = async () => {
-      if (!FormData.requirement_id || !FormData.submission_id) return;
-
-    try {
-      const res = await axiosInstance.get(
-        `/ta_team/submissions/${FormData.submission_id}/`
+    if (submission_id || !requirementId) return;
+    const fetchCandidates = async () => {
+      const candidates = await getSubmissionsbyReqid(requirementId);
+      setCandidateOptions(
+        candidates.map((c) => ({ value: c.submission_id, label: c.candidate_name }))
       );
-
-      const formValues = res.data;
-      setFormData((prev) => ({
-        ...prev,
-        client_sub_date: formValues.client_sub_date || "",
-        client_interview_date: formValues.client_interview_date || "",
-        offer_date: formValues.offer_date || "",
-        start_date: formValues.start_date || "",
-        tech_screen_date: formValues.tech_screen_date || "",
-        am_screen_date: formValues.am_screen_date || "",
-      }));
-    } catch (err) {
-      console.error("Failed to fetch submission data", err);
-    }
-  };
-
-  fetchSubmissionByCandidate();
-}, [FormData.submission_id]);
-
-const jobdataready = DropdownData.jobdropdown.length > 0;
-  useEffect(() => {
-    const fetchSubmission = async () => {
-      if (submission_id && jobdataready) {
-        try {
-          const res = await axiosInstance.get(
-            `/ta_team/submissions/${submission_id}/`
-          );
-         const formValues = res.data;
-          setFormData({ client_sub_date: formValues.client_sub_date || "",
-          client_interview_date: formValues.client_interview_date || "",
-          offer_date: formValues.offer_date || "",
-          start_date: formValues.start_date || "",
-          submission_id: formValues.submission_id || "",
-          requirement_id: formValues.Job || "",
-          tech_screen_date: formValues.tech_screen_date || "",
-          am_screen_date: formValues.am_screen_date || "",});
-        } catch (error) {
-          console.error("Error fetching submission:", error);
-        }
-      }
+      setSelectedSubmissionId("");
     };
-    fetchSubmission();
-  }, [submission_id,jobdataready]);
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
+    fetchCandidates();
+  }, [requirementId, submission_id]);
+
+  // Load the per-status dates for the active submission.
+  const loadStatusDates = useCallback(async () => {
+    if (!activeSubmissionId) {
+      setStatusDates([]);
+      setDateValues({});
       return;
     }
-
+    setLoading(true);
     try {
-      const cleanDate = (dateStr) =>
-        dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? dateStr : null;
-
-      const cleanedFormData = {
-        ...FormData,
-        client_sub_date: cleanDate(FormData.client_sub_date),
-        client_interview_date: cleanDate(FormData.client_interview_date),
-        offer_date: cleanDate(FormData.offer_date),
-        start_date: cleanDate(FormData.start_date),
-        tech_screen_date: cleanDate(FormData.tech_screen_date),
-        am_screen_date: cleanDate(FormData.am_screen_date),
-      };
-
-      await axiosInstance.patch(
-        `/ta_team/submissions/${FormData.submission_id}/`,
-        cleanedFormData
+      const res = await axiosInstance.get(
+        `/ta_team/submissions/${activeSubmissionId}/status-dates/`
       );
-
-      alert("Submission Success");
-      // setShow(true);
-      resetform();
+      setStatusDates(res.data);
+      setDateValues(
+        res.data.reduce((acc, s) => {
+          acc[s.status_id] = s.status_date || "";
+          return acc;
+        }, {})
+      );
     } catch (err) {
-      console.error("Error submitting requirement:", err);
-      if (err.response) {
-        console.error("Response data:", err.response.data);
-      }
-      alert("Submission failed");
+      console.error("Failed to load status dates", err);
+      showAlert("Failed to load submission dates", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [activeSubmissionId]);
+
+  useEffect(() => {
+    loadStatusDates();
+  }, [loadStatusDates]);
+
+  const handleDateChange = (statusId, value) => {
+    setDateValues((prev) => ({ ...prev, [statusId]: value }));
+  };
+
+  const handleReset = () => {
+    setDateValues(
+      statusDates.reduce((acc, s) => {
+        acc[s.status_id] = s.status_date || "";
+        return acc;
+      }, {})
+    );
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!activeSubmissionId) {
+      showAlert("Please select a candidate", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const status_dates = statusDates.reduce((acc, s) => {
+        acc[s.status_id] = dateValues[s.status_id] || null;
+        return acc;
+      }, {});
+      await axiosInstance.patch(
+        `/ta_team/submissions/${activeSubmissionId}/status-dates/`,
+        { status_dates }
+      );
+      showAlert("Submission dates updated successfully", "success");
+      await loadStatusDates();
+      await onSuccess?.();
+      onClose?.();
+    } catch (err) {
+      console.error("Error updating submission dates:", err);
+      if (err.response) console.error("Response data:", err.response.data);
+      showAlert("Failed to update submission dates", "error");
+    } finally {
+      setSaving(false);
     }
   };
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
 
-  const renderSelect = (name, label, options) => {
-    const selectOptions = (options || []).map((opt) => ({
-      value: opt.id,
-      label: opt.name,
-    }));
-
-    const selectedOption = selectOptions.find(
-      (opt) => opt.value === FormData[name]
-    );
-    const hasError = !!errors[name];
-
+  if (!canEditSubmission) {
     return (
-      <Form.Group className="mb-3">
-        <Form.Label className="fs-6">
-          {label}
-          <span style={{ color: "red" }}>*</span>:
-        </Form.Label>
-        <Select
-          classNamePrefix="my-select"
-          options={selectOptions}
-          value={selectedOption || null}
-          onChange={(selected) => {
-            handleChange({
-              target: { name, value: selected ? selected.value : "" },
-            });
-          }}
-          placeholder={`Select ${label}`}
-          isClearable
-          styles={{
-            control: (base) => ({
-              ...base,
-              borderColor: hasError ? "#dc3545" : base.borderColor,
-              boxShadow: hasError
-                ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
-                : base.boxShadow,
-              "&:hover": {
-                borderColor: hasError ? "#dc3545" : base.borderColor,
-              },
-            }),
-          }}
-        />
-        {hasError && (
-          <Form.Control.Feedback type="invalid" className="d-block">
-            {errors[name]}
-          </Form.Control.Feedback>
-        )}
-      </Form.Group>
+      <div className="no-access">
+        <h2>Access Denied</h2>
+        <p>You do not have permission to edit submission dates.</p>
+      </div>
     );
-  };
-if(!canEditSubmission())
-{
-  return (
-    <div className="no-access">
-      <h2>Access Denied</h2>
-      <p>You do not have permission to edit submission dates.</p>
-    </div>
-  );
-}
+  }
+
   return (
     <div>
       <Form onSubmit={handleSubmit} className="requirement-form container">
         <Row>
-          <Col md={6}>
-            {/* {renderSelect("requirement_id", "Job", DropdownData.jobdropdown)} */}
-                 <Form.Group className="mb-3 " controlId="job">
-                    <Form.Label className="fs-6">Job<span style={{ color: "red" }}>*</span>:</Form.Label>
-       <CustomAsyncSelect placeholder={"Search job by title or ID"} loadOptions={loadOptions} name="requirement_id" onChange={handleChange} error={errors.job}/>
-                  </Form.Group>
-          </Col>
-          <Col md={6}>
-            {renderSelect(
-              "submission_id",
-              "Candidate Name",
-              DropdownData.candidatedropdown
-            )}
+          <Col md={12}>
+            <CustomAlert
+              message={alertConfig.message}
+              type={alertConfig.type}
+              show={alertConfig.show}
+              onClose={() => setAlertConfig((prev) => ({ ...prev, show: false }))}
+            />
           </Col>
         </Row>
-        <Row>
-          <Col md={6}>
-            <Form.Group className="mb-3 " controlId="am_screen_date">
-              <Form.Label className="fs-6">AM Screen Date:</Form.Label>
-              <Form.Control
-                type="date"
-                min="2024-01-01"
-                
-                placeholder="AM Screen Date"
-                name="am_screen_date"
-                value={FormData.am_screen_date}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group className="mb-3 " controlId="tech_screen_date">
-              <Form.Label className="fs-6">Tech Screen Date:</Form.Label>
-              <Form.Control
-                type="date"
-                min="2024-01-01"
-                
-                placeholder="Tech Screen Date"
-                name="tech_screen_date"
-                value={FormData.tech_screen_date}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-        <Row>
-          <Col md={6}>
-            <Form.Group className="mb-3 " controlId="client_sub_date">
-              <Form.Label className="fs-6">Client Submission Date:</Form.Label>
-              <Form.Control
-                type="date"
-                min="2024-01-01"
-               
-                placeholder="Client Submission Date"
-                name="client_sub_date"
-                value={FormData.client_sub_date}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group className="mb-3 " controlId="client_interview_date">
-              <Form.Label className="fs-6">Client Interview Date:</Form.Label>
-              <Form.Control
-                type="date"
-                min="2024-01-01"
-               
-                placeholder="Client Interview Date:"
-                name="client_interview_date"
-                value={FormData.client_interview_date}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-        <Row>
-          <Col md={6}>
-            <Form.Group className="mb-3 " controlId="offer_date">
-              <Form.Label className="fs-6">Offer Date:</Form.Label>
-              <Form.Control
-                type="date"
-                min="2024-01-01"
-             
-                placeholder="Enter Job Open Date"
-                name="offer_date"
-                value={FormData.offer_date}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group className="mb-3 " controlId="start_date">
-              <Form.Label className="fs-6">Start Date:</Form.Label>
-              <Form.Control
-                type="date"
-                min="2024-01-01"
-                
-                placeholder="Enter Job Open Date"
-                name="start_date"
-                value={FormData.start_date}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-        <Row className="justify-content-center mt-4">
-          <Col xs="auto">
-            <Button className="submit-button" type="submit">
-              Submit
-            </Button>
-          </Col>
-          <Col xs="auto">
-            <Button className="submit-button" type="button" onClick={resetform}>
-              Reset
-            </Button>
-          </Col>
-        </Row>
+
+        <h2 className="mb-4">Update Submission Dates</h2>
+
+        {/* Pick mode: choose Job + Candidate when no submission was passed in. */}
+        {!submission_id && (
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3" controlId="job">
+                <Form.Label className="fs-6">Job:</Form.Label>
+                <CustomAsyncSelect
+                  placeholder="Search job by title or ID"
+                  loadOptions={loadJobOptions}
+                  name="requirement_id"
+                  onChange={(e) => setRequirementId(e.target.value)}
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label className="fs-6">Candidate Name:</Form.Label>
+                <Select
+                  classNamePrefix="my-select"
+                  options={candidateOptions}
+                  value={candidateOptions.find((o) => o.value === selectedSubmissionId) || null}
+                  onChange={(selected) =>
+                    setSelectedSubmissionId(selected ? selected.value : "")
+                  }
+                  placeholder="Select Candidate"
+                  isClearable
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+        )}
+
+        {loading ? (
+          <Loader />
+        ) : (
+          activeSubmissionId && (
+            <>
+              <Row>
+                {statusDates.map((status) => (
+                  <Col md={4} key={status.status_id}>
+                    <Form.Group className="mb-3">
+                      <Form.Label className="fs-6">{status.status_name} Date:</Form.Label>
+                      <Form.Control
+                        type="date"
+                        value={dateValues[status.status_id] || ""}
+                        onChange={(e) => handleDateChange(status.status_id, e.target.value)}
+                        disabled={viewtype}
+                      />
+                    </Form.Group>
+                  </Col>
+                ))}
+              </Row>
+
+              {!viewtype && (
+                <Row className="justify-content-center mt-4">
+                  <Col xs="auto">
+                    <Button className="submit-button" type="submit" disabled={saving}>
+                      {saving ? "Saving..." : "Update Dates"}
+                    </Button>
+                  </Col>
+                  <Col xs="auto">
+                    <Button
+                      className="submit-button"
+                      type="button"
+                      onClick={handleReset}
+                      disabled={saving}
+                    >
+                      Reset
+                    </Button>
+                  </Col>
+                </Row>
+              )}
+            </>
+          )
+        )}
       </Form>
     </div>
   );
