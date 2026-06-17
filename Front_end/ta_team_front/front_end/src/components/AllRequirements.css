@@ -47,6 +47,72 @@
   padding: 0 10px;
 }
 
+.col-candidate-status {
+  flex: 1.2;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Candidate status legend */
+.status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 8px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Per-row count badges */
+.status-badge {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: default;
+}
+
+/* Shared colours for legend dots and row badges */
+.status-sub {
+  background-color: #f1c40f; /* yellow — Client Submission */
+}
+
+/* Yellow needs dark text for readable contrast */
+.status-badge.status-sub {
+  color: #5a4a00;
+}
+
+.status-interview {
+  background-color: #27ae60; /* green — Client Interview */
+}
+
+.status-rejected {
+  background-color: #e74c3c; /* red — Rejected / Withdrawn */
+}
+
 .col-action {
   flex: 1.2;
   padding-right: 20px;

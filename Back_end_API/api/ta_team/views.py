@@ -81,6 +81,25 @@ class RequirementsViewSet(ModelViewSet):
             'accountManager__account_manager',
             'hiringManager__hiring_manager',
             'role_type__role_type',
+        ).annotate(
+            # Per-requirement candidate counts by current status, used to render
+            # the coloured status legend/badges on the requirements list.
+            client_sub_count=Count(
+                'submissions',
+                filter=Q(submissions__current_new_status__status_name='Submitted to Client'),
+                distinct=True,
+            ),
+            client_interview_count=Count(
+                'submissions',
+                filter=Q(submissions__current_new_status__status_name='Client Interview'),
+                distinct=True,
+            ),
+            # All rejected/declined/withdrawn statuses are consolidated into one count.
+            rejected_count=Count(
+                'submissions',
+                filter=Q(submissions__current_new_status__status_name__iregex=r'(Reject|Declined|Withdrawn)'),
+                distinct=True,
+            ),
         ).order_by('-req_opened_date')
 
         empcode = self.request.query_params.get("empcode")

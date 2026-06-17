@@ -19,7 +19,12 @@ class RequirementsSerializer(serializers.ModelSerializer):
 
     assigned_recruiter_name = serializers.SerializerMethodField()
     assigned_sourcer_name = serializers.SerializerMethodField()
- 
+
+    # Candidate counts per status bucket (annotated in RequirementsViewSet.get_queryset).
+    # Default to 0 so create/update responses (no annotation) don't break.
+    client_sub_count = serializers.SerializerMethodField()
+    client_interview_count = serializers.SerializerMethodField()
+    rejected_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Requirements
@@ -31,8 +36,18 @@ class RequirementsSerializer(serializers.ModelSerializer):
             'assigned_sourcer', 'assigned_sourcer_name',
             'accountManager', 'account_manager_name',
             'hiringManager', 'hiring_manager_name',
-            'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name','no_of_positions','no_of_positions_filled','filled_date','created_by'
+            'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name','no_of_positions','no_of_positions_filled','filled_date','created_by',
+            'client_sub_count', 'client_interview_count', 'rejected_count'
         ]
+
+    def get_client_sub_count(self, obj):
+        return getattr(obj, 'client_sub_count', 0)
+
+    def get_client_interview_count(self, obj):
+        return getattr(obj, 'client_interview_count', 0)
+
+    def get_rejected_count(self, obj):
+        return getattr(obj, 'rejected_count', 0)
 
     def get_assigned_recruiter_name(self, obj):
         return obj.assigned_recruiter.emp_fName if obj.assigned_recruiter else None

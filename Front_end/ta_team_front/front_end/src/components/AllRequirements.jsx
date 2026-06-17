@@ -426,6 +426,19 @@ setviewtype(false)
     </div>
   </Col>
 </Row>
+      {/* Legend explaining the candidate status colours */}
+      <div className="status-legend">
+        <span className="legend-item">
+          <span className="status-dot status-sub" /> Client Submission
+        </span>
+        <span className="legend-item">
+          <span className="status-dot status-interview" /> Client Interview
+        </span>
+        <span className="legend-item">
+          <span className="status-dot status-rejected" /> Rejected / Withdrawn
+        </span>
+      </div>
+
       {/* Header row with class 'header-row' */}
       <Row className="header-row">
         <Col className="col-job-title">Job</Col>
@@ -435,6 +448,7 @@ setviewtype(false)
         <Col className="col-sourcer">Sourcer</Col>
         <Col className="col-job-type">Job Type</Col>
         <Col className="col-job-status">Job Status</Col>
+        <Col className="col-candidate-status">Candidates</Col>
         <Col className="col-action">Action</Col>
       </Row>
 
@@ -457,6 +471,26 @@ setviewtype(false)
           <Col className="col-sourcer">{req.assigned_sourcer_name}</Col>
           <Col className="col-job-type">{req.role_type_name}</Col>
           <Col className="col-job-status">{req.job_status_name}</Col>
+          <Col className="col-candidate-status">
+            <span
+              className="status-badge status-sub"
+              title={`Client Submission: ${req.client_sub_count || 0} candidate(s)`}
+            >
+              {req.client_sub_count || 0}
+            </span>
+            <span
+              className="status-badge status-interview"
+              title={`Client Interview: ${req.client_interview_count || 0} candidate(s)`}
+            >
+              {req.client_interview_count || 0}
+            </span>
+            <span
+              className="status-badge status-rejected"
+              title={`Rejected / Withdrawn: ${req.rejected_count || 0} candidate(s)`}
+            >
+              {req.rejected_count || 0}
+            </span>
+          </Col>
           <Col className="col-action">
             <button
               aria-label="View"
