@@ -10,7 +10,7 @@ from .models.models import (
 from django.http import JsonResponse
 from django.views import View
 from rest_framework.views import APIView
-from django.db import connection
+from django.db import connection, transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from .models.requirement import Requirements
 from .models.tech_screen import Tech_Screen
@@ -251,6 +251,84 @@ class SubmisionViewSet(ModelViewSet):
         status_date_override = self.request.data.get('status_update_submission_date') or None
         submission = serializer.save()
         self._sync_status_log(submission, status_date_override=status_date_override, updated_by=employee)
+
+    # ── Per-status submission dates ──────────────────────────────────────────
+    # The submission dates are stored across two tables:
+    #   * Submissions.<main_table_field>  — for statuses that map to a column
+    #   * SubmissionStatusLog             — one (submission, status) -> date row
+    # This action exposes a dynamic, per-status view so the front-end can render
+    # one date field per status from the SubmissionStatus master and update them
+    # all at once. GET returns the merged dates; PATCH upserts them.
+
+    def _build_status_dates(self, submission):
+        statuses = SubmissionStatus.objects.filter(is_active=True).order_by('order')
+        logs = {log.status_id: log for log in submission.status_logs.all()}
+        result = []
+        for status in statuses:
+            log = logs.get(status.status_id)
+            if log:
+                status_date = log.status_date
+            elif status.main_table_field:
+                status_date = getattr(submission, status.main_table_field, None)
+            else:
+                status_date = None
+            result.append({
+                "status_id": status.status_id,
+                "status_name": status.status_name,
+                "order": status.order,
+                "main_table_field": status.main_table_field,
+                "status_date": status_date,
+            })
+        return result
+
+    def _recompute_current_status(self, submission, dated_statuses):
+        """Set current status to the furthest stage (highest order) that has a date."""
+        if dated_statuses:
+            furthest = max(dated_statuses, key=lambda s: s.order)
+            submission.current_new_status = furthest
+            submission.current_status = furthest.status_name
+
+    @transaction.atomic
+    def _save_status_dates(self, submission, status_dates, employee):
+        statuses = {s.status_id: s for s in SubmissionStatus.objects.filter(is_active=True)}
+        for status_id, date_val in status_dates.items():
+            try:
+                status = statuses[int(status_id)]
+            except (KeyError, TypeError, ValueError):
+                continue
+
+            date_val = date_val or None
+            if date_val:
+                SubmissionStatusLog.objects.update_or_create(
+                    submission=submission,
+                    status=status,
+                    defaults={"status_date": date_val, "updated_by": employee},
+                )
+                if status.main_table_field:
+                    setattr(submission, status.main_table_field, date_val)
+            else:
+                SubmissionStatusLog.objects.filter(submission=submission, status=status).delete()
+                # Only clear nullable columns — submission_date/am_sub_date are required.
+                if status.main_table_field:
+                    field = submission._meta.get_field(status.main_table_field)
+                    if field.null:
+                        setattr(submission, status.main_table_field, None)
+
+        # Recompute current status from whatever now has a date.
+        dated = [s for s in self._build_status_dates(submission) if s["status_date"]]
+        dated_statuses = [statuses[d["status_id"]] for d in dated if d["status_id"] in statuses]
+        self._recompute_current_status(submission, dated_statuses)
+        submission.save()
+
+    @action(detail=True, methods=["get", "patch"], url_path="status-dates")
+    def status_dates(self, request, pk=None):
+        submission = self.get_object()
+        if request.method.lower() == "patch":
+            employee = getattr(request.user, "employee", None)
+            status_dates = request.data.get("status_dates", {}) or {}
+            self._save_status_dates(submission, status_dates, employee)
+            submission.refresh_from_db()
+        return Response(self._build_status_dates(submission))
 
 class SubmissionHistoryViewSet(ReadOnlyModelViewSet):
     serializer_class = StatuslogSerializer
