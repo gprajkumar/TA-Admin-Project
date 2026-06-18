@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { FaEye, FaEdit, FaTrash,FaSearch } from "react-icons/fa";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { FaEye, FaEdit, FaTrash, FaSearch, FaBolt, FaCircle } from "react-icons/fa";
 import Modal from 'react-bootstrap/Modal';
 import "./RequirementForm.css"; // External CSS
 import "./AllRequirements.css";
@@ -21,6 +21,98 @@ import CustomAsyncSelect from "./sharedComponents/CustomAsyncSelect";
 import { formatDateMMDDYYYY } from "../services/helper";
 import useMasterDropdowns from "../services/customHooks/useMasterDropdowns";
 import useDebounce from "../services/customHooks/useDebounce";
+
+const PRIORITY_CONFIG = {
+  critical: { color: '#8B0000', label: 'Critical' },
+  high:     { color: '#F97316', label: 'High' },
+  medium:   { color: '#EAB308', label: 'Medium' },
+  low:      { color: '#22C55E', label: 'Low' },
+  none:     { color: '#9CA3AF', label: 'No Priority' },
+};
+
+const PRIORITY_ORDER = ['critical', 'high', 'medium', 'low', 'none'];
+
+const baseurl = import.meta.env.VITE_API_BASE_URL;
+
+function getDisplayPriority(req) {
+  return req.priority || 'none';
+}
+
+function PrioritySelector({ req, onUpdate, canEditPriority }) {
+  const [open, setOpen] = useState(false);
+  const [noEditMsg, setNoEditMsg] = useState(false);
+  const wrapperRef = useRef(null);
+  const displayKey = getDisplayPriority(req);
+  const config = PRIORITY_CONFIG[displayKey] || PRIORITY_CONFIG.none;
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const handleButtonClick = (e) => {
+    e.stopPropagation();
+    if (!canEditPriority) {
+      setNoEditMsg(true);
+      setTimeout(() => setNoEditMsg(false), 2500);
+      return;
+    }
+    setOpen((o) => !o);
+  };
+
+  const handleSelect = async (e, key) => {
+    e.stopPropagation();
+    setOpen(false);
+    const newPriority = key === 'none' ? null : key;
+    try {
+      await axiosInstance.patch(`${baseurl}/ta_team/requirements/${req.requirement_id}/`, { priority: newPriority });
+      onUpdate(req.requirement_id, newPriority);
+    } catch (err) {
+      console.error('Failed to update priority:', err);
+    }
+  };
+
+  return (
+    <span ref={wrapperRef} className="priority-wrapper" onClick={(e) => e.stopPropagation()}>
+      <button
+        className="priority-flag-btn"
+        style={{ color: config.color }}
+        title={`Priority: ${config.label}`}
+        onClick={handleButtonClick}
+      >
+        <FaBolt />
+      </button>
+      {noEditMsg && (
+        <div className="priority-no-access-msg">
+          You don't have edit access
+        </div>
+      )}
+      {open && (
+        <div className="priority-dropdown">
+          {PRIORITY_ORDER.map((key) => {
+            const cfg = PRIORITY_CONFIG[key];
+            const isActive = (req.priority ?? 'none') === key;
+            return (
+              <div
+                key={key}
+                className="priority-option"
+                style={{ fontWeight: isActive ? 600 : 400 }}
+                onClick={(e) => handleSelect(e, key)}
+              >
+                <FaCircle style={{ color: cfg.color, fontSize: '0.6rem' }} />
+                <span>{cfg.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </span>
+  );
+}
 
 // ── Pure helpers — no component dependencies, never recreated ─────────────────
 const normalizeData = (data, idKey, nameKey) =>
@@ -49,7 +141,6 @@ const AllRequirements = () => {
     [drop_down_permissions]
   );
 
-  const baseurl = import.meta.env.VITE_API_BASE_URL;
    const profileEmployee =  useSelector((state) => state.employee.employee_details);
     const profile_employee_id = profileEmployee ? profileEmployee.employee_id : null;
   const [selectedvalue, setSelectedvalue] = useState({
@@ -59,6 +150,7 @@ const AllRequirements = () => {
     end_client: [],
     client: [],
     account: [],
+    priority: [],
     assigned_recruiter: "",
     assigned_sourcer:  "",
     from_date:"",
@@ -116,7 +208,7 @@ setviewtype(false)
   if (window.confirm("Are you sure you want to delete this requirement?")) {
     try {
     
-  const response = await axiosInstance.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
+  await axiosInstance.delete(`${baseurl}/ta_team/requirements/${reqId}/`);
       await handleSearch();
     } catch (error) {
       console.error("Failed to delete requirement:", error);
@@ -124,6 +216,13 @@ setviewtype(false)
   }
 };
   const [filteredReqs, setfilteredReqs] = useState([]);
+
+  const handlePriorityUpdate = useCallback((reqId, newPriority) => {
+    setfilteredReqs((prev) =>
+      prev.map((r) => r.requirement_id === reqId ? { ...r, priority: newPriority } : r)
+    );
+  }, []);
+
   const [passData,setpassData] =  useState({});
   const [filterdropdowndata, setfilterdropdowndata] = useState({
     recruiters: [],
@@ -300,13 +399,13 @@ setviewtype(false)
     <div className="data-container">
  
       <Row>
-        <Col md={6}>
+        <Col md={5}>
           <Form.Group className="mb-3 " controlId="job">
             <Form.Label className="fs-6">Job:</Form.Label>
             <CustomAsyncSelect placeholder={"Search job by title or ID"} loadOptions={loadOptions} name="Job" onChange={handleChange}/>
           </Form.Group>
         </Col>
-        <Col md={3}>
+        <Col md={2}>
           <MultiSelect
             name="role_type"
             label="Job Type"
@@ -316,7 +415,7 @@ setviewtype(false)
             placeholder="Select Job Type"
           />
         </Col>
-        <Col md={3}>
+        <Col md={2}>
           <MultiSelect
             name="job_status"
             label="Job Status"
@@ -324,6 +423,16 @@ setviewtype(false)
             value={selectedvalue.job_status}
             onChange={handleChange}
             placeholder="Select Job Status"
+          />
+        </Col>
+        <Col md={3}>
+          <MultiSelect
+            name="priority"
+            label="Priority"
+            options={PRIORITY_ORDER.map((key) => ({ id: key, name: PRIORITY_CONFIG[key].label }))}
+            value={selectedvalue.priority}
+            onChange={handleChange}
+            placeholder="Select Priority"
           />
         </Col>
       </Row>
@@ -462,8 +571,19 @@ setviewtype(false)
         </Row>
       ) : filteredReqs.map((req) => (
         <Row key={req.requirement_id} className="data-row">
-          <Col className="col-job" onClick={() => handleShowSubmissions(req.requirement_id)}>
-            {`${req.job_code}- ${req.job_title}`}
+          <Col className="col-job">
+            <span className="col-job-inner">
+              <PrioritySelector
+                req={req}
+                onUpdate={handlePriorityUpdate}
+                canEditPriority={canEdit(drop_down_permissions, "requirements",
+                  (profile_employee_id === req.assigned_recruiter_id) || (profile_employee_id === req.assigned_sourcer_id)
+                )}
+              />
+              <span onClick={() => handleShowSubmissions(req.requirement_id)}>
+                {`${req.job_code}- ${req.job_title}`}
+              </span>
+            </span>
           </Col>
           <Col className="col-end-client">{formatDateMMDDYYYY(req.req_opened_date)}</Col>
           <Col className="col-client">{req.client_name}</Col>

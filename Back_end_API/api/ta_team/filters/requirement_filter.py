@@ -1,4 +1,5 @@
 import django_filters
+from django.db.models import Q
 from ..models.requirement import Requirements
 from ..models.submission import Submissions
 from ..models.tech_screen import Tech_Screen
@@ -11,10 +12,21 @@ class RequirementFilter(django_filters.FilterSet):
     job_status = django_filters.BaseInFilter(field_name="job_status__job_status_id", lookup_expr='in')
     role_type = django_filters.BaseInFilter(field_name="role_type__role_type_id", lookup_expr='in')
     account = django_filters.BaseInFilter(field_name="account__account_id", lookup_expr='in')
+    priority = django_filters.CharFilter(method='filter_priority')
+
+    def filter_priority(self, queryset, name, value):
+        values = [v.strip() for v in value.split(',') if v.strip()]
+        q = Q()
+        if 'none' in values:
+            q |= Q(priority__isnull=True) | Q(priority='')
+            values = [v for v in values if v != 'none']
+        if values:
+            q |= Q(priority__in=values)
+        return queryset.filter(q) if q else queryset
 
     class Meta:
         model = Requirements
-        fields = ["from_date", "to_date", "assigned_recruiter", "assigned_sourcer", "requirement_id", "end_client", "client", "job_status", "role_type", "account"]
+        fields = ["from_date", "to_date", "assigned_recruiter", "assigned_sourcer", "requirement_id", "end_client", "client", "job_status", "role_type", "account", "priority"]
 
 
 class SubmissionFilter(django_filters.FilterSet):

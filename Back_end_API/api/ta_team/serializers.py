@@ -37,7 +37,7 @@ class RequirementsSerializer(serializers.ModelSerializer):
             'accountManager', 'account_manager_name',
             'hiringManager', 'hiring_manager_name',
             'notes', 'created_at', 'updated_at', 'role_type', 'role_type_name','no_of_positions','no_of_positions_filled','filled_date','created_by',
-            'client_sub_count', 'client_interview_count', 'rejected_count'
+            'client_sub_count', 'client_interview_count', 'rejected_count', 'priority'
         ]
 
     def get_client_sub_count(self, obj):

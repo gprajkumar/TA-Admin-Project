@@ -120,8 +120,23 @@ def has_own_permission(user, module_code, own_action, obj, owner_field=None, own
     return False
 
 
+# Any of these capabilities implies the ability to view the module. Mirrors the
+# frontend hierarchy in services/utilities/rbac.js so backend and UI agree:
+# if you can edit/delete (all or own data), you can also view.
+_VIEW_IMPLYING = ("view", "edit", "delete", "edit_own_data", "delete_own_data")
+
+
 def can_view(user, module_code):
-    return has_module_permission(user, module_code, "view")
+    if not user or not user.is_authenticated:
+        return False
+
+    module_code = _normalize_module_code(module_code)
+    perms = get_user_permission_set(user)
+
+    if f"{module_code}:full_access" in perms:
+        return True
+
+    return any(f"{module_code}:{p}" in perms for p in _VIEW_IMPLYING)
 
 
 def can_edit(user, module_code, obj=None, owner_field=None, owner_check=None):

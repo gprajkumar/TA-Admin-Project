@@ -66,7 +66,7 @@ class RequirementsViewSet(ModelViewSet):
             # Requirements own fields
             'requirement_id', 'job_code', 'job_title', 'req_opened_date',
             'notes', 'created_at', 'updated_at', 'no_of_positions',
-            'no_of_positions_filled', 'filled_date', 'created_by_id',
+            'no_of_positions_filled', 'filled_date', 'created_by_id', 'priority',
             # FK ids (needed by DRF to serialise the FK integer fields)
             'client_id', 'end_client_id', 'account_id', 'job_status_id',
             'assigned_recruiter_id', 'assigned_sourcer_id',

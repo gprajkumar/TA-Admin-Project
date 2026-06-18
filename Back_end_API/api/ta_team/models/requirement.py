@@ -29,6 +29,14 @@ class Requirements(models.Model):
     no_of_positions_filled = models.IntegerField(blank=True, null=True)
     created_by = models.ForeignKey(Employee, related_name='req_created_by', on_delete=models.CASCADE, null=True)
 
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('critical', 'Critical'),
+    ]
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, null=True, blank=True)
+
     class Meta:
         indexes = [
             models.Index(fields=["req_opened_date"]),
