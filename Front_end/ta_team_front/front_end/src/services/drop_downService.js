@@ -112,6 +112,7 @@ const fetcchSubmissionsbyReq = async (reqid) =>
         job_status: filterParams.job_status,
         role_type: filterParams.role_type,
         account: filterParams.account,
+        hiring_manager: filterParams.hiring_manager,
         priority: filterParams.priority,
         assigned_recruiter: filterParams.assigned_recruiter,
         assigned_sourcer: filterParams.assigned_sourcer,

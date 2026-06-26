@@ -13,6 +13,7 @@ class RequirementFilter(django_filters.FilterSet):
     role_type = django_filters.BaseInFilter(field_name="role_type__role_type_id", lookup_expr='in')
     account = django_filters.BaseInFilter(field_name="account__account_id", lookup_expr='in')
     priority = django_filters.CharFilter(method='filter_priority')
+    hiring_manager = django_filters.BaseInFilter(field_name="hiringManager__hiring_manager_id", lookup_expr='in')
 
     def filter_priority(self, queryset, name, value):
         values = [v.strip() for v in value.split(',') if v.strip()]
@@ -26,7 +27,7 @@ class RequirementFilter(django_filters.FilterSet):
 
     class Meta:
         model = Requirements
-        fields = ["from_date", "to_date", "assigned_recruiter", "assigned_sourcer", "requirement_id", "end_client", "client", "job_status", "role_type", "account", "priority"]
+        fields = ["from_date", "to_date", "assigned_recruiter", "assigned_sourcer", "requirement_id", "end_client", "client", "job_status", "role_type", "account", "priority", "hiring_manager"]
 
 
 class SubmissionFilter(django_filters.FilterSet):

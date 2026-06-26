@@ -134,6 +134,7 @@ const AllRequirements = () => {
     drop_down_employees,
     drop_down_permissions,
     drop_down_accounts,
+    drop_down_hiringManagers,
   } = useMasterDropdowns();
 
   const canView = useMemo(
@@ -151,6 +152,7 @@ const AllRequirements = () => {
     client: [],
     account: [],
     priority: [],
+    hiring_manager: [],
     assigned_recruiter: "",
     assigned_sourcer:  "",
     from_date:"",
@@ -232,6 +234,7 @@ setviewtype(false)
     roletypes: [],
     endClients: [],
     accounts: [],
+    hiringManagers: [],
   });
   const debouncedFilters = useDebounce(selectedvalue, 400);
 
@@ -272,6 +275,7 @@ setviewtype(false)
     try {
       const cleanFilters = buildCleanFilters(1);
       const paginatedfilteredData = await getFilteredJobs(cleanFilters);
+      console.log("Fetched filtered jobs:", cleanFilters); // Debug log
       const totalPages = Math.ceil(paginatedfilteredData.count / 25);
       setPaginationData({
         totalpages: totalPages,
@@ -303,8 +307,9 @@ setviewtype(false)
       sourcers: normalizeAndSort(sourcers, "employee_id", "emp_fName"),
       roletypes: normalizeAndSort(drop_down_roleTypes, "role_type_id", "role_type"),
       accounts: normalizeAndSort(drop_down_accounts || [], "account_id", "account_name"),
+      hiringManagers: normalizeAndSort(drop_down_hiringManagers || [], "hiring_manager_id", "hiring_manager"),
     });
-  }, [drop_down_clients, drop_down_endClients, drop_down_jobStatus, drop_down_employees, drop_down_roleTypes, drop_down_accounts]);
+  }, [drop_down_clients, drop_down_endClients, drop_down_jobStatus, drop_down_employees, drop_down_roleTypes, drop_down_accounts, drop_down_hiringManagers]);
 
   const [paginationData, setPaginationData] = useState(
     {
@@ -468,7 +473,20 @@ setviewtype(false)
           />
         </Col>
        
-        <Col md={3}>
+         <Col md={3}>
+          <MultiSelect
+            name="hiring_manager"
+            label="Hiring Manager"
+            options={filterdropdowndata.hiringManagers}
+            value={selectedvalue.hiring_manager}
+            onChange={handleChange}
+            placeholder="Select Hiring Manager"
+          />
+        </Col>
+      
+      </Row>
+      <Row>
+          <Col md={2}>
           <Form.Group className="mb-3 " controlId="recruiter">
             <Form.Label className="fs-6">Assigned Recruiter:</Form.Label>
             {renderSelect(
@@ -478,9 +496,7 @@ setviewtype(false)
             )}
           </Form.Group>
         </Col>
-      </Row>
-      <Row>
-        <Col md={3}>
+        <Col md={2}>
           <Form.Group className="mb-3" controlId="sourcer">
             <Form.Label className="fs-6">Assigned Sourcer:</Form.Label>
             {renderSelect(
@@ -517,7 +533,7 @@ setviewtype(false)
     </Form.Group>
   </Col>
 
-  <Col md={2} className="d-flex align-items-center">
+  <Col md={1} className="d-flex align-items-center">
     <button
       className="search-button"
       aria-label="Search"
@@ -553,8 +569,9 @@ setviewtype(false)
         <Col className="col-job-title">Job</Col>
         <Col className="col-end-client">Job Opened Date</Col>
         <Col className="col-client">Client</Col>
+        <Col className="col-hiring-manager">Hiring Manager</Col>
         <Col className="col-recruiter">Recruiter</Col>
-        <Col className="col-sourcer">Sourcer</Col>
+        {/* <Col className="col-sourcer">Sourcer</Col> */}
         <Col className="col-job-type">Job Type</Col>
         <Col className="col-job-status">Job Status</Col>
         <Col className="col-candidate-status">Candidates</Col>
@@ -587,8 +604,9 @@ setviewtype(false)
           </Col>
           <Col className="col-end-client">{formatDateMMDDYYYY(req.req_opened_date)}</Col>
           <Col className="col-client">{req.client_name}</Col>
+          <Col className="col-hiring-manager">{req.hiring_manager_name}</Col>
           <Col className="col-recruiter">{req.assigned_recruiter_name}</Col>
-          <Col className="col-sourcer">{req.assigned_sourcer_name}</Col>
+          {/* <Col className="col-sourcer">{req.assigned_sourcer_name}</Col> */}
           <Col className="col-job-type">{req.role_type_name}</Col>
           <Col className="col-job-status">{req.job_status_name}</Col>
           <Col className="col-candidate-status">
