@@ -1,0 +1,313 @@
+/* ============================================================
+   TA Team — Design tokens & global theme
+   Loaded after bootstrap.min.css so overrides here win.
+   Palette is the existing brand: deep green #045533,
+   violet accent #9608e9, teal #1abc9c, on light surfaces.
+   ============================================================ */
+
+:root {
+  /* Brand greens */
+  --green-950: #02170f;
+  --green-900: #032a1a;
+  --green-800: #034428;
+  --brand: #045533;
+  --green-600: #06794b;
+  --green-500: #0a9560;
+  --green-200: #bfe5d2;
+  --green-100: #ddf1e6;
+  --green-50: #eff8f3;
+
+  /* Violet accent (existing #9608e9) */
+  --accent: #9608e9;
+  --accent-600: #7d06c4;
+  --accent-100: #f0defc;
+  --accent-50: #f9f1fe;
+
+  /* Supporting hues already in the app */
+  --teal: #1abc9c;
+  --teal-600: #16a085;
+  --link: #007bff;
+  --link-hover: #0056b3;
+  --danger: #dc3545;
+  --danger-soft: #ffebee;
+  --warning: #f1c40f;
+  --success: #27ae60;
+
+  /* Ink (green-tinted neutrals) */
+  --ink-900: #131f19;
+  --ink-700: #33463d;
+  --ink-500: #5c6f66;
+  --ink-300: #9aaaa2;
+
+  /* Surfaces */
+  --surface: #f4f7f5;
+  --card: #ffffff;
+  --line: #e3eae6;
+  --line-strong: #cddad2;
+
+  /* Typography */
+  --font-display: "Sora", "Hanken Grotesk", sans-serif;
+  --font-body: "Hanken Grotesk", "Segoe UI", sans-serif;
+
+  /* Shape & depth */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+  --shadow-xs: 0 1px 2px rgba(4, 85, 51, 0.06);
+  --shadow-sm: 0 2px 8px rgba(4, 85, 51, 0.08);
+  --shadow-md: 0 8px 24px rgba(4, 85, 51, 0.10);
+  --shadow-lg: 0 16px 48px rgba(4, 85, 51, 0.14);
+  --focus-ring: 0 0 0 3px rgba(6, 121, 75, 0.22);
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- Base ---------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink-900);
+  background-color: var(--surface);
+  background-image:
+    radial-gradient(1100px 420px at 85% -180px, rgba(4, 85, 51, 0.07), transparent 65%),
+    radial-gradient(800px 360px at -140px -120px, rgba(150, 8, 233, 0.05), transparent 60%);
+  background-repeat: no-repeat;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6,
+.modal-title, .navbar-brand, .card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink-900);
+}
+
+::selection {
+  background: var(--green-100);
+  color: var(--green-900);
+}
+
+/* Slim brand scrollbar */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: var(--r-pill);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background-color: var(--green-600); background-clip: content-box; }
+
+/* ---------- Bootstrap: buttons ---------- */
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  border-radius: var(--r-sm);
+  transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease),
+    box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn-primary,
+.btn-success {
+  --bs-btn-bg: var(--brand);
+  --bs-btn-border-color: var(--brand);
+  --bs-btn-hover-bg: var(--green-600);
+  --bs-btn-hover-border-color: var(--green-600);
+  --bs-btn-active-bg: var(--green-800);
+  --bs-btn-active-border-color: var(--green-800);
+  --bs-btn-disabled-bg: var(--green-200);
+  --bs-btn-disabled-border-color: var(--green-200);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-outline-primary,
+.btn-outline-success {
+  --bs-btn-color: var(--brand);
+  --bs-btn-border-color: var(--green-200);
+  --bs-btn-hover-bg: var(--green-50);
+  --bs-btn-hover-color: var(--green-800);
+  --bs-btn-hover-border-color: var(--brand);
+  --bs-btn-active-bg: var(--green-100);
+  --bs-btn-active-color: var(--green-900);
+  --bs-btn-active-border-color: var(--brand);
+}
+
+.btn:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  box-shadow: var(--focus-ring);
+}
+
+/* ---------- Bootstrap: forms ---------- */
+
+.form-label { font-weight: 600; color: var(--ink-700); }
+
+.form-control,
+.form-select {
+  border-radius: var(--r-sm);
+  border-color: var(--line-strong);
+  color: var(--ink-900);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.form-control::placeholder { color: var(--ink-300); }
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--green-600);
+}
+
+.form-check-input:checked {
+  background-color: var(--brand);
+  border-color: var(--brand);
+}
+
+/* ---------- Bootstrap: cards, modals, dropdowns ---------- */
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.modal-content {
+  border: none;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, var(--green-900), var(--brand));
+  color: #fff;
+  border-bottom: none;
+  padding: 14px 22px;
+}
+
+.modal-header .modal-title { color: #fff; }
+.modal-header .btn-close { filter: invert(1) grayscale(1) brightness(1.6); }
+
+.modal-backdrop.show { opacity: 0.45; }
+
+.dropdown-menu {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+}
+
+.dropdown-menu .dropdown-item {
+  border-radius: var(--r-sm);
+  transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+/* ---------- Bootstrap: tables & pagination ---------- */
+
+.table thead th {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.pagination {
+  --bs-pagination-color: var(--brand);
+  --bs-pagination-hover-color: var(--green-800);
+  --bs-pagination-hover-bg: var(--green-50);
+  --bs-pagination-focus-color: var(--green-800);
+  --bs-pagination-focus-bg: var(--green-50);
+  --bs-pagination-focus-box-shadow: var(--focus-ring);
+  --bs-pagination-active-bg: var(--brand);
+  --bs-pagination-active-border-color: var(--brand);
+}
+
+/* ---------- Page-load reveal ---------- */
+
+@keyframes theme-rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .data-container,
+  .requirement-form,
+  .view-form-container,
+  .dashboard-container,
+  .login-card,
+  .ta-hero {
+    animation: theme-rise-in 0.45s var(--ease) both;
+  }
+}
+
+/* ---------- Liveness: lightweight micro-interactions ----------
+   Transform/opacity only (GPU-composited), short durations,
+   all gated behind prefers-reduced-motion. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Buttons lift a hair on hover, settle on press */
+  .btn:not(:disabled):hover { transform: translateY(-1px); }
+
+  /* Cards float up gently */
+  .card {
+    transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Dropdown menus pop in (navbar has its own max-height reveal) */
+  @keyframes theme-pop-down {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .dropdown-menu.show { animation: theme-pop-down 0.2s var(--ease); }
+  .custom-navbar .dropdown-menu.show { animation: none; }
+
+  /* Modals scale in softly on top of Bootstrap's fade */
+  .modal.fade .modal-dialog {
+    transform: translateY(12px) scale(0.985);
+    transition: transform 0.3s var(--ease);
+  }
+  .modal.fade.show .modal-dialog { transform: none; }
+
+  /* Hero copy reveals in sequence */
+  .ta-hero h1,
+  .ta-hero p,
+  .ta-hero button {
+    animation: theme-rise-in 0.5s var(--ease) both;
+  }
+  .ta-hero p { animation-delay: 0.1s; }
+  .ta-hero button { animation-delay: 0.2s; }
+
+  /* Feature cards & dashboard scorecards cascade in */
+  .ta-features .ta-card,
+  .scorecard {
+    animation: theme-rise-in 0.4s var(--ease) both;
+  }
+  .ta-features .ta-card:nth-child(2), .scorecard:nth-child(2) { animation-delay: 0.06s; }
+  .ta-features .ta-card:nth-child(3), .scorecard:nth-child(3) { animation-delay: 0.12s; }
+  .ta-features .ta-card:nth-child(4), .scorecard:nth-child(4) { animation-delay: 0.18s; }
+  .ta-features .ta-card:nth-child(5), .scorecard:nth-child(5) { animation-delay: 0.24s; }
+  .ta-features .ta-card:nth-child(n + 6), .scorecard:nth-child(n + 6) { animation-delay: 0.3s; }
+
+  /* List rows fade up with a slight stagger, capped so long
+     lists never feel slow */
+  .data-row { animation: theme-rise-in 0.3s var(--ease) both; }
+  .data-row:nth-child(2) { animation-delay: 0.03s; }
+  .data-row:nth-child(3) { animation-delay: 0.06s; }
+  .data-row:nth-child(4) { animation-delay: 0.09s; }
+  .data-row:nth-child(5) { animation-delay: 0.12s; }
+  .data-row:nth-child(6) { animation-delay: 0.15s; }
+  .data-row:nth-child(n + 7) { animation-delay: 0.18s; }
+}

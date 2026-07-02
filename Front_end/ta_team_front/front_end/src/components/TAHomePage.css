@@ -1,60 +1,75 @@
 /* Container */
 .ta-container {
-  background-color: #f9f9f9;
-  color: #222;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--surface);
+  color: var(--ink-900);
+  font-family: var(--font-body);
   min-height: 100vh;
   overflow-x: hidden;
 }
 
 /* Hero Section */
 .ta-hero {
-  background-color: #ffffff;
-  color: #045533;
-  padding: 80px 30px 50px;
+  position: relative;
+  background:
+    radial-gradient(700px 320px at 15% -80px, var(--green-100), transparent 70%),
+    radial-gradient(600px 300px at 90% 0px, var(--accent-50), transparent 70%),
+    #ffffff;
+  color: var(--brand);
+  padding: 90px 30px 60px;
   text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--line);
 }
 
 .ta-hero h1 {
-  font-size: 3rem;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin-bottom: 20px;
-  color: #045533;
+  background: linear-gradient(120deg, var(--green-900), var(--brand) 55%, var(--green-600));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .ta-hero p {
   font-size: 1.2rem;
-  color: #444;
+  color: var(--ink-700);
   max-width: 800px;
   margin: 0 auto 30px;
 }
 
 .ta-hero button {
-  padding: 12px 28px;
-  background-color: #045533;
+  padding: 13px 32px;
+  background-color: var(--brand);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-weight: bold;
+  border-radius: var(--r-pill);
+  font-weight: 700;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-md);
+  transition: background-color 0.25s var(--ease), transform 0.2s var(--ease),
+    box-shadow 0.25s var(--ease);
 }
 
 .ta-hero button:hover {
-  background-color: #9608e9;
-  transform: scale(1.05);
+  background-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(150, 8, 233, 0.3);
 }
 
 /* Section Title */
 .ta-section {
-  padding: 60px 20px 40px;
+  padding: 70px 20px 50px;
   text-align: center;
-  background-color: #f0f4f7;
+  background-color: var(--surface);
 }
 
 .ta-section h2 {
+  font-family: var(--font-display);
   font-size: 2rem;
-  color: #045533;
+  letter-spacing: -0.02em;
+  color: var(--brand);
   margin-bottom: 40px;
 }
 
@@ -67,47 +82,56 @@
 }
 
 .ta-card {
-  background-color: #ffffff;
-  border-radius: 12px;
+  background-color: var(--card);
+  border-radius: var(--r-lg);
   width: 280px;
-  padding: 24px;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  padding: 28px 24px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease),
+    border-color 0.25s var(--ease);
 }
 
 .ta-card:hover {
   transform: translateY(-6px);
-  border-color: #9608e9;
-  box-shadow: 0 4px 20px rgba(150, 8, 233, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 14px 34px rgba(150, 8, 233, 0.14);
 }
 
 .ta-card h3 {
-  font-size: 1.4rem;
-  color: #045533;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--brand);
   margin-bottom: 10px;
 }
 
 .ta-card p {
-  color: #555;
+  color: var(--ink-500);
   font-size: 1rem;
 }
 
 /* Mission */
 .ta-mission {
-  padding: 60px 20px;
-  background-color: #e8f5e9;
+  padding: 70px 20px;
+  background:
+    radial-gradient(500px 240px at 85% 20%, rgba(150, 8, 233, 0.06), transparent 70%),
+    var(--green-50);
   text-align: center;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 
 .ta-mission h2 {
+  font-family: var(--font-display);
   font-size: 2rem;
-  color: #045533;
+  letter-spacing: -0.02em;
+  color: var(--brand);
   margin-bottom: 20px;
 }
 
 .ta-mission p {
-  color: #333;
+  color: var(--ink-700);
   font-size: 1.1rem;
   max-width: 750px;
   margin: 0 auto;
@@ -115,10 +139,9 @@
 
 /* Footer */
 .ta-footer {
-  background-color: #f0f0f0;
-  color: #666;
+  background-color: var(--green-950);
+  color: var(--green-200);
   text-align: center;
-  padding: 20px 10px;
+  padding: 24px 10px;
   font-size: 0.95rem;
-  border-top: 1px solid #ccc;
 }

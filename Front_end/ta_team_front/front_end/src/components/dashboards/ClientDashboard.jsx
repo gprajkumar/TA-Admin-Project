@@ -14,6 +14,11 @@ import {
 } from "../../services/helper";
 import ScoreCard from "./ScoreCard.jsx";
 import MultiSelect from "../sharedComponents/MultiSelect.jsx";
+import {
+  ScoreCardRowSkeleton,
+  TableSkeleton,
+  ChartSkeleton,
+} from "../sharedComponents/Skeleton.jsx";
 
 const ClientDashboard = () => {
     const [barChartData, setBarChartData] = useState({
@@ -126,7 +131,10 @@ return toPercentage(
   
   
     
+  const [loading, setLoading] = useState(true);
+
   const handleFilterSearch = async (data = selectedData, filter = activeFilter) => {
+    setLoading(true);
     try {
       const res = await getDashboardAllData({ ...data, filter_type: filter });
       setBarChartData({
@@ -140,6 +148,8 @@ return toPercentage(
       setcarryforwardChartData(res.carry_forward_data || []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
     }
   };
      
@@ -305,6 +315,23 @@ if(!canViewDashboard()){
 
       <div className="dashboard_area">
         <div className="dashboard">
+          {loading ? (
+            <>
+              <div className="submissions-scorecard-layout">
+                <ScoreCardRowSkeleton className="row-1" />
+                <ScoreCardRowSkeleton className="row-2" />
+                <ScoreCardRowSkeleton className="row-3" />
+              </div>
+              <TableSkeleton rows={6} cols={10} withTitle className="metrics-table-wrapper grouped-data-table" />
+              <ChartSkeleton className="chart-box-primary" />
+              <ChartSkeleton className="chart-box-primary" />
+              <ChartSkeleton variant="pie" className="chart-box" />
+              <ChartSkeleton variant="pie" className="chart-box" />
+              <ChartSkeleton className="chart-box" />
+              <ChartSkeleton className="chart-box-primary" />
+            </>
+          ) : (
+            <>
           <div className="submissions-scorecard-layout">
   
   <div className="scorecard-row row-1">
@@ -414,9 +441,10 @@ if(!canViewDashboard()){
               xaxis={ activeFilter === "account" ? "account_name" : "end_client_name"}
               datakeys={["avg_turnaround_time"]} chartTitle={"Average Turnaround Time"}
             />
-          
+
           </div>
-          
+            </>
+          )}
         </div>
       </div>
     </div>

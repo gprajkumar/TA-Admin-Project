@@ -10,8 +10,8 @@
   height: 60px;
   border-radius: 50%;
   border: 6px solid transparent;
-  border-top: 6px solid #09b120;
-  border-right: 6px solid #32ec79;
+  border-top: 6px solid var(--brand);
+  border-right: 6px solid var(--teal);
   animation: spin 1s linear infinite;
   position: relative;
 }

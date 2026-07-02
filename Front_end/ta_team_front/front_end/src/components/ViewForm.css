@@ -1,19 +1,20 @@
 .view-form-container {
   max-width: 700px;
   margin: 20px auto;
-  padding: 20px;
-  background: #f9faff;
-  border-radius: 10px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-body);
+  color: var(--ink-900);
 }
 
 .view-row {
   display: flex;
   margin-bottom: 15px;
   align-items: center;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--line);
   padding-bottom: 10px;
 }
 
@@ -33,14 +34,14 @@
 .view-row > [class*="col-"]:nth-child(odd),
 .view-row > .col:nth-child(odd) {
   font-weight: 600;
-  color: #444;
+  color: var(--ink-500);
   user-select: none;
 }
 
 /* value */
 .view-row > [class*="col-"]:nth-child(even),
 .view-row > .col:nth-child(even) {
-  color: #007bff;
+  color: var(--brand);
   font-weight: 500;
 }
 

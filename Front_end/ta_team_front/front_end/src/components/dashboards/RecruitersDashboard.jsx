@@ -14,6 +14,7 @@ import {
 import "./Dashboard.css";
 import MultiSelectComponent from "../sharedComponents/MultiSelectComponent.jsx";
 import { TargetIconComponent } from '../sharedComponents/TargetIconComponent.jsx';
+import { TableSkeleton } from "../sharedComponents/Skeleton.jsx";
 const RecruitersDashboard = ({team="Recruiter"}) => {
    const AccountData = useSelector((state) => state.master_dropdown.accounts);
     const endClientData = useSelector((state) => state.master_dropdown.endClients);
@@ -157,10 +158,17 @@ const getTopRecruiters = useMemo(()=>{
   return [];
 },[recruiterSubmissionDetails])
 
-const handleFilterSearch = () => {
-
-  recruitersSubmissions(selectedData);
-  recruiterAssignedtat(selectedData);
+const [loading, setLoading] = useState(true);
+const handleFilterSearch = async () => {
+  setLoading(true);
+  try {
+    await Promise.all([
+      recruitersSubmissions(selectedData),
+      recruiterAssignedtat(selectedData),
+    ]);
+  } finally {
+    setLoading(false);
+  }
 }
 useEffect(()=>{
   handleFilterSearch()
@@ -281,6 +289,17 @@ useEffect(()=>{
 
 <div className="dashboard-container">
   <div className="tables-layout">
+      {loading ? (
+        <>
+          <TableSkeleton rows={14} cols={9} className="metrics-table-wrapper table-left" />
+          <div className="tables-right">
+            <TableSkeleton rows={7} cols={7} withTitle className="metrics-table-wrapper table-right" />
+            <TableSkeleton rows={7} cols={7} withTitle className="metrics-table-wrapper table-right" />
+          </div>
+          <TableSkeleton rows={6} cols={4} />
+        </>
+      ) : (
+        <>
         {/* LEFT (500px) */}
         <div className="metrics-table-wrapper table-left">
           <div className="metrics-table-scroll">
@@ -408,9 +427,10 @@ useEffect(()=>{
           </table>
           </div>
         </div>
-
+        </>
+      )}
       </div>
-      </div> 
+      </div>
 </div>
      
           )
