@@ -211,6 +211,7 @@ useEffect(()=>{
         />
       )}
     
+      <div className="filter-panel">
       <Row className="filter_Container">
         <Col md={2} className="filterbox">
           <FaFilter size={20} style={{ marginRight: "8px", color: "white" }} />
@@ -226,12 +227,12 @@ useEffect(()=>{
   setActiveFilter(newFilter);
   setSelectedData((prev) => ({
     ...prev,
-    accounts:[0], 
+    accounts:[0],
     endclients:[0],
     filter_type: newFilter,  // keep in sync
   }));
 }
-              
+
               }
             />
           </Form.Group>
@@ -268,19 +269,18 @@ useEffect(()=>{
             ? <MultiSelectComponent name={"accounts"} label={"Account"} options={filterdropdowndata.AccountData} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>
             :<MultiSelectComponent name={"endclients"} label={"End Client"} options={filterdropdowndata.endClientData} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>}
         </Col>
-       
+
          <Col md={2}>
           <button
             className="btn btn-primary" onClick={handleFilterSearch}>Filter</button>
         </Col>
       </Row>
       <Row  className="filter_Container">
-        <Col md={2}></Col>
-        <Col md={2}></Col>
-         <Col md={4}>
+        <Col md={4} className="offset-md-4">
         <MultiSelectComponent name ={"recruiters"} label={team === "Recruiter" ? "Recruiters" : "Sourcers"} options={filterdropdowndata.Recruiters} selectedData={selectedData} errors={errors} viewtype={viewtype} handleChange={handleChange}/>
         </Col>
       </Row>
+      </div>
    <div>
  </div>
    

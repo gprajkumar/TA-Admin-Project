@@ -17,16 +17,32 @@
   font-size: 1rem;
   padding: 4px 4px;
 }
-.filter_Container {
+/* Panel wraps every filter_Container row so the gradient, shadow, and
+   rounded corners belong to the whole group instead of each row —
+   applying radius per-row cut visible corner notches where a second
+   stacked row also picked up top-rounding meant for the panel's top. */
+.filter-panel {
   width: 90%;
-  margin: auto;
+  margin: 0 auto 20px;
+  background: linear-gradient(120deg, var(--green-900), var(--green-600));
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  padding: 6px 0 16px;
+}
+
+.filter_Container {
+  width: 100%;
+  margin: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-top: 10px;
+  padding: 14px 24px 0;
+}
 
-  background: linear-gradient(120deg, var(--green-900), var(--green-600));
-  border-radius: var(--r-md) var(--r-md) 0 0;
+.filter_Container + .filter_Container {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 .metrics-table-scroll {
   overflow: auto;

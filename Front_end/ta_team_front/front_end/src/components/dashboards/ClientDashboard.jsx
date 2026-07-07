@@ -137,6 +137,7 @@ return toPercentage(
     setLoading(true);
     try {
       const res = await getDashboardAllData({ ...data, filter_type: filter });
+      console.log(res)
       setBarChartData({
         overall_data: res.total_data || {},
         grouped_data: res.grouped_data || [],
@@ -236,6 +237,7 @@ if(!canViewDashboard()){
           title="Success"
         />
       )}
+      <div className="filter-panel">
       <Row className="filter_Container">
         <Col md={2} className="filterbox">
           <FaFilter size={20} style={{ marginRight: "8px", color: "white" }} />
@@ -312,6 +314,7 @@ if(!canViewDashboard()){
             className="btn btn-primary" onClick={() => handleFilterSearch()}>Filter</button>
         </Col>
       </Row>
+      </div>
 
       <div className="dashboard_area">
         <div className="dashboard">
